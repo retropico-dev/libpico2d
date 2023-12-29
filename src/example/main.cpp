@@ -21,11 +21,12 @@
 #include "text.h"
 #include "bitmap.h"
 #include "bitmaps/monster.h"
+#include "tweeny.h"
 
 using namespace mb;
 
 int main() {
-    Clock clock;
+    Clock clock, deltaClock;
     int frames = 0;
 
     auto platform = new MBPlatform(true);
@@ -44,7 +45,17 @@ int main() {
     text->setOrigin(Widget::Origin::Center);
     platform->add(text);
 
+    auto tween = tweeny::from(bitmap->getPosition().x)
+            .to(platform->getDisplay()->getSize().x)
+            .during(5 * 1000);
+
+    deltaClock.restart();
+
     while (platform->loop(true)) {
+
+        int16_t x = tween.step((int32_t) deltaClock.restart().asMilliseconds(), true);
+        bitmap->setPosition(x, bitmap->getPosition().y);
+
         // fps
         if (clock.getElapsedTime().asSeconds() >= 1) {
             auto percent = (uint16_t) (((float) Utility::getUsedHeap() / (float) Utility::getTotalHeap()) * 100);

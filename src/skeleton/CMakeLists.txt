@@ -31,6 +31,9 @@ if (PICO_STDIO_UART)
     list(APPEND PLATFORM_FLAGS -DPICO_STDIO_UART)
 endif ()
 
+# tweeny
+add_subdirectory(${CMAKE_SOURCE_DIR}/external/tweeny tweeny)
+
 if (PLATFORM_LINUX)
     file(GLOB_RECURSE TEMP ${CMAKE_CURRENT_SOURCE_DIR}/platforms/linux/*.c*)
     list(APPEND PLATFORM_SOURCES ${TEMP})
@@ -90,7 +93,7 @@ endif ()
 add_library(pico2d-skeleton ${PLATFORM_SOURCES})
 target_include_directories(pico2d-skeleton PUBLIC ${PLATFORM_INCLUDES})
 target_compile_definitions(pico2d-skeleton PUBLIC ${PLATFORM_FLAGS})
-target_link_libraries(pico2d-skeleton ${PLATFORM_LIBS})
+target_link_libraries(pico2d-skeleton ${PLATFORM_LIBS} tweeny)
 if (NOT PLATFORM_LINUX)
     if (PICO_DISPLAY_ST7789_PIO)
         pico_generate_pio_header(pico2d-skeleton

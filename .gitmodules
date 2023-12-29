@@ -4,3 +4,6 @@
 [submodule "external/no-OS-FatFS-SD-SPI-RPi-Pico"]
 	path = external/no-OS-FatFS-SD-SPI-RPi-Pico
 	url = https://github.com/carlk3/no-OS-FatFS-SD-SPI-RPi-Pico.git
+[submodule "external/tweeny"]
+	path = external/tweeny
+	url = https://github.com/mobius3/tweeny.git
