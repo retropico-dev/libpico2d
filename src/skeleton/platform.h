@@ -16,15 +16,7 @@
 namespace mb {
     class Platform {
     public:
-        enum RebootTarget {
-            Auto,
-            Ui,
-            Nes,
-            Gb,
-            Sms
-        };
-
-        explicit Platform(bool useDoubleBufferDisplay = false, bool maxOc = false) {}
+        explicit Platform(bool useDoubleBufferDisplay = false, bool overclock = false) {}
 
         virtual ~Platform() {
             printf("~Platform()\n");
@@ -42,7 +34,7 @@ namespace mb {
 
         Io *getIo() { return p_io; };
 
-        virtual void reboot(const Platform::RebootTarget &target) {};
+        virtual void reboot() {};
 
     protected:
         Display *p_display = nullptr;

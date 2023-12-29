@@ -43,8 +43,8 @@ PicoPlatform::PicoPlatform(bool useDoubleBufferDisplay, bool maxOc) : Platform()
     p_io = new PicoIo();
 }
 
-void PicoPlatform::reboot(const Platform::RebootTarget &target) {
-    printf("PicoPlatform::reboot: %i\r\n", target);
+void PicoPlatform::reboot() {
+    printf("PicoPlatform::reboot\r\n");
 
     // clean screen
     p_display->clear();

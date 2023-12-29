@@ -2,15 +2,11 @@
 // Created by cpasjuste on 14/06/23.
 //
 
-#ifndef MICROBOY_UI_H
-#define MICROBOY_UI_H
+#ifndef PICO2D_UI_H
+#define PICO2D_UI_H
 
 #include <vector>
 #include "rectangle.h"
-#include "filer.h"
-#include "menu.h"
-#include "settings.h"
-#include "infobox.h"
 
 #define UI_FONT_HEIGHT 16
 
@@ -33,15 +29,7 @@ namespace mb {
 
         explicit Ui(Platform *platform);
 
-        bool loop(bool force = false);
-
-        Filer *getFiler() { return p_filer; }
-
-        Menu *getMenu() { return p_menu; }
-
-        Settings *getSettings() { return p_settings; }
-
-        InfoBox *getInfoBox() { return p_infoBox; }
+        bool loop(bool forceDraw = false);
 
         static Ui *getInstance();
 
@@ -51,14 +39,10 @@ namespace mb {
 
     private:
         Platform *p_platform;
-        Filer *p_filer;
-        Menu *p_menu;
-        Settings *p_settings;
-        InfoBox *p_infoBox;
         // auto-repeat
         uint16_t m_buttons_old = 0;
         Clock m_repeat_clock{};
     };
 }
 
-#endif //MICROBOY_UI_H
+#endif //PICO2D_UI_H

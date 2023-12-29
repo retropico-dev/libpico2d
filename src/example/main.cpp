@@ -18,7 +18,8 @@
  */
 
 #include "platform.h"
-#include "ui.h"
+#include "ui/ui.h"
+#include "text.h"
 
 using namespace mb;
 
@@ -29,7 +30,14 @@ int main() {
     auto platform = new MBPlatform(true);
     auto ui = new Ui(platform);
 
-    while (ui->loop()) {
+    auto text = new Text(ui->getSize().x / 2, ui->getSize().y / 2, "Hello World");
+    text->setOrigin(Ui::Origin::Center);
+    ui->add(text);
+
+    while (ui->loop(true)) {
+        // clear screen
+        ui->getDisplay()->clear();
+
         // fps
         if (clock.getElapsedTime().asSeconds() >= 1) {
             auto percent = (uint16_t) (((float) Utility::getUsedHeap() / (float) Utility::getTotalHeap()) * 100);
@@ -43,9 +51,8 @@ int main() {
         frames++;
     }
 
-    // reboot to bootloader for launching either nes or gb core
-    // based on rom header
-    platform->reboot(Platform::RebootTarget::Auto);
+    // reboot to bootloader
+    platform->reboot();
 
     delete (ui);
     delete (platform);
