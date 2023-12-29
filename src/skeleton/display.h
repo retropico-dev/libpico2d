@@ -20,13 +20,16 @@ namespace mb {
 
         enum Color {
             Black = 0x0000,
-            Blue = 0x001F,
-            Red = 0xF800,
+            White = 0xFFFF,
+            Red = 0xC083,
+            Yellow = 0xFF00,
+            YellowLight = 0xF5C1,
             Green = 0x07E0,
-            Cyan = 0x07FF,
-            Magenta = 0xF81F,
-            Yellow = 0xFFE0,
-            White = 0xFFFF
+            GreenDark = 0x0388,
+            Blue = 0x01CF,
+            Gray = 0x52CB,
+            GrayDark = 0x2986,
+            Transparent = 0xABCD // fake
         };
 
         // init a display (hardware dependant, to be implemented)
@@ -34,7 +37,7 @@ namespace mb {
         explicit Display(const Utility::Vec2i &size = {240, 240});
 
         // destroy the display (hardware dependant, to be implemented)
-        ~Display() override;
+        virtual ~Display();
 
         // set the position inside pixel buffer (hardware dependant, to be implemented)
         virtual void setCursor(uint16_t x, uint16_t y) {};

@@ -3,7 +3,6 @@
 //
 
 #include "platform.h"
-#include "ui.h"
 #include "rectangle.h"
 
 using namespace mb;
@@ -35,26 +34,27 @@ void Rectangle::loop(const Utility::Vec2i &pos, const uint16_t &buttons) {
     if (!isVisible()) return;
 
     // first draw outline if needed
-    if (m_outline_thickness > 0 && m_outline_color != Ui::Color::Transparent) {
+    if (m_outline_thickness > 0 && m_outline_color != Display::Color::Transparent) {
         for (uint16_t i = 1; i < m_outline_thickness + 1; i++) {
             if (m_radius > 0) {
-                Ui::getDisplay()->drawRoundRect((int16_t) (pos.x - (1 * i)), (int16_t) (pos.y - (1 * i)),
-                                                (int16_t) (m_size.x + (2 * i)), (int16_t) (m_size.y + (2 * i)),
-                                                m_radius, m_outline_color);
+                Platform::get()->getDisplay()->drawRoundRect((int16_t) (pos.x - (1 * i)), (int16_t) (pos.y - (1 * i)),
+                                                             (int16_t) (m_size.x + (2 * i)),
+                                                             (int16_t) (m_size.y + (2 * i)),
+                                                             m_radius, m_outline_color);
             } else {
-                Ui::getDisplay()->drawRect((int16_t) (pos.x - (1 * i)), (int16_t) (pos.y - (1 * i)),
-                                           (int16_t) (m_size.x + (2 * i)), (int16_t) (m_size.y + (2 * i)),
-                                           m_outline_color);
+                Platform::get()->getDisplay()->drawRect((int16_t) (pos.x - (1 * i)), (int16_t) (pos.y - (1 * i)),
+                                                        (int16_t) (m_size.x + (2 * i)), (int16_t) (m_size.y + (2 * i)),
+                                                        m_outline_color);
             }
         }
     }
 
     // now fill rectangle if needed
-    if (m_color != Ui::Color::Transparent) {
+    if (m_color != Display::Color::Transparent) {
         if (m_radius > 0) {
-            Ui::getDisplay()->fillRoundRect(pos.x, pos.y, m_size.x, m_size.y, m_radius, m_color);
+            Platform::get()->getDisplay()->fillRoundRect(pos.x, pos.y, m_size.x, m_size.y, m_radius, m_color);
         } else {
-            Ui::getDisplay()->fillRect(pos.x, pos.y, m_size.x, m_size.y, m_color);
+            Platform::get()->getDisplay()->fillRect(pos.x, pos.y, m_size.x, m_size.y, m_color);
         }
     }
 

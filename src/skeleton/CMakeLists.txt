@@ -12,16 +12,14 @@ set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3 ${CMAKE_FLAGS_RELEASE_FIX}" CACHE STRI
 # set source files
 file(GLOB PLATFORM_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/*.c*
-        ${CMAKE_CURRENT_SOURCE_DIR}/ui/*.c*
-        ${CMAKE_CURRENT_SOURCE_DIR}/ui/widgets/*.c*
+        ${CMAKE_CURRENT_SOURCE_DIR}/widgets/*.c*
         ${CMAKE_CURRENT_SOURCE_DIR}/utility/*.c*
         ${CMAKE_CURRENT_SOURCE_DIR}/compat/*.c*
         ${CMAKE_SOURCE_DIR}/external/Adafruit-GFX-Library/Adafruit_GFX.cpp
 )
 set(PLATFORM_INCLUDES
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/ui
-        ${CMAKE_CURRENT_SOURCE_DIR}/ui/widgets
+        ${CMAKE_CURRENT_SOURCE_DIR}/widgets
         ${CMAKE_CURRENT_SOURCE_DIR}/utility
         ${CMAKE_CURRENT_SOURCE_DIR}/compat
         ${CMAKE_SOURCE_DIR}/src # for bootloader header

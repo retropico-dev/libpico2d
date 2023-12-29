@@ -6,11 +6,14 @@
 
 using namespace mb;
 
-LinuxPlatform::LinuxPlatform(bool useDoubleBufferDisplay, bool overlock) : Platform() {
-    p_display = new LinuxDisplay();
+LinuxPlatform::LinuxPlatform(bool useDoubleBufferDisplay, bool overclock) : Platform() {
+    p_display = (Display *) new LinuxDisplay();
     p_audio = new LinuxAudio();
     p_input = new LinuxInput();
     p_io = new LinuxIo();
+
+    // set rendering size to display size
+    Rectangle::setSize(p_display->getSize());
 }
 
 LinuxPlatform::~LinuxPlatform() {

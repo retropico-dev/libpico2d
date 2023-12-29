@@ -41,6 +41,9 @@ PicoPlatform::PicoPlatform(bool useDoubleBufferDisplay, bool maxOc) : Platform()
     p_audio = new PicoAudio();
     p_input = new PicoInput();
     p_io = new PicoIo();
+
+    // set rendering size to display size
+    Rectangle::setSize(p_display->getSize());
 }
 
 void PicoPlatform::reboot() {

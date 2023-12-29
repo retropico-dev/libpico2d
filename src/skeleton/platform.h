@@ -2,8 +2,8 @@
 // Created by cpasjuste on 30/05/23.
 //
 
-#ifndef MICROBOY_PLATFORM_H
-#define MICROBOY_PLATFORM_H
+#ifndef PICO2D_PLATFORM_H
+#define PICO2D_PLATFORM_H
 
 #include <cstdio>
 #include "display.h"
@@ -12,11 +12,12 @@
 #include "io.h"
 #include "clock.h"
 #include "utility"
+#include "rectangle.h"
 
 namespace mb {
-    class Platform {
+    class Platform : public Rectangle {
     public:
-        explicit Platform(bool useDoubleBufferDisplay = false, bool overclock = false) {}
+        explicit Platform(bool useDoubleBufferDisplay = false, bool overclock = false);
 
         virtual ~Platform() {
             printf("~Platform()\n");
@@ -26,6 +27,8 @@ namespace mb {
             delete (p_io);
         };
 
+        static Platform *get();
+
         Display *getDisplay() { return p_display; };
 
         Audio *getAudio() { return p_audio; };
@@ -33,6 +36,8 @@ namespace mb {
         Input *getInput() { return p_input; };
 
         Io *getIo() { return p_io; };
+
+        virtual bool loop(bool forceDraw = false);
 
         virtual void reboot() {};
 
@@ -52,4 +57,4 @@ namespace mb {
 #define MBPlatform PicoPlatform
 #endif
 
-#endif //MICROBOY_PLATFORM_H
+#endif //PICO2D_PLATFORM_H

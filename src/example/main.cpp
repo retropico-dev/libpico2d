@@ -18,8 +18,9 @@
  */
 
 #include "platform.h"
-#include "ui/ui.h"
 #include "text.h"
+#include "bitmap.h"
+#include "bitmaps/monster.h"
 
 using namespace mb;
 
@@ -28,16 +29,22 @@ int main() {
     int frames = 0;
 
     auto platform = new MBPlatform(true);
-    auto ui = new Ui(platform);
 
-    auto text = new Text(ui->getSize().x / 2, ui->getSize().y / 2, "Hello World");
-    text->setOrigin(Ui::Origin::Center);
-    ui->add(text);
+    platform->getDisplay()->setTextSize(2);
 
-    while (ui->loop(true)) {
-        // clear screen
-        ui->getDisplay()->clear();
+    auto center = new Utility::Vec2i((int16_t) (platform->getSize().x / 2),
+                                     (int16_t) (platform->getSize().y / 2));
 
+    auto bitmap = new Bitmap({center->x, center->y}, &monster_img);
+    bitmap->setOrigin(Widget::Origin::Center);
+    platform->add(bitmap);
+
+    auto text = new Text(center->x, center->y, "MiamMiam");
+    text->setColor(Display::Color::Black);
+    text->setOrigin(Widget::Origin::Center);
+    platform->add(text);
+
+    while (platform->loop(true)) {
         // fps
         if (clock.getElapsedTime().asSeconds() >= 1) {
             auto percent = (uint16_t) (((float) Utility::getUsedHeap() / (float) Utility::getTotalHeap()) * 100);
@@ -53,8 +60,6 @@ int main() {
 
     // reboot to bootloader
     platform->reboot();
-
-    delete (ui);
     delete (platform);
 
     return 0;
