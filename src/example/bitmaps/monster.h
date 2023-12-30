@@ -21,7 +21,7 @@
 #ifndef U_PICO2D_MONSTER_H
 #define U_PICO2D_MONSTER_H
 
-#include "bitmap.h"
+#include "surface.h"
 
 static const uint16_t image_data_monster[40000] = {
         // ████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
@@ -5226,6 +5226,6 @@ static const uint16_t image_data_monster[40000] = {
         0xffee, 0xffee, 0xffee, 0xffee, 0xffee, 0xffee, 0xffee, 0xffee
 };
 
-const mb::Bitmap::Image monster_img = {image_data_monster, 200, 200, 16};
+const mb::Surface monster_surface = {{200, 200}, (uint8_t *) image_data_monster};
 
 #endif // U_PICO2D_MONSTER_H

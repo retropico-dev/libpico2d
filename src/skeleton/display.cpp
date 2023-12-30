@@ -45,7 +45,7 @@ void in_ram(Display::drawPixel)(int16_t x, int16_t y, uint16_t color) {
         }
     }
 
-    setCursor(x, y);
+    setCursorPos(x, y);
     setPixel(color);
 }
 
@@ -78,8 +78,10 @@ void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, c
         auto pixels = surface->getPixels();
         auto pitch = surface->getPitch();
         auto width = surface->getSize().x;
-        for (uint8_t y = 0; y < size.y; y++) {
-            setCursor(pos.x, pos.y + y);
+        for (int16_t y = 0; y < size.y; y++) {
+            // skip horizontal lines if out of screen
+            if (pos.y + y < 0 || pos.y + y >= m_size.y) continue;
+            setCursorPos(pos.x, (int16_t) (pos.y + y));
             drawPixelLine((uint16_t *) (pixels + y * pitch), width);
         }
     } else {
@@ -93,7 +95,7 @@ void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, c
         int xRatio = (srcSize.x << 16) / size.x + 1;
         int yRatio = (srcSize.y << 16) / size.y + 1;
 
-        setCursor(pos.x, pos.y);
+        setCursorPos(pos.x, pos.y);
 
         for (uint8_t i = 0; i < size.y; i++) {
             for (uint8_t j = 0; j < size.x; j++) {
@@ -104,7 +106,7 @@ void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, c
             if (size.x == m_size.x) {
                 drawPixelLine(m_line_buffer, size.x);
             } else {
-                setCursor(pos.x, i + pos.y);
+                setCursorPos(pos.x, i + pos.y);
                 drawPixelLine(m_line_buffer, size.x);
             }
         }
@@ -162,7 +164,7 @@ void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, c
 }
 
 void in_ram(Display::clear)(uint16_t color) {
-    setCursor(0, 0);
+    setCursorPos(0, 0);
     for (int y = 0; y < m_size.y; y++) {
         for (int x = 0; x < m_size.x; x++) {
             setPixel(color);

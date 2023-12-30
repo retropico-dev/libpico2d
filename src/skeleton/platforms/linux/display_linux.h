@@ -14,7 +14,7 @@ namespace mb {
 
         ~LinuxDisplay() override;
 
-        void setCursor(uint16_t x, uint16_t y) override;
+        void setCursorPos(int16_t x, int16_t y) override;
 
         void setPixel(uint16_t color) override;
 

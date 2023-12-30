@@ -7,17 +7,18 @@
 
 using namespace mb;
 
-Bitmap::Bitmap(const Utility::Vec2i &pos, const Image *image) : Widget() {
-    m_image = image;
+Bitmap::Bitmap(const Utility::Vec2i &pos, Surface *surface) : Widget() {
+    m_surface = surface;
     Widget::setPosition(pos);
-    Widget::setSize((int16_t) m_image->width, (int16_t) m_image->height);
+    Widget::setSize(m_surface->getSize());
+    printf("Bitmap(): %ix%i, bytes: %lu\r\n",
+           m_surface->getSize().x, m_surface->getSize().y, m_surface->getDataSize());
 }
 
 void Bitmap::loop(const Utility::Vec2i &pos, const uint16_t &buttons) {
     if (!isVisible()) return;
 
-    Platform::get()->getDisplay()->drawRGBBitmap(pos.x, pos.y, m_image->data,
-                                                 (int16_t) m_image->width, (int16_t) m_image->height);
+    Platform::get()->getDisplay()->drawSurface(m_surface, pos);
 
     // draw child's
     Widget::loop(pos, buttons);

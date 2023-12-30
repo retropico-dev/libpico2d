@@ -19,10 +19,12 @@ PicoDisplay::PicoDisplay() : Display({DISPLAY_WIDTH, DISPLAY_HEIGHT}) {
     PicoDisplay::clear();
 }
 
-void PicoDisplay::setCursor(uint16_t x, uint16_t y) {
-    st7789_set_cursor(x, y);
+void PicoDisplay::setCursorPos(int16_t x, int16_t y) {
+    if (x >= 0 && x < m_size.x && y >= 0 && y < m_size.y) {
+        st7789_set_cursor(x, y);
+    }
 }
 
 void PicoDisplay::setPixel(uint16_t color) {
-    st7789_put(color);
+    if (color != m_colorKey) st7789_put(color);
 }

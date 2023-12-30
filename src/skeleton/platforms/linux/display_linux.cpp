@@ -30,20 +30,21 @@ LinuxDisplay::LinuxDisplay() : Display() {
     printf("LinuxDisplay: %ix%i (texture pitch: %i)\n", m_size.x, m_size.y, m_pitch);
 }
 
-void LinuxDisplay::setCursor(uint16_t x, uint16_t y) {
-    m_cursor.x = (int16_t) x;
-    m_cursor.y = (int16_t) y;
+void LinuxDisplay::setCursorPos(int16_t x, int16_t y) {
+    m_cursor = {x, y};
 }
 
 void LinuxDisplay::setPixel(uint16_t color) {
-    // rgb565 > rgb32
-    int32_t r = ((color & 0xF800) >> 11) << 3;
-    int32_t g = ((color & 0x7E0) >> 5) << 2;
-    int32_t b = ((color & 0x1F)) << 3;
+    if (color != Display::Color::Transparent) {
+        // rgb565 > rgb32
+        int32_t r = ((color & 0xF800) >> 11) << 3;
+        int32_t g = ((color & 0x7E0) >> 5) << 2;
+        int32_t b = ((color & 0x1F)) << 3;
 
-    // draw the pixel to the renderer
-    SDL_SetRenderDrawColor(p_renderer, r, g, b, SDL_ALPHA_OPAQUE);
-    SDL_RenderDrawPoint(p_renderer, m_cursor.x, m_cursor.y);
+        // draw the pixel to the renderer
+        SDL_SetRenderDrawColor(p_renderer, r, g, b, SDL_ALPHA_OPAQUE);
+        SDL_RenderDrawPoint(p_renderer, m_cursor.x, m_cursor.y);
+    }
 
     // emulate tft lcd "put_pixel" buffer
     m_cursor.x++;

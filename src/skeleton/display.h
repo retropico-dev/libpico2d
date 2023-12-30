@@ -29,7 +29,7 @@ namespace mb {
             Blue = 0x01CF,
             Gray = 0x52CB,
             GrayDark = 0x2986,
-            Transparent = 0xABCD // fake
+            Transparent = 0x0588 // #00b242
         };
 
         // init a display (hardware dependant, to be implemented)
@@ -40,7 +40,7 @@ namespace mb {
         virtual ~Display();
 
         // set the position inside pixel buffer (hardware dependant, to be implemented)
-        virtual void setCursor(uint16_t x, uint16_t y) {};
+        virtual void setCursorPos(int16_t x, int16_t y) {};
 
         // set pixel color at cursor position
         virtual void setPixel(uint16_t color) {};
@@ -60,7 +60,7 @@ namespace mb {
         }
 
         // draw a pixel line buffer to the display (fast)
-        void drawPixelLine(const uint16_t *pixels, uint16_t width, const Format &format = RGB565);
+        virtual void drawPixelLine(const uint16_t *pixels, uint16_t width, const Format &format = RGB565);
 
         // draw a surface (pixel buffer) to the display with scaling if requested
         void drawSurface(Surface *surface, const Utility::Vec2i &pos, const Utility::Vec2i &size);
@@ -98,6 +98,7 @@ namespace mb {
         Utility::Vec2i getSize() { return m_size; };
 
     protected:
+        uint16_t m_colorKey = Color::Transparent;
         uint16_t *m_line_buffer;
         Utility::Vec2i m_size{};
         Utility::Vec4i m_clip{};

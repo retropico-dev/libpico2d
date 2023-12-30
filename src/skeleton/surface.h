@@ -5,12 +5,19 @@
 #ifndef MICROBOY_SURFACE_H
 #define MICROBOY_SURFACE_H
 
+#include <cstring>
 #include <cstdlib>
 #include "utility.h"
 
 namespace mb {
     class Surface {
     public:
+        Surface(const Utility::Vec2i &size, uint8_t *buffer) {
+            m_size = size;
+            p_buffer = buffer;
+            m_pitch = m_size.x * m_bpp;
+        }
+
         explicit Surface(const Utility::Vec2i &size, uint32_t bufferSize = 0) {
             m_size = size;
             if (bufferSize > 0) {
@@ -49,11 +56,13 @@ namespace mb {
 
         uint8_t *getPixels() { return p_buffer; };
 
-        Utility::Vec2i getSize() { return m_size; };
+        [[nodiscard]] Utility::Vec2i getSize() const { return m_size; };
 
         [[nodiscard]] uint16_t getPitch() const { return m_pitch; };
 
         [[nodiscard]] uint8_t getBpp() const { return m_bpp; };
+
+        [[nodiscard]] uint32_t getDataSize() const { return m_size.y * m_pitch; };
 
     private:
         uint8_t *p_buffer = nullptr;

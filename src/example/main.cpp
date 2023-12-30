@@ -20,7 +20,9 @@
 #include "platform.h"
 #include "text.h"
 #include "bitmap.h"
+#include "bitmaps/star.h"
 #include "bitmaps/monster.h"
+#include "bitmaps/explosion-sprite.h"
 #include "tweeny.h"
 
 using namespace mb;
@@ -36,25 +38,40 @@ int main() {
     auto center = new Utility::Vec2i((int16_t) (platform->getSize().x / 2),
                                      (int16_t) (platform->getSize().y / 2));
 
-    auto bitmap = new Bitmap({center->x, center->y}, &monster_img);
+    /*
+    auto bitmap = new Bitmap({center->x, center->y}, (Surface *) &monster_surface);
     bitmap->setOrigin(Widget::Origin::Center);
     platform->add(bitmap);
 
+    auto sprite = new Bitmap({center->x, center->y}, (Surface *) &explosion_sprite_surf);
+    sprite->setOrigin(Widget::Origin::Center);
+    platform->add(sprite);
+    */
+
+    for (int16_t i = 0; i < 64; i++) {
+        auto bitmap = new Bitmap({(int16_t)(i * 2), (int16_t)(i * 2)}, (Surface *) &star_surface);
+        platform->add(bitmap);
+    }
+
+    /*
     auto text = new Text(center->x, center->y, "MiamMiam");
     text->setColor(Display::Color::Black);
     text->setOrigin(Widget::Origin::Center);
     platform->add(text);
+    */
 
+    /*
     auto tween = tweeny::from(bitmap->getPosition().x)
             .to(platform->getDisplay()->getSize().x)
             .during(5 * 1000);
 
     deltaClock.restart();
+    */
 
     while (platform->loop(true)) {
 
-        int16_t x = tween.step((int32_t) deltaClock.restart().asMilliseconds(), true);
-        bitmap->setPosition(x, bitmap->getPosition().y);
+        //int16_t x = tween.step((int32_t) deltaClock.restart().asMilliseconds(), true);
+        //bitmap->setPosition(x, bitmap->getPosition().y);
 
         // fps
         if (clock.getElapsedTime().asSeconds() >= 1) {

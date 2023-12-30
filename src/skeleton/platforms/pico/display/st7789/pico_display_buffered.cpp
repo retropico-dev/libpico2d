@@ -39,12 +39,26 @@ PicoDisplayBuffered::PicoDisplayBuffered() : Display({DISPLAY_WIDTH, DISPLAY_HEI
     PicoDisplayBuffered::clear();
 }
 
-void PicoDisplayBuffered::setCursor(uint16_t x, uint16_t y) {
-    m_cursor = {(int16_t) x, (int16_t) y};
+/*
+void in_ram(PicoDisplayBuffered::drawPixelLine)(const uint16_t *pixels, uint16_t width, const Display::Format &format) {
+    //Display::drawPixelLine(pixels, width, format);
+    if (format != Format::RGB565) return;
+    auto buffer = (uint16_t *) (p_pixelBuffer[m_bufferIndex] + m_cursor.y * m_pitch + m_cursor.x * m_bpp);
+    memcpy(buffer, pixels, width * m_bpp);
+}
+*/
+
+void in_ram(PicoDisplayBuffered::setCursorPos)(int16_t x, int16_t y) {
+    m_cursor = {x, y};
 }
 
-void PicoDisplayBuffered::setPixel(uint16_t color) {
-    *(uint16_t *) (getPixelBuffer(m_bufferIndex) + m_cursor.y * m_pitch + m_cursor.x * m_bpp) = color;
+void in_ram(PicoDisplayBuffered::setPixel)(uint16_t color) {
+    if (m_cursor.x >= 0 && m_cursor.x < m_size.x
+        && m_cursor.y >= 0 && m_cursor.y < m_size.y
+        && color != m_colorKey) {
+        *(uint16_t *) (p_pixelBuffer[m_bufferIndex] + m_cursor.y * m_pitch + m_cursor.x * m_bpp) = color;
+    }
+
     // emulate tft lcd "put_pixel"
     m_cursor.x++;
     if (m_cursor.x >= m_size.x) {
@@ -53,12 +67,12 @@ void PicoDisplayBuffered::setPixel(uint16_t color) {
     }
 }
 
-void PicoDisplayBuffered::clear(uint16_t color) {
+void in_ram(PicoDisplayBuffered::clear)(uint16_t color) {
     if (color == Color::Black || color == Color::White) {
-        auto buffer = (uint16_t *) getPixelBuffer(m_bufferIndex);
+        auto buffer = (uint16_t *) p_pixelBuffer[m_bufferIndex];
         memset(buffer, color, m_size.x * m_size.y * m_bpp);
     } else {
-        auto buffer = getPixelBuffer(m_bufferIndex);
+        auto buffer = p_pixelBuffer[m_bufferIndex];
         int size = m_pitch * m_size.y;
         uint64_t color64 = (uint64_t) color << 48;
         color64 |= (uint64_t) color << 32;
@@ -92,7 +106,7 @@ _Noreturn static void in_ram(core1_main)() {
     }
 }
 
-void PicoDisplayBuffered::flip() {
+void in_ram(PicoDisplayBuffered::flip)() {
     // wait until previous flip on core1 complete
     while (__atomic_load_n(&core1_busy, __ATOMIC_SEQ_CST)) tight_loop_contents();
 
