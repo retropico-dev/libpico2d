@@ -26,8 +26,10 @@ union core_cmd {
     uint32_t full;
 };
 
-PicoDisplayBuffered::PicoDisplayBuffered(const Utility::Vec2i &size, const Buffering &buffering)
-        : Display(size, buffering) {
+PicoDisplayBuffered::PicoDisplayBuffered(const Utility::Vec2i &displaySize,
+                                         const Utility::Vec2i &renderSize,
+                                         const Buffering &buffering)
+        : Display(displaySize, renderSize, buffering) {
     // my own core1 crap
     s_display = this;
 
@@ -35,14 +37,14 @@ PicoDisplayBuffered::PicoDisplayBuffered(const Utility::Vec2i &size, const Buffe
     st7789_init();
 
     // alloc frames buffers
-    p_surfaces[0] = new Surface(m_size);
+    p_surfaces[0] = new Surface(m_renderSize);
     if (m_buffering == Buffering::Double) {
-        p_surfaces[1] = new Surface(m_size);
+        p_surfaces[1] = new Surface(m_renderSize);
         // launch core1
         multicore_launch_core1(core1_main);
-        printf("PicoDisplay: st7789 pio with double buffering @ %ix%i\r\n", m_size.x, m_size.y);
+        printf("PicoDisplay: st7789 pio with double buffering @ %ix%i\r\n", m_renderSize.x, m_renderSize.y);
     } else {
-        printf("PicoDisplay: st7789 pio with single buffering @ %ix%i\r\n", m_size.x, m_size.y);
+        printf("PicoDisplay: st7789 pio with single buffering @ %ix%i\r\n", m_renderSize.x, m_renderSize.y);
     }
 
     // clear the display
@@ -60,7 +62,7 @@ void in_ram(PicoDisplayBuffered::setPixel)(uint16_t color) {
 
     // emulate tft lcd "put_pixel"
     m_cursor.x++;
-    if (m_cursor.x >= m_size.x) {
+    if (m_cursor.x >= m_renderSize.x) {
         m_cursor.x = 0;
         m_cursor.y += 1;
     }
@@ -72,7 +74,7 @@ void in_ram(PicoDisplayBuffered::clear)(uint16_t color) {
         memset(buffer, color, p_surfaces[m_bufferIndex]->getPixelsSize());
     } else {
         auto buffer = p_surfaces[m_bufferIndex]->getPixels();
-        int size = m_pitch * m_size.y;
+        int size = m_pitch * m_renderSize.y;
         uint64_t color64 = (uint64_t) color << 48;
         color64 |= (uint64_t) color << 32;
         color64 |= (uint64_t) color << 16;

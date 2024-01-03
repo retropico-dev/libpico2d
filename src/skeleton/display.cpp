@@ -6,11 +6,14 @@
 
 using namespace mb;
 
-Display::Display(const Utility::Vec2i &size, const Buffering &buffering) : Adafruit_GFX(size.x, size.y) {
-    m_clip = {0, 0, size.x, size.y};
-    m_size = size;
+Display::Display(const Utility::Vec2i &displaySize,
+                 const Utility::Vec2i &renderSize,
+                 const Buffering &buffering) : Adafruit_GFX(renderSize.x, renderSize.y) {
+    m_clip = {0, 0, renderSize.x, renderSize.y};
+    m_displaySize = displaySize;
+    m_renderSize = renderSize;
     m_bpp = 2;
-    m_pitch = m_size.x * m_bpp;
+    m_pitch = m_renderSize.x * m_bpp;
     m_buffering = buffering;
 
     // pixel line buffer for drawSurface
@@ -29,17 +32,17 @@ void in_ram(Display::drawPixel)(int16_t x, int16_t y, uint16_t color) {
         switch (rotation) {
             case 1:
                 t = x;
-                x = (int16_t) (m_size.x - 1 - y);
+                x = (int16_t) (m_renderSize.x - 1 - y);
                 y = t;
                 break;
             case 2:
-                x = (int16_t) (m_size.x - 1 - x);
-                y = (int16_t) (m_size.y - 1 - y);
+                x = (int16_t) (m_renderSize.x - 1 - x);
+                y = (int16_t) (m_renderSize.y - 1 - y);
                 break;
             case 3:
                 t = x;
                 x = y;
-                y = (int16_t) (m_size.y - 1 - t);
+                y = (int16_t) (m_renderSize.y - 1 - t);
                 break;
             default:
                 break;
@@ -81,7 +84,7 @@ void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, c
         auto width = surface->getSize().x;
         for (int16_t y = 0; y < size.y; y++) {
             // skip horizontal lines if out of screen
-            if (pos.y + y < 0 || pos.y + y >= m_size.y) continue;
+            if (pos.y + y < 0 || pos.y + y >= m_renderSize.y) continue;
             setCursorPos(pos.x, (int16_t) (pos.y + y));
             drawPixelLine((uint16_t *) (pixels + y * pitch), width);
         }
@@ -104,7 +107,7 @@ void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, c
                 y = (i * yRatio) >> 16;
                 m_line_buffer[j + pos.x] = *(uint16_t *) (pixels + y * pitch + x * bpp);
             }
-            if (size.x == m_size.x) {
+            if (size.x == m_renderSize.x) {
                 drawPixelLine(m_line_buffer, size.x);
             } else {
                 setCursorPos(pos.x, i + pos.y);
@@ -166,8 +169,8 @@ void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, c
 
 void in_ram(Display::clear)(uint16_t color) {
     setCursorPos(0, 0);
-    for (int y = 0; y < m_size.y; y++) {
-        for (int x = 0; x < m_size.x; x++) {
+    for (int y = 0; y < m_renderSize.y; y++) {
+        for (int x = 0; x < m_renderSize.x; x++) {
             setPixel(color);
         }
     }

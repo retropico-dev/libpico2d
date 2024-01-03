@@ -38,19 +38,21 @@ PicoPlatform::PicoPlatform(const Display::Buffering &buffering, bool overclock) 
     printf("\r\nPicoPlatform: pico\r\n");
 
     p_display = buffering == Display::Buffering::None
-                ? new PicoDisplay() : (PicoDisplay *) new PicoDisplayBuffered({120, 120}, buffering);
+                ? new PicoDisplay() : (PicoDisplay *) new PicoDisplayBuffered();
     p_audio = new PicoAudio();
     p_input = new PicoInput();
     p_io = new PicoIo();
 
     // set rendering size to display size
-    Rectangle::setSize(p_display->getSize());
+    Rectangle::setSize(p_display->getRenderSize());
 }
 
 void PicoPlatform::reboot() {
     printf("PicoPlatform::reboot\r\n");
 
-    // clean screen
+    // clean both screen buffers
+    p_display->clear();
+    p_display->flip();
     p_display->clear();
     p_display->flip();
 

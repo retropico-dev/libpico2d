@@ -51,8 +51,8 @@ std::string Text::getString() const {
 void Text::setString(const std::string &str) {
     m_text = str;
     Platform::instance()->getDisplay()->getTextBounds(m_text.c_str(), 0, 0,
-                                                 &m_bounds.x, &m_bounds.y,
-                                                 (uint16_t *) &m_bounds.w, (uint16_t *) &m_bounds.h);
+                                                      &m_bounds.x, &m_bounds.y,
+                                                      (uint16_t *) &m_bounds.w, (uint16_t *) &m_bounds.h);
     if (getSize().x == 0 || getSize().y == 0) {
         setSize(m_bounds.w, m_bounds.h);
     }
@@ -65,9 +65,11 @@ void Text::loop(const Utility::Vec2i &pos, const uint16_t &buttons) {
     Platform::instance()->getDisplay()->setTextColor(m_color);
     Platform::instance()->getDisplay()->setClipArea(
             {pos.x, pos.y, (int16_t) (pos.x + m_size.x), (int16_t) (pos.y + m_size.y)});
-    Platform::instance()->getDisplay()->drawText((int16_t) (pos.x - m_bounds.x), (int16_t) (pos.y - m_bounds.y), m_text);
+    Platform::instance()->getDisplay()->drawText(
+            (int16_t) (pos.x - m_bounds.x), (int16_t) (pos.y - m_bounds.y), m_text);
     Platform::instance()->getDisplay()->setClipArea(
-            {0, 0, Platform::instance()->getDisplay()->getSize().x, Platform::instance()->getDisplay()->getSize().y});
+            {0, 0, Platform::instance()->getDisplay()->getRenderSize().x,
+             Platform::instance()->getDisplay()->getRenderSize().y});
 
     // draw child's
     Widget::loop(pos, buttons);

@@ -9,8 +9,11 @@
 
 using namespace mb;
 
-PicoDisplay::PicoDisplay() : Display({DISPLAY_WIDTH, DISPLAY_HEIGHT}) {
-    printf("PicoDisplay: st7789 pio @ %ix%i (direct draw)\r\n", m_size.x, m_size.y);
+PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize,
+                         const Utility::Vec2i &renderSize,
+                         const Buffering &buffering)
+        : Display(displaySize, renderSize, buffering) {
+    printf("PicoDisplay: st7789 pio @ %ix%i (direct draw)\r\n", renderSize.x, renderSize.y);
 
     // init st7789 display
     st7789_init();
@@ -21,7 +24,7 @@ PicoDisplay::PicoDisplay() : Display({DISPLAY_WIDTH, DISPLAY_HEIGHT}) {
 
 void PicoDisplay::setCursorPos(int16_t x, int16_t y) {
     m_cursor = {x, y};
-    if (x >= 0 && x < m_size.x && y >= 0 && y < m_size.y) {
+    if (x >= 0 && x < m_renderSize.x && y >= 0 && y < m_renderSize.y) {
         st7789_set_cursor(x, y);
     }
 }

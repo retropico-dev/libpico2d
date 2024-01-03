@@ -40,7 +40,9 @@ namespace mb {
 
         // init a display (hardware dependant, to be implemented)
         // default display size used for "ST7789 1.54" TFT IPS 240x240"
-        explicit Display(const Utility::Vec2i &size = {240, 240}, const Buffering &buffering = Buffering::Double);
+        explicit Display(const Utility::Vec2i &displaySize = {240, 240},
+                         const Utility::Vec2i &renderSize = {240, 240},
+                         const Buffering &buffering = Buffering::Double);
 
         // destroy the display (hardware dependant, to be implemented)
         virtual ~Display();
@@ -101,7 +103,9 @@ namespace mb {
         }
 
         // get display size
-        Utility::Vec2i getSize() { return m_size; };
+        Utility::Vec2i getDisplaySize() { return m_displaySize; };
+
+        Utility::Vec2i getRenderSize() { return m_renderSize; };
 
         int getPitch() { return m_pitch; };
 
@@ -110,9 +114,10 @@ namespace mb {
     protected:
         uint16_t m_colorKey = Color::Transparent;
         uint16_t *m_line_buffer;
-        Utility::Vec2i m_size{};
         Utility::Vec4i m_clip{};
         Buffering m_buffering = Buffering::None;
+        Utility::Vec2i m_displaySize{};
+        Utility::Vec2i m_renderSize{};
         int m_pitch = 0;
         int m_bpp = 2;
     };
