@@ -18,7 +18,7 @@ Bitmap::Bitmap(const Utility::Vec2i &pos, Surface *surface) : Widget() {
 void Bitmap::loop(const Utility::Vec2i &pos, const uint16_t &buttons) {
     if (!isVisible()) return;
 
-    Platform::get()->getDisplay()->drawSurface(m_surface, pos);
+    Platform::instance()->getDisplay()->drawSurface(m_surface, pos);
 
     // draw child's
     Widget::loop(pos, buttons);

@@ -19,11 +19,13 @@
 
 #include "platform.h"
 #include "text.h"
+#include "tweeny.h"
 #include "bitmap.h"
 #include "bitmaps/star.h"
-#include "bitmaps/monster.h"
-#include "bitmaps/explosion-sprite.h"
-#include "tweeny.h"
+//#include "bitmaps/monster.h"
+//#include "bitmaps/explosion-sprite.h"
+//#include "bitmaps/girl_240x240_alpha.h"
+#include "bitmaps/girl_120x120.h"
 
 using namespace mb;
 
@@ -31,27 +33,31 @@ int main() {
     Clock clock, deltaClock;
     int frames = 0;
 
-    auto platform = new MBPlatform(true);
+    auto platform = new MBPlatform(Display::Buffering::Double, true);
 
     platform->getDisplay()->setTextSize(2);
 
     auto center = new Utility::Vec2i((int16_t) (platform->getSize().x / 2),
                                      (int16_t) (platform->getSize().y / 2));
 
-    /*
-    auto bitmap = new Bitmap({center->x, center->y}, (Surface *) &monster_surface);
-    bitmap->setOrigin(Widget::Origin::Center);
+    auto bitmap = new Bitmap({}, (Surface *) &girl_120x120_surface);
+    //bitmap->setOrigin(Widget::Origin::Center);
     platform->add(bitmap);
 
+    /*
     auto sprite = new Bitmap({center->x, center->y}, (Surface *) &explosion_sprite_surf);
     sprite->setOrigin(Widget::Origin::Center);
     platform->add(sprite);
-    */
+
+    auto bitmap = new Bitmap({center->x, center->y}, (Surface *) &girl_240x240_alpha_surface);
+    bitmap->setOrigin(Widget::Origin::Center);
+    platform->add(bitmap);
 
     for (int16_t i = 0; i < 64; i++) {
-        auto bitmap = new Bitmap({(int16_t)(i * 2), (int16_t)(i * 2)}, (Surface *) &star_surface);
-        platform->add(bitmap);
+        auto b = new Bitmap({(int16_t)(i * 2), (int16_t)(i * 2)}, (Surface *) &star_surface);
+        platform->add(b);
     }
+    */
 
     /*
     auto text = new Text(center->x, center->y, "MiamMiam");

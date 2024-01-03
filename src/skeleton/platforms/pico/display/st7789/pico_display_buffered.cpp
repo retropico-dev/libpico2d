@@ -17,36 +17,33 @@ _Noreturn static void in_ram(core1_main)();
 
 union core_cmd {
     struct {
-        uint8_t index;
+        uint8_t index = 0;
     };
     uint32_t full;
 };
 
-PicoDisplayBuffered::PicoDisplayBuffered() : Display({DISPLAY_WIDTH, DISPLAY_HEIGHT}) {
-    printf("PicoDisplay: st7789 pio with double buffering @ %ix%i\r\n", m_size.x, m_size.y);
-
-    // ...
+PicoDisplayBuffered::PicoDisplayBuffered(const Utility::Vec2i &size, const Buffering &buffering)
+        : Display(size, buffering) {
+    // my own core1 crap
     display = this;
 
     // init st7789 display
     st7789_init();
 
+    // alloc frames buffers
     p_pixelBuffer[0] = (uint8_t *) malloc(m_size.x * m_size.y * m_bpp);
-    p_pixelBuffer[1] = (uint8_t *) malloc(m_size.x * m_size.y * m_bpp);
-    multicore_launch_core1(core1_main);
+    if (m_buffering == Buffering::Double) {
+        p_pixelBuffer[1] = (uint8_t *) malloc(m_size.x * m_size.y * m_bpp);
+        // launch core1
+        multicore_launch_core1(core1_main);
+        printf("PicoDisplay: st7789 pio with double buffering @ %ix%i\r\n", m_size.x, m_size.y);
+    } else {
+        printf("PicoDisplay: st7789 pio with single buffering @ %ix%i\r\n", m_size.x, m_size.y);
+    }
 
     // clear the display
     PicoDisplayBuffered::clear();
 }
-
-/*
-void in_ram(PicoDisplayBuffered::drawPixelLine)(const uint16_t *pixels, uint16_t width, const Display::Format &format) {
-    //Display::drawPixelLine(pixels, width, format);
-    if (format != Format::RGB565) return;
-    auto buffer = (uint16_t *) (p_pixelBuffer[m_bufferIndex] + m_cursor.y * m_pitch + m_cursor.x * m_bpp);
-    memcpy(buffer, pixels, width * m_bpp);
-}
-*/
 
 void in_ram(PicoDisplayBuffered::setCursorPos)(int16_t x, int16_t y) {
     m_cursor = {x, y};
@@ -84,17 +81,41 @@ void in_ram(PicoDisplayBuffered::clear)(uint16_t color) {
     }
 }
 
+void in_ram(PicoDisplayBuffered::flip)() {
+    if (m_buffering == Buffering::Double) {
+        // wait until previous flip on core1 complete
+        while (__atomic_load_n(&core1_busy, __ATOMIC_SEQ_CST)) tight_loop_contents();
+
+        // send "flip" cmd to core1
+        __atomic_store_n(&core1_busy, 1, __ATOMIC_SEQ_CST);
+        union core_cmd cmd{.index = m_bufferIndex};
+        multicore_fifo_push_blocking(cmd.full);
+
+        // flip buffer
+        m_bufferIndex = !m_bufferIndex;
+    } else {
+        auto buffer = p_pixelBuffer[0];
+        st7789_set_cursor(0, 0);
+        for (uint_fast16_t y = 0; y < m_size.x; y++) {
+            for (uint_fast16_t x = 0; x < m_size.y; x++) {
+                st7789_put(*(uint16_t *) (buffer + y * m_pitch + x * m_bpp));
+            }
+        }
+    }
+}
+
 _Noreturn static void in_ram(core1_main)() {
     union core_cmd cmd{};
-    uint16_t sizeX = display->getSize().x;
-    uint16_t sizeY = display->getSize().y;
-    uint16_t pitch = sizeX * 2;
-    uint8_t bpp = 2;
 
     while (true) {
         cmd.full = multicore_fifo_pop_blocking();
 
         auto buffer = display->getPixelBuffer(cmd.index);
+        uint16_t sizeX = display->getSize().x;
+        uint16_t sizeY = display->getSize().y;
+        uint16_t pitch = display->getPitch();
+        uint8_t bpp = display->getBpp();
+
         st7789_set_cursor(0, 0);
         for (uint_fast16_t y = 0; y < sizeY; y++) {
             for (uint_fast16_t x = 0; x < sizeX; x++) {
@@ -104,14 +125,4 @@ _Noreturn static void in_ram(core1_main)() {
 
         __atomic_store_n(&core1_busy, 0, __ATOMIC_SEQ_CST);
     }
-}
-
-void in_ram(PicoDisplayBuffered::flip)() {
-    // wait until previous flip on core1 complete
-    while (__atomic_load_n(&core1_busy, __ATOMIC_SEQ_CST)) tight_loop_contents();
-
-    __atomic_store_n(&core1_busy, 1, __ATOMIC_SEQ_CST);
-    union core_cmd cmd{.index = m_bufferIndex};
-    multicore_fifo_push_blocking(cmd.full);
-    m_bufferIndex = !m_bufferIndex;
 }

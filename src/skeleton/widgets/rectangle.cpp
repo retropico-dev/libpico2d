@@ -37,12 +37,12 @@ void Rectangle::loop(const Utility::Vec2i &pos, const uint16_t &buttons) {
     if (m_outline_thickness > 0 && m_outline_color != Display::Color::Transparent) {
         for (uint16_t i = 1; i < m_outline_thickness + 1; i++) {
             if (m_radius > 0) {
-                Platform::get()->getDisplay()->drawRoundRect((int16_t) (pos.x - (1 * i)), (int16_t) (pos.y - (1 * i)),
+                Platform::instance()->getDisplay()->drawRoundRect((int16_t) (pos.x - (1 * i)), (int16_t) (pos.y - (1 * i)),
                                                              (int16_t) (m_size.x + (2 * i)),
                                                              (int16_t) (m_size.y + (2 * i)),
                                                              m_radius, m_outline_color);
             } else {
-                Platform::get()->getDisplay()->drawRect((int16_t) (pos.x - (1 * i)), (int16_t) (pos.y - (1 * i)),
+                Platform::instance()->getDisplay()->drawRect((int16_t) (pos.x - (1 * i)), (int16_t) (pos.y - (1 * i)),
                                                         (int16_t) (m_size.x + (2 * i)), (int16_t) (m_size.y + (2 * i)),
                                                         m_outline_color);
             }
@@ -52,9 +52,9 @@ void Rectangle::loop(const Utility::Vec2i &pos, const uint16_t &buttons) {
     // now fill rectangle if needed
     if (m_color != Display::Color::Transparent) {
         if (m_radius > 0) {
-            Platform::get()->getDisplay()->fillRoundRect(pos.x, pos.y, m_size.x, m_size.y, m_radius, m_color);
+            Platform::instance()->getDisplay()->fillRoundRect(pos.x, pos.y, m_size.x, m_size.y, m_radius, m_color);
         } else {
-            Platform::get()->getDisplay()->fillRect(pos.x, pos.y, m_size.x, m_size.y, m_color);
+            Platform::instance()->getDisplay()->fillRect(pos.x, pos.y, m_size.x, m_size.y, m_color);
         }
     }
 

@@ -17,7 +17,7 @@
 namespace mb {
     class Platform : public Rectangle {
     public:
-        explicit Platform(bool useDoubleBufferDisplay = false, bool overclock = false);
+        explicit Platform(const Display::Buffering &buffering = Display::Buffering::Double, bool overclock = false);
 
         virtual ~Platform() {
             printf("~Platform()\n");
@@ -27,7 +27,7 @@ namespace mb {
             delete (p_io);
         };
 
-        static Platform *get();
+        static Platform *instance();
 
         Display *getDisplay() { return p_display; };
 

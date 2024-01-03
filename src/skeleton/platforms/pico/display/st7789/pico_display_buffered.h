@@ -8,13 +8,12 @@
 namespace mb {
     class PicoDisplayBuffered : public Display {
     public:
-        PicoDisplayBuffered();
+        explicit PicoDisplayBuffered(const Utility::Vec2i &size = {240, 240},
+                                     const Buffering &buffering = Buffering::Double);
 
         void setCursorPos(int16_t x, int16_t y) override;
 
         void setPixel(uint16_t color) override;
-
-        //void drawPixelLine(const uint16_t *pixels, uint16_t width, const Format &format = RGB565) override;
 
         void clear(uint16_t color = Black) override;
 

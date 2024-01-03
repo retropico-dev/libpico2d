@@ -6,11 +6,12 @@
 
 using namespace mb;
 
-Display::Display(const Utility::Vec2i &size) : Adafruit_GFX(size.x, size.y) {
+Display::Display(const Utility::Vec2i &size, const Buffering &buffering) : Adafruit_GFX(size.x, size.y) {
     m_clip = {0, 0, size.x, size.y};
     m_size = size;
     m_bpp = 2;
     m_pitch = m_size.x * m_bpp;
+    m_buffering = buffering;
 
     // pixel line buffer for drawSurface
     m_line_buffer = (uint16_t *) malloc(m_pitch);

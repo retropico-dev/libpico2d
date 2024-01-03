@@ -13,6 +13,9 @@ namespace mb {
         void setCursorPos(int16_t x, int16_t y) override;
 
         void setPixel(uint16_t color) override;
+
+    private:
+        Utility::Vec2i m_cursor;
     };
 }
 

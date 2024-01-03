@@ -12,6 +12,12 @@
 namespace mb {
     class Display : public Adafruit_GFX {
     public:
+        enum Buffering {
+            None,   // direct drawing to the screen (no mem usage)
+            Single, // use a single buffer (screen (w * h * bpp) mem usage)
+            Double  // use two buffers + core1 rendering (screen (w * h * bpp * 2) mem usage)
+        };
+
         enum Format {
             RGB444,
             RGB555,
@@ -34,7 +40,7 @@ namespace mb {
 
         // init a display (hardware dependant, to be implemented)
         // default display size used for "ST7789 1.54" TFT IPS 240x240"
-        explicit Display(const Utility::Vec2i &size = {240, 240});
+        explicit Display(const Utility::Vec2i &size = {240, 240}, const Buffering &buffering = Buffering::Double);
 
         // destroy the display (hardware dependant, to be implemented)
         virtual ~Display();
@@ -97,11 +103,16 @@ namespace mb {
         // get display size
         Utility::Vec2i getSize() { return m_size; };
 
+        int getPitch() { return m_pitch; };
+
+        int getBpp() { return m_bpp; };
+
     protected:
         uint16_t m_colorKey = Color::Transparent;
         uint16_t *m_line_buffer;
         Utility::Vec2i m_size{};
         Utility::Vec4i m_clip{};
+        Buffering m_buffering = Buffering::None;
         int m_pitch = 0;
         int m_bpp = 2;
     };

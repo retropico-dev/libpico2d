@@ -8,8 +8,7 @@ using namespace mb;
 
 static Platform *s_platform = nullptr;
 
-
-Platform::Platform(bool useDoubleBufferDisplay, bool overclock) : Rectangle({}, Display::Color::Transparent) {
+Platform::Platform(const Display::Buffering &buffering, bool overclock) : Rectangle({}, Display::Color::Transparent) {
     s_platform = this;
 }
 
@@ -32,6 +31,6 @@ bool Platform::loop(bool forceDraw) {
     return true;
 }
 
-Platform *Platform::get() {
+Platform *Platform::instance() {
     return s_platform;
 }

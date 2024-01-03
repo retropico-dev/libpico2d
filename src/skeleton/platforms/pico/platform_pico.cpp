@@ -11,9 +11,9 @@
 
 using namespace mb;
 
-PicoPlatform::PicoPlatform(bool useDoubleBufferDisplay, bool maxOc) : Platform() {
+PicoPlatform::PicoPlatform(const Display::Buffering &buffering, bool overclock) : Platform() {
     // overclock
-    if (maxOc) {
+    if (overclock) {
         vreg_set_voltage(VREG_VOLTAGE_1_15);
         sleep_ms(2);
         set_sys_clock_khz(300000, true);
@@ -37,7 +37,8 @@ PicoPlatform::PicoPlatform(bool useDoubleBufferDisplay, bool maxOc) : Platform()
 #endif
     printf("\r\nPicoPlatform: pico\r\n");
 
-    p_display = useDoubleBufferDisplay ? (PicoDisplay *) new PicoDisplayBuffered() : new PicoDisplay();
+    p_display = buffering == Display::Buffering::None
+                ? new PicoDisplay() : (PicoDisplay *) new PicoDisplayBuffered({240, 240}, buffering);
     p_audio = new PicoAudio();
     p_input = new PicoInput();
     p_io = new PicoIo();
