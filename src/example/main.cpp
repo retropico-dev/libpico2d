@@ -33,7 +33,7 @@ int main() {
     Clock clock, deltaClock;
     int frames = 0;
 
-    auto platform = new MBPlatform(Display::Buffering::Double, true);
+    auto platform = new MBPlatform(Display::Buffering::Double);
 
     platform->getDisplay()->setTextSize(2);
 

@@ -36,7 +36,7 @@ namespace mb {
 
         void setPixel(uint16_t x, uint16_t y, uint16_t pixel) {
             if (!p_buffer) return;
-            if (x > m_size.x || y > m_size.y) return;
+            if (x >= m_size.x || y >= m_size.y) return;
             *(uint16_t *) (p_buffer + y * m_pitch + x * m_bpp) = pixel;
         }
 
@@ -46,7 +46,7 @@ namespace mb {
 
         uint16_t getPixel(uint16_t x, uint16_t y) {
             if (!p_buffer) return 0;
-            if (x > m_size.x || y > m_size.y) return 0;
+            if (x >= m_size.x || y >= m_size.y) return 0;
             return *(uint16_t *) (p_buffer + y * m_pitch + x * m_bpp);
         }
 
@@ -56,13 +56,13 @@ namespace mb {
 
         uint8_t *getPixels() { return p_buffer; };
 
+        [[nodiscard]] uint32_t getPixelsSize() const { return m_size.y * m_pitch; };
+
         [[nodiscard]] Utility::Vec2i getSize() const { return m_size; };
 
         [[nodiscard]] uint16_t getPitch() const { return m_pitch; };
 
         [[nodiscard]] uint8_t getBpp() const { return m_bpp; };
-
-        [[nodiscard]] uint32_t getDataSize() const { return m_size.y * m_pitch; };
 
     private:
         uint8_t *p_buffer = nullptr;

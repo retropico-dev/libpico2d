@@ -38,7 +38,7 @@ PicoPlatform::PicoPlatform(const Display::Buffering &buffering, bool overclock) 
     printf("\r\nPicoPlatform: pico\r\n");
 
     p_display = buffering == Display::Buffering::None
-                ? new PicoDisplay() : (PicoDisplay *) new PicoDisplayBuffered({240, 240}, buffering);
+                ? new PicoDisplay() : (PicoDisplay *) new PicoDisplayBuffered({120, 120}, buffering);
     p_audio = new PicoAudio();
     p_input = new PicoInput();
     p_io = new PicoIo();

@@ -19,13 +19,13 @@ namespace mb {
 
         void flip() override;
 
-        uint8_t *getPixelBuffer(uint8_t index) {
-            return p_pixelBuffer[index];
+        Surface *getSurface(uint8_t index) {
+            return p_surfaces[index];
         }
 
     private:
         Utility::Vec2i m_cursor;
-        uint8_t *p_pixelBuffer[2]{};
+        Surface *p_surfaces[2];
         uint8_t m_bufferIndex = 0;
     };
 }

@@ -9,9 +9,13 @@
 
 using namespace mb;
 
-static PicoDisplayBuffered *display;
+static int s_core1_busy = 0;
 
-static int core1_busy = 0;
+static PicoDisplayBuffered *s_display;
+
+static uint16_t in_ram(s_line_buffer)[240];
+
+static void in_ram(draw)(Surface *surface, const Utility::Vec2i &pos, const Utility::Vec2i &size);
 
 _Noreturn static void in_ram(core1_main)();
 
@@ -25,15 +29,15 @@ union core_cmd {
 PicoDisplayBuffered::PicoDisplayBuffered(const Utility::Vec2i &size, const Buffering &buffering)
         : Display(size, buffering) {
     // my own core1 crap
-    display = this;
+    s_display = this;
 
     // init st7789 display
     st7789_init();
 
     // alloc frames buffers
-    p_pixelBuffer[0] = (uint8_t *) malloc(m_size.x * m_size.y * m_bpp);
+    p_surfaces[0] = new Surface(m_size);
     if (m_buffering == Buffering::Double) {
-        p_pixelBuffer[1] = (uint8_t *) malloc(m_size.x * m_size.y * m_bpp);
+        p_surfaces[1] = new Surface(m_size);
         // launch core1
         multicore_launch_core1(core1_main);
         printf("PicoDisplay: st7789 pio with double buffering @ %ix%i\r\n", m_size.x, m_size.y);
@@ -50,10 +54,8 @@ void in_ram(PicoDisplayBuffered::setCursorPos)(int16_t x, int16_t y) {
 }
 
 void in_ram(PicoDisplayBuffered::setPixel)(uint16_t color) {
-    if (m_cursor.x >= 0 && m_cursor.x < m_size.x
-        && m_cursor.y >= 0 && m_cursor.y < m_size.y
-        && color != m_colorKey) {
-        *(uint16_t *) (p_pixelBuffer[m_bufferIndex] + m_cursor.y * m_pitch + m_cursor.x * m_bpp) = color;
+    if (color != m_colorKey) {
+        p_surfaces[m_bufferIndex]->setPixel(m_cursor, color);
     }
 
     // emulate tft lcd "put_pixel"
@@ -66,10 +68,10 @@ void in_ram(PicoDisplayBuffered::setPixel)(uint16_t color) {
 
 void in_ram(PicoDisplayBuffered::clear)(uint16_t color) {
     if (color == Color::Black || color == Color::White) {
-        auto buffer = (uint16_t *) p_pixelBuffer[m_bufferIndex];
-        memset(buffer, color, m_size.x * m_size.y * m_bpp);
+        auto buffer = (uint16_t *) p_surfaces[m_bufferIndex]->getPixels();
+        memset(buffer, color, p_surfaces[m_bufferIndex]->getPixelsSize());
     } else {
-        auto buffer = p_pixelBuffer[m_bufferIndex];
+        auto buffer = p_surfaces[m_bufferIndex]->getPixels();
         int size = m_pitch * m_size.y;
         uint64_t color64 = (uint64_t) color << 48;
         color64 |= (uint64_t) color << 32;
@@ -84,23 +86,15 @@ void in_ram(PicoDisplayBuffered::clear)(uint16_t color) {
 void in_ram(PicoDisplayBuffered::flip)() {
     if (m_buffering == Buffering::Double) {
         // wait until previous flip on core1 complete
-        while (__atomic_load_n(&core1_busy, __ATOMIC_SEQ_CST)) tight_loop_contents();
-
+        while (__atomic_load_n(&s_core1_busy, __ATOMIC_SEQ_CST)) tight_loop_contents();
         // send "flip" cmd to core1
-        __atomic_store_n(&core1_busy, 1, __ATOMIC_SEQ_CST);
+        __atomic_store_n(&s_core1_busy, 1, __ATOMIC_SEQ_CST);
         union core_cmd cmd{.index = m_bufferIndex};
         multicore_fifo_push_blocking(cmd.full);
-
         // flip buffer
         m_bufferIndex = !m_bufferIndex;
     } else {
-        auto buffer = p_pixelBuffer[0];
-        st7789_set_cursor(0, 0);
-        for (uint_fast16_t y = 0; y < m_size.x; y++) {
-            for (uint_fast16_t x = 0; x < m_size.y; x++) {
-                st7789_put(*(uint16_t *) (buffer + y * m_pitch + x * m_bpp));
-            }
-        }
+        draw(p_surfaces[m_bufferIndex], {0, 0}, {DISPLAY_WIDTH, DISPLAY_HEIGHT});
     }
 }
 
@@ -109,20 +103,55 @@ _Noreturn static void in_ram(core1_main)() {
 
     while (true) {
         cmd.full = multicore_fifo_pop_blocking();
+        draw(s_display->getSurface(cmd.index), {0, 0}, {DISPLAY_WIDTH, DISPLAY_HEIGHT});
+        __atomic_store_n(&s_core1_busy, 0, __ATOMIC_SEQ_CST);
+    }
+}
 
-        auto buffer = display->getPixelBuffer(cmd.index);
-        uint16_t sizeX = display->getSize().x;
-        uint16_t sizeY = display->getSize().y;
-        uint16_t pitch = display->getPitch();
-        uint8_t bpp = display->getBpp();
+static void in_ram(draw)(Surface *surface, const Utility::Vec2i &pos, const Utility::Vec2i &size) {
+    if (surface->getSize() == size) {
+        auto buffer = surface->getPixels();
+        uint16_t pitch = s_display->getPitch();
+        uint8_t bpp = s_display->getBpp();
 
         st7789_set_cursor(0, 0);
-        for (uint_fast16_t y = 0; y < sizeY; y++) {
-            for (uint_fast16_t x = 0; x < sizeX; x++) {
+
+        for (uint_fast16_t y = 0; y < size.y; y++) {
+            for (uint_fast16_t x = 0; x < size.x; x++) {
                 st7789_put(*(uint16_t *) (buffer + y * pitch + x * bpp));
             }
         }
+    } else {
+        // nearest-neighbor scaling
+        int x, y;
+        auto pixels = surface->getPixels();
+        auto pitch = surface->getPitch();
+        auto bpp = surface->getBpp();
+        auto srcSize = surface->getSize();
+        int xRatio = (srcSize.x << 16) / size.x + 1;
+        int yRatio = (srcSize.y << 16) / size.y + 1;
 
-        __atomic_store_n(&core1_busy, 0, __ATOMIC_SEQ_CST);
+        st7789_set_cursor(pos.x, pos.y);
+
+        for (uint8_t i = 0; i < size.y; i++) {
+            // computer line
+            for (uint8_t j = 0; j < size.x; j++) {
+                x = (j * xRatio) >> 16;
+                y = (i * yRatio) >> 16;
+                s_line_buffer[j + pos.x] = *(uint16_t *) (pixels + y * pitch + x * bpp);
+            }
+
+            // render line
+            if (size.x == DISPLAY_WIDTH) {
+                for (uint_fast16_t k = 0; k < size.x; k++) {
+                    st7789_put(s_line_buffer[k]);
+                }
+            } else {
+                st7789_set_cursor(pos.x, i + pos.y);
+                for (uint_fast16_t k = 0; k < size.x; k++) {
+                    st7789_put(s_line_buffer[k]);
+                }
+            }
+        }
     }
 }
