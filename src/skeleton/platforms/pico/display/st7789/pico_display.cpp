@@ -11,8 +11,9 @@ using namespace mb;
 
 PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize,
                          const Utility::Vec2i &renderSize,
+                         const ScaleMode &scaleMode,
                          const Buffering &buffering)
-        : Display(displaySize, renderSize, buffering) {
+        : Display(displaySize, renderSize, scaleMode, buffering) {
     printf("PicoDisplay: st7789 pio @ %ix%i (direct draw)\r\n", renderSize.x, renderSize.y);
 
     // init st7789 display

@@ -6,12 +6,13 @@
 
 using namespace mb;
 
-Display::Display(const Utility::Vec2i &displaySize,
-                 const Utility::Vec2i &renderSize,
-                 const Buffering &buffering) : Adafruit_GFX(renderSize.x, renderSize.y) {
+Display::Display(const Utility::Vec2i &displaySize, const Utility::Vec2i &renderSize,
+                 const ScaleMode &scaleMode, const Buffering &buffering)
+        : Adafruit_GFX(renderSize.x, renderSize.y) {
     m_clip = {0, 0, renderSize.x, renderSize.y};
     m_displaySize = displaySize;
     m_renderSize = renderSize;
+    m_scaleMode = scaleMode;
     m_bpp = 2;
     m_pitch = m_renderSize.x * m_bpp;
     m_buffering = buffering;

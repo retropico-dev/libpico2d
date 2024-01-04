@@ -36,7 +36,7 @@ namespace mb {
                 return;
             }
 
-            printf("Surface(): loading new bitmap (%i x %i @ %i bpp)\r\n",
+            printf("Surface(): loading new bitmap (%li x %li @ %i bpp)\r\n",
                    bmp->w, bmp->h, bmp->bpp);
 
             auto padding = ((4 - (bmp->w * 3) % 4) % 4);
@@ -93,34 +93,26 @@ namespace mb {
 
         [[nodiscard]] uint8_t getBpp() const { return m_bpp; }
 
-        [[maybe_unused]] bool isBitmap() const { return m_is_bitmap; }
+        [[nodiscard]] bool isBitmap() const { return m_is_bitmap; }
 
     private:
-        /*
-        typedef struct bmp_header {
-            uint8_t bmp_file_header[14];
-            uint8_t bmp_info_header[40];
-            //uint8_t bmp_pad[3];
-            //uint8_t *data;
-        } bmp_header;
-        */
 #pragma pack(push, 2)
         struct BMPHeader {
             char header[2]{};
-            uint32_t file_size;
+            uint32_t file_size{};
             uint16_t reserved[2]{};
-            uint32_t data_offset;
-            uint32_t info_size;
-            int32_t w;
-            int32_t h;
-            uint16_t planes;
-            uint16_t bpp;
-            uint32_t compression;
-            uint32_t image_size;
-            int32_t res_x;
-            int32_t res_y;
-            uint32_t palette_cols;
-            uint32_t important_cols;
+            uint32_t data_offset{};
+            uint32_t info_size{};
+            int32_t w{};
+            int32_t h{};
+            uint16_t planes{};
+            uint16_t bpp{};
+            uint32_t compression{};
+            uint32_t image_size{};
+            int32_t res_x{};
+            int32_t res_y{};
+            uint32_t palette_cols{};
+            uint32_t important_cols{};
         };
 #pragma pack(pop)
 

@@ -7,7 +7,7 @@
 
 using namespace mb;
 
-Bitmap::Bitmap(const Utility::Vec2i &pos, Surface *surface) : Widget() {
+Bitmap::Bitmap(Surface *surface, const Utility::Vec2i &pos) : Widget() {
     m_surface = surface;
     Widget::setPosition(pos);
     Widget::setSize(m_surface->getSize());

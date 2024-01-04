@@ -37,15 +37,17 @@ int main() {
     int frames = 0;
 
     auto platform = new P2DPlatform(Display::Buffering::Double);
-    platform->addDisplay((Display *) new P2DDisplay({240, 240}, {120, 120}));
-
+    platform->addDisplay((Display *) new P2DDisplay({240, 240}, {120, 120}, Display::ScaleMode::Point));
 
     auto center = new Utility::Vec2i((int16_t) (platform->getSize().x / 2),
                                      (int16_t) (platform->getSize().y / 2));
 
     auto surface = new Surface(girl_120x120_bmp);
-    auto bitmap = new Bitmap({}, surface);
+    auto bitmap = new Bitmap(surface);
     platform->add(bitmap);
+
+    //auto bitmap2 = new Bitmap(surface, {32, 32});
+    //platform->add(bitmap2);
 
     //auto bitmap = new Bitmap({}, (Surface *) &girl_120x120_surface);
     //bitmap->setOrigin(Widget::Origin::Center);

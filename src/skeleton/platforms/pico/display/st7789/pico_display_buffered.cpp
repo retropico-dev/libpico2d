@@ -15,7 +15,8 @@ static PicoDisplayBuffered *s_display;
 
 static uint16_t in_ram(s_line_buffer)[240];
 
-static void in_ram(draw)(Surface *surface, const Utility::Vec2i &pos, const Utility::Vec2i &size);
+static void in_ram(draw)(Surface *surface, const Display::ScaleMode &mode,
+                         const Utility::Vec2i &pos, const Utility::Vec2i &size);
 
 _Noreturn static void in_ram(core1_main)();
 
@@ -28,8 +29,9 @@ union core_cmd {
 
 PicoDisplayBuffered::PicoDisplayBuffered(const Utility::Vec2i &displaySize,
                                          const Utility::Vec2i &renderSize,
+                                         const ScaleMode &scaleMode,
                                          const Buffering &buffering)
-        : Display(displaySize, renderSize, buffering) {
+        : Display(displaySize, renderSize, scaleMode, buffering) {
     // my own core1 crap
     s_display = this;
 
@@ -96,7 +98,7 @@ void in_ram(PicoDisplayBuffered::flip)() {
         // flip buffer
         m_bufferIndex = !m_bufferIndex;
     } else {
-        draw(p_surfaces[m_bufferIndex], {0, 0}, {DISPLAY_WIDTH, DISPLAY_HEIGHT});
+        draw(p_surfaces[m_bufferIndex], m_scaleMode, {}, m_displaySize);
     }
 }
 
@@ -105,53 +107,68 @@ _Noreturn static void in_ram(core1_main)() {
 
     while (true) {
         cmd.full = multicore_fifo_pop_blocking();
-        draw(s_display->getSurface(cmd.index), {0, 0}, {DISPLAY_WIDTH, DISPLAY_HEIGHT});
+        draw(s_display->getSurface(cmd.index), s_display->getScaleMode(), {0, 0}, s_display->getDisplaySize());
         __atomic_store_n(&s_core1_busy, 0, __ATOMIC_SEQ_CST);
     }
 }
 
-static void in_ram(draw)(Surface *surface, const Utility::Vec2i &pos, const Utility::Vec2i &size) {
+static void in_ram(draw)(Surface *surface, const Display::ScaleMode &mode,
+                         const Utility::Vec2i &pos, const Utility::Vec2i &size) {
+    // render size is equal to display size
     if (surface->getSize() == size) {
         auto buffer = surface->getPixels();
         uint16_t pitch = s_display->getPitch();
         uint8_t bpp = s_display->getBpp();
-
         st7789_set_cursor(0, 0);
-
         for (uint_fast16_t y = 0; y < size.y; y++) {
             for (uint_fast16_t x = 0; x < size.x; x++) {
                 st7789_put(*(uint16_t *) (buffer + y * pitch + x * bpp));
             }
         }
     } else {
-        // nearest-neighbor scaling
-        int x, y;
         auto pixels = surface->getPixels();
         auto pitch = surface->getPitch();
         auto bpp = surface->getBpp();
         auto srcSize = surface->getSize();
-        int xRatio = (srcSize.x << 16) / size.x + 1;
-        int yRatio = (srcSize.y << 16) / size.y + 1;
 
         st7789_set_cursor(pos.x, pos.y);
 
-        for (uint8_t i = 0; i < size.y; i++) {
-            // computer line
-            for (uint8_t j = 0; j < size.x; j++) {
-                x = (j * xRatio) >> 16;
-                y = (i * yRatio) >> 16;
-                s_line_buffer[j + pos.x] = *(uint16_t *) (pixels + y * pitch + x * bpp);
-            }
-
-            // render line
-            if (size.x == DISPLAY_WIDTH) {
-                for (uint_fast16_t k = 0; k < size.x; k++) {
-                    st7789_put(s_line_buffer[k]);
+        if (mode == Display::ScaleMode::Nearest) {
+            int x, y;
+            int xRatio = (srcSize.x << 16) / size.x + 1;
+            int yRatio = (srcSize.y << 16) / size.y + 1;
+            for (uint8_t i = 0; i < size.y; i++) {
+                // computer line
+                for (uint8_t j = 0; j < size.x; j++) {
+                    x = (j * xRatio) >> 16;
+                    y = (i * yRatio) >> 16;
+                    s_line_buffer[j + pos.x] = *(uint16_t *) (pixels + y * pitch + x * bpp);
                 }
-            } else {
-                st7789_set_cursor(pos.x, i + pos.y);
-                for (uint_fast16_t k = 0; k < size.x; k++) {
-                    st7789_put(s_line_buffer[k]);
+                // render line
+                if (size.x == DISPLAY_WIDTH) {
+                    for (uint_fast16_t k = 0; k < size.x; k++) {
+                        st7789_put(s_line_buffer[k]);
+                    }
+                } else {
+                    st7789_set_cursor(pos.x, i + pos.y);
+                    for (uint_fast16_t k = 0; k < size.x; k++) {
+                        st7789_put(s_line_buffer[k]);
+                    }
+                }
+            }
+        } else {
+            for (uint_fast16_t y = 0; y < srcSize.y; y++) {
+                for (uint_fast16_t i = 0; i < 2; i++) {
+                    for (uint_fast16_t x = 0; x < srcSize.x; x += 2) {
+                        // line 1
+                        auto p1 = *(uint16_t *) (pixels + y * pitch + x * bpp);
+                        st7789_put(p1);
+                        st7789_put(mode == mb::Display::Point ? p1 : Display::Color::Black);
+                        // line 2
+                        auto p2 = *(uint16_t *) (pixels + y * pitch + (x + 1) * bpp);
+                        st7789_put(p2);
+                        st7789_put(mode == mb::Display::Point ? p2 : Display::Color::Black);
+                    }
                 }
             }
         }
