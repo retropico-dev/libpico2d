@@ -11,7 +11,7 @@
 
 using namespace mb;
 
-PicoPlatform::PicoPlatform(const Display::Buffering &buffering, bool overclock) : Platform() {
+PicoPlatform::PicoPlatform(bool overclock) : Platform() {
     // overclock
     if (overclock) {
         vreg_set_voltage(VREG_VOLTAGE_1_15);
@@ -37,24 +37,21 @@ PicoPlatform::PicoPlatform(const Display::Buffering &buffering, bool overclock) 
 #endif
     printf("\r\nPicoPlatform: pico\r\n");
 
-    p_display = buffering == Display::Buffering::None
-                ? new PicoDisplay() : (PicoDisplay *) new PicoDisplayBuffered();
     p_audio = new PicoAudio();
     p_input = new PicoInput();
     p_io = new PicoIo();
-
-    // set rendering size to display size
-    Rectangle::setSize(p_display->getRenderSize());
 }
 
 void PicoPlatform::reboot() {
     printf("PicoPlatform::reboot\r\n");
 
-    // clean both screen buffers
-    p_display->clear();
-    p_display->flip();
-    p_display->clear();
-    p_display->flip();
+    if (p_display) {
+        // clean both screen buffers
+        p_display->clear();
+        p_display->flip();
+        p_display->clear();
+        p_display->flip();
+    }
 
     watchdog_reboot(0, 0, 50);
 

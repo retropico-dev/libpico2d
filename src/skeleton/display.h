@@ -13,7 +13,7 @@ namespace mb {
     class Display : public Adafruit_GFX {
     public:
         enum Buffering {
-            None,   // direct drawing to the screen (no mem usage)
+            //None,   // direct drawing to the screen (no mem usage)
             Single, // use a single buffer (screen (w * h * bpp) mem usage)
             Double  // use two buffers + core1 rendering (screen (w * h * bpp * 2) mem usage)
         };
@@ -115,7 +115,7 @@ namespace mb {
         uint16_t m_colorKey = Color::Transparent;
         uint16_t *m_line_buffer;
         Utility::Vec4i m_clip{};
-        Buffering m_buffering = Buffering::None;
+        Buffering m_buffering = Buffering::Double;
         Utility::Vec2i m_displaySize{};
         Utility::Vec2i m_renderSize{};
         int m_pitch = 0;

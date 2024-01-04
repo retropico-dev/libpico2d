@@ -17,7 +17,7 @@ LinuxDisplay::LinuxDisplay(const Utility::Vec2i &displaySize,
         return;
     }
 
-    p_window = SDL_CreateWindow("MicroBoy", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+    p_window = SDL_CreateWindow("libpico2d", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                 m_displaySize.x, m_displaySize.y, SDL_WINDOW_SHOWN);
     if (!p_window) {
         fprintf(stderr, "SDL_CreateWindow error: %s", SDL_GetError());

@@ -17,7 +17,7 @@
 namespace mb {
     class Platform : public Rectangle {
     public:
-        explicit Platform(const Display::Buffering &buffering = Display::Buffering::Double, bool overclock = false);
+        explicit Platform(bool overclock = false);
 
         virtual ~Platform() {
             printf("~Platform()\n");
@@ -29,13 +29,18 @@ namespace mb {
 
         static Platform *instance();
 
-        Display *getDisplay() { return p_display; };
+        void addDisplay(Display *display) {
+            p_display = display;
+            Rectangle::setSize(p_display->getRenderSize());
+        }
 
-        Audio *getAudio() { return p_audio; };
+        Display *getDisplay() { return p_display; }
 
-        Input *getInput() { return p_input; };
+        Audio *getAudio() { return p_audio; }
 
-        Io *getIo() { return p_io; };
+        Input *getInput() { return p_input; }
+
+        Io *getIo() { return p_io; }
 
         virtual bool loop(bool forceDraw = false);
 
@@ -51,10 +56,12 @@ namespace mb {
 
 #ifdef LINUX
 #include "platform_linux.h"
-#define MBPlatform LinuxPlatform
+#define P2DPlatform LinuxPlatform
+#define P2DDisplay LinuxDisplay
 #else
 #include "platform_pico.h"
-#define MBPlatform PicoPlatform
+#define P2DPlatform PicoPlatform
+#define P2DDisplay PicoDisplayBuffered
 #endif
 
 #endif //PICO2D_PLATFORM_H

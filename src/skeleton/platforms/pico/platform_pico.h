@@ -25,7 +25,7 @@
 namespace mb {
     class PicoPlatform : public Platform {
     public:
-        explicit PicoPlatform(const Display::Buffering &buffering = Display::Buffering::Double, bool overclock = true);
+        explicit PicoPlatform(bool overclock = true);
 
         ~PicoPlatform() override;
 

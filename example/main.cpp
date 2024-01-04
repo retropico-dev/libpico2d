@@ -36,7 +36,8 @@ int main() {
     Clock clock, deltaClock;
     int frames = 0;
 
-    auto platform = new MBPlatform(Display::Buffering::Double);
+    auto platform = new P2DPlatform(Display::Buffering::Double);
+    platform->addDisplay((Display *) new P2DDisplay({240, 240}, {120, 120}));
 
     platform->getDisplay()->setTextSize(2);
 

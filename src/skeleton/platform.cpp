@@ -8,16 +8,16 @@ using namespace mb;
 
 static Platform *s_platform = nullptr;
 
-Platform::Platform(const Display::Buffering &buffering, bool overclock) : Rectangle({}, Display::Color::Transparent) {
+Platform::Platform(bool overclock) : Rectangle({}, Display::Color::Transparent) {
     s_platform = this;
 }
 
 bool Platform::loop(bool forceDraw) {
-    uint16_t buttons = p_input->getButtons();
+    uint16_t buttons = p_input ? p_input->getButtons() : 0;
     if (buttons & Input::Button::QUIT) return false;
 
     // only refresh screen on button inputs
-    if (forceDraw || buttons && buttons != Input::Button::DELAY) {
+    if (p_display && (forceDraw || buttons && buttons != Input::Button::DELAY)) {
         // clear screen
         p_display->clear();
 

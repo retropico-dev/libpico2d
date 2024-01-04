@@ -6,15 +6,10 @@
 
 using namespace mb;
 
-LinuxPlatform::LinuxPlatform(const Display::Buffering &buffering, bool overclock)
-        : Platform(buffering, overclock) {
-    p_display = (Display *) new LinuxDisplay({240, 240}, {120, 120});
+LinuxPlatform::LinuxPlatform(bool overclock) : Platform(overclock) {
     p_audio = new LinuxAudio();
     p_input = new LinuxInput();
     p_io = new LinuxIo();
-
-    // set rendering size to display size
-    Rectangle::setSize(p_display->getRenderSize());
 }
 
 LinuxPlatform::~LinuxPlatform() {
