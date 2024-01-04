@@ -79,20 +79,22 @@ void in_ram(Display::drawPixelLine)(const uint16_t *pixels, uint16_t width, cons
 void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, const Utility::Vec2i &size) {
     if (!surface) return;
 
-    if (size == surface->getSize()) {
+    if (size == surface->getSize()) { // no scaling
         auto isBitmap = surface->isBitmap();
         auto pixels = surface->getPixels();
         auto pitch = surface->getPitch();
-        auto width = surface->getSize().x;
         auto height = surface->getSize().y;
+        auto width = std::min(surface->getSize().x, (int16_t) (m_renderSize.x - pos.x));
         for (int16_t y = 0; y < size.y; y++) {
             // skip horizontal lines if out of screen
             if (pos.y + y < 0 || pos.y + y >= m_renderSize.y) continue;
-            if (isBitmap) // invert y
-                setCursorPos(pos.x, (int16_t) (height - (pos.y + y)));
+            // set cursor position
+            setCursorPos(pos.x, (int16_t) (pos.y + y));
+            // draw line
+            if (isBitmap) // invert Y axis
+                drawPixelLine((uint16_t *) (pixels + (height - y - 1) * pitch), width);
             else
-                setCursorPos(pos.x, (int16_t) (pos.y + y));
-            drawPixelLine((uint16_t *) (pixels + y * pitch), width);
+                drawPixelLine((uint16_t *) (pixels + y * pitch), width);
         }
     } else {
 #if 1
@@ -173,11 +175,11 @@ void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, c
     }
 }
 
-void in_ram(Display::clear)(uint16_t color) {
+void in_ram(Display::clear)() {
     setCursorPos(0, 0);
     for (int y = 0; y < m_renderSize.y; y++) {
         for (int x = 0; x < m_renderSize.x; x++) {
-            setPixel(color);
+            setPixel(m_clearColor);
         }
     }
 }

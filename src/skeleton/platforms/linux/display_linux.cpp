@@ -8,10 +8,9 @@
 
 using namespace mb;
 
-LinuxDisplay::LinuxDisplay(const Utility::Vec2i &displaySize,
-                           const Utility::Vec2i &renderSize,
-                           const Buffering &buffering)
-        : Display(displaySize, renderSize, buffering) {
+LinuxDisplay::LinuxDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i &renderSize,
+                           const ScaleMode &scaleMode, const Buffering &buffering)
+        : Display(displaySize, renderSize, scaleMode, buffering) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "SDL_Init error: %s", SDL_GetError());
         return;
@@ -55,7 +54,7 @@ void LinuxDisplay::setPixel(uint16_t color) {
 
     // emulate tft lcd "put_pixel" buffer
     m_cursor.x++;
-    if (m_cursor.x >= m_renderSize.x) {
+    if (m_cursor.x >= m_displaySize.x) {
         m_cursor.x = 0;
         m_cursor.y += 1;
     }

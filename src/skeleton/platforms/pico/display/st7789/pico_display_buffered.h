@@ -17,7 +17,7 @@ namespace mb {
 
         void setPixel(uint16_t color) override;
 
-        void clear(uint16_t color = Black) override;
+        void clear() override;
 
         void flip() override;
 

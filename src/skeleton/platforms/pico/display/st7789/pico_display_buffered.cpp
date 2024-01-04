@@ -64,23 +64,22 @@ void in_ram(PicoDisplayBuffered::setPixel)(uint16_t color) {
 
     // emulate tft lcd "put_pixel"
     m_cursor.x++;
-    if (m_cursor.x >= m_renderSize.x) {
+    if (m_cursor.x >= m_displaySize.x) {
         m_cursor.x = 0;
         m_cursor.y += 1;
     }
 }
 
-void in_ram(PicoDisplayBuffered::clear)(uint16_t color) {
-    if (color == Color::Black || color == Color::White) {
-        auto buffer = (uint16_t *) p_surfaces[m_bufferIndex]->getPixels();
-        memset(buffer, color, p_surfaces[m_bufferIndex]->getPixelsSize());
+void in_ram(PicoDisplayBuffered::clear)() {
+    auto buffer = p_surfaces[m_bufferIndex]->getPixels();
+    if (m_clearColor == Color::Black || m_clearColor == Color::White) {
+        memset((uint16_t *) buffer, m_clearColor, p_surfaces[m_bufferIndex]->getPixelsSize());
     } else {
-        auto buffer = p_surfaces[m_bufferIndex]->getPixels();
         int size = m_pitch * m_renderSize.y;
-        uint64_t color64 = (uint64_t) color << 48;
-        color64 |= (uint64_t) color << 32;
-        color64 |= (uint64_t) color << 16;
-        color64 |= color;
+        uint64_t color64 = (uint64_t) m_clearColor << 48;
+        color64 |= (uint64_t) m_clearColor << 32;
+        color64 |= (uint64_t) m_clearColor << 16;
+        color64 |= m_clearColor;
         for (uint_fast16_t i = 0; i < size; i += 8) {
             *(uint64_t *) (buffer + i) = color64;
         }
@@ -97,7 +96,7 @@ void in_ram(PicoDisplayBuffered::flip)() {
         multicore_fifo_push_blocking(cmd.full);
         // flip buffer
         m_bufferIndex = !m_bufferIndex;
-    } else {
+    } else if (m_buffering == Buffering::Single) {
         draw(p_surfaces[m_bufferIndex], m_scaleMode, {}, m_displaySize);
     }
 }

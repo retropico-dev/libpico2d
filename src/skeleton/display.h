@@ -64,7 +64,7 @@ namespace mb {
         virtual void flip() {}
 
         // clear the display
-        virtual void clear(uint16_t color = Black);
+        virtual void clear();
 
         // draw a pixel to the display (slow)
         void drawPixel(int16_t x, int16_t y, uint16_t color) override;
@@ -124,7 +124,12 @@ namespace mb {
             m_scaleMode = scaleMode;
         }
 
+        [[nodiscard]] uint16_t getClearColor() const { return m_clearColor; }
+
+        void setClearColor(uint16_t color) { m_clearColor = color; }
+
     protected:
+        uint16_t m_clearColor = Color::Black;
         uint16_t m_colorKey = Color::Transparent;
         uint16_t *m_line_buffer;
         Utility::Vec4i m_clip{};
