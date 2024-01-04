@@ -12,38 +12,39 @@
 namespace mb {
     class Surface {
     public:
-        static Surface *fromBmp(const uint8_t *binary) {
-            auto bmp = (bmp_header *) binary;
-            if ((bmp->bmp_file_header[0] != 'B') || (bmp->bmp_file_header[1] != 'M')) {
-                printf("Surface::fromBmp: binary is not a bitmap dump...\r\n");
-                return nullptr;
-            }
-
-            if (bmp->bmp_info_header[14] != 16) {
-                printf("Surface::fromBmp: bitmap bits should be 16...\r\n");
-                return nullptr;
-            }
-
-            uint16_t w = (bmp->bmp_info_header[4] + (bmp->bmp_info_header[5] << 8)
-                          + (bmp->bmp_info_header[6] << 16) + (bmp->bmp_info_header[7] << 24));
-            uint16_t h = (bmp->bmp_info_header[8] + (bmp->bmp_info_header[9] << 8)
-                          + (bmp->bmp_info_header[10] << 16) + (bmp->bmp_info_header[11] << 24));
-            if (w == 0 || h == 0) {
-                printf("Surface::fromBmp: bitmap size is wrong...\r\n");
-                return nullptr;
-            }
-
-            printf("Surface::fromBmp: loading new bitmap (%i x %i @ %i bpp)\r\n",
-                   w, h, bmp->bmp_info_header[14]);
-
-            return new Surface({(int16_t) w, (int16_t) h}, (uint8_t *) binary + 54);
-        }
-
         Surface(const Utility::Vec2i &size, uint8_t *buffer) {
             m_size = size;
             p_buffer = buffer;
             m_pitch = size.x * m_bpp;
             m_read_only = true;
+        }
+
+        explicit Surface(const uint8_t *bitmap) {
+            auto bmp = (BMPHeader *) bitmap;
+            if ((bmp->header[0] != 'B') || (bmp->header[1] != 'M')) {
+                printf("Surface: binary is not a bitmap dump...\r\n");
+                return;
+            }
+
+            if (bmp->bpp != 16) {
+                printf("Surface(): bitmap bits should be 16...\r\n");
+                return;
+            }
+
+            if (bmp->w == 0 || bmp->h == 0) {
+                printf("Surface(): bitmap size is wrong...\r\n");
+                return;
+            }
+
+            printf("Surface(): loading new bitmap (%i x %i @ %i bpp)\r\n",
+                   bmp->w, bmp->h, bmp->bpp);
+
+            auto padding = ((4 - (bmp->w * 3) % 4) % 4);
+            p_buffer = (uint8_t *) bitmap + bmp->data_offset;
+            m_size = {(int16_t) bmp->w, (int16_t) bmp->h};
+            m_pitch = (m_size.x * m_bpp) - padding;
+            m_read_only = true;
+            m_is_bitmap = true;
         }
 
         explicit Surface(const Utility::Vec2i &size, uint32_t bufferSize = 0) {
@@ -82,29 +83,53 @@ namespace mb {
             return getPixel(pos.x, pos.y);
         }
 
-        uint8_t *getPixels() { return p_buffer; };
+        uint8_t *getPixels() { return p_buffer; }
 
-        [[nodiscard]] uint32_t getPixelsSize() const { return m_size.y * m_pitch; };
+        [[nodiscard]] uint32_t getPixelsSize() const { return m_size.y * m_pitch; }
 
-        [[nodiscard]] Utility::Vec2i getSize() const { return m_size; };
+        [[nodiscard]] Utility::Vec2i getSize() const { return m_size; }
 
-        [[nodiscard]] uint16_t getPitch() const { return m_pitch; };
+        [[nodiscard]] uint16_t getPitch() const { return m_pitch; }
 
-        [[nodiscard]] uint8_t getBpp() const { return m_bpp; };
+        [[nodiscard]] uint8_t getBpp() const { return m_bpp; }
+
+        [[maybe_unused]] bool isBitmap() const { return m_is_bitmap; }
 
     private:
+        /*
         typedef struct bmp_header {
             uint8_t bmp_file_header[14];
             uint8_t bmp_info_header[40];
             //uint8_t bmp_pad[3];
             //uint8_t *data;
         } bmp_header;
+        */
+#pragma pack(push, 2)
+        struct BMPHeader {
+            char header[2]{};
+            uint32_t file_size;
+            uint16_t reserved[2]{};
+            uint32_t data_offset;
+            uint32_t info_size;
+            int32_t w;
+            int32_t h;
+            uint16_t planes;
+            uint16_t bpp;
+            uint32_t compression;
+            uint32_t image_size;
+            int32_t res_x;
+            int32_t res_y;
+            uint32_t palette_cols;
+            uint32_t important_cols;
+        };
+#pragma pack(pop)
 
         uint8_t *p_buffer = nullptr;
         Utility::Vec2i m_size;
         uint16_t m_pitch = 0;
         uint8_t m_bpp = 2;
         bool m_read_only = false;
+        bool m_is_bitmap = false;
     };
 }
 

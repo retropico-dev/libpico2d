@@ -79,13 +79,18 @@ void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, c
     if (!surface) return;
 
     if (size == surface->getSize()) {
+        auto isBitmap = surface->isBitmap();
         auto pixels = surface->getPixels();
         auto pitch = surface->getPitch();
         auto width = surface->getSize().x;
+        auto height = surface->getSize().y;
         for (int16_t y = 0; y < size.y; y++) {
             // skip horizontal lines if out of screen
             if (pos.y + y < 0 || pos.y + y >= m_renderSize.y) continue;
-            setCursorPos(pos.x, (int16_t) (pos.y + y));
+            if (isBitmap) // invert y
+                setCursorPos(pos.x, (int16_t) (height - (pos.y + y)));
+            else
+                setCursorPos(pos.x, (int16_t) (pos.y + y));
             drawPixelLine((uint16_t *) (pixels + y * pitch), width);
         }
     } else {

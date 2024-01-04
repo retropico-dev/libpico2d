@@ -39,12 +39,11 @@ int main() {
     auto platform = new P2DPlatform(Display::Buffering::Double);
     platform->addDisplay((Display *) new P2DDisplay({240, 240}, {120, 120}));
 
-    platform->getDisplay()->setTextSize(2);
 
     auto center = new Utility::Vec2i((int16_t) (platform->getSize().x / 2),
                                      (int16_t) (platform->getSize().y / 2));
 
-    auto surface = Surface::fromBmp(girl_120x120_bmp);
+    auto surface = new Surface(girl_120x120_bmp);
     auto bitmap = new Bitmap({}, surface);
     platform->add(bitmap);
 
