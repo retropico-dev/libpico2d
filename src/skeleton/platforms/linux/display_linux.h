@@ -10,7 +10,9 @@
 namespace mb {
     class LinuxDisplay : public Display {
     public:
-        LinuxDisplay();
+        LinuxDisplay(const Utility::Vec2i &displaySize = {240, 240},
+                     const Utility::Vec2i &renderSize = {240, 240},
+                     const Buffering &buffering = Buffering::Double);
 
         ~LinuxDisplay() override;
 

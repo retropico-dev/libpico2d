@@ -8,14 +8,17 @@
 
 using namespace mb;
 
-LinuxDisplay::LinuxDisplay() : Display() {
+LinuxDisplay::LinuxDisplay(const Utility::Vec2i &displaySize,
+                           const Utility::Vec2i &renderSize,
+                           const Buffering &buffering)
+        : Display(displaySize, renderSize, buffering) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "SDL_Init error: %s", SDL_GetError());
         return;
     }
 
     p_window = SDL_CreateWindow("MicroBoy", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                m_size.x, m_size.y, SDL_WINDOW_SHOWN);
+                                m_displaySize.x, m_displaySize.y, SDL_WINDOW_SHOWN);
     if (!p_window) {
         fprintf(stderr, "SDL_CreateWindow error: %s", SDL_GetError());
         return;
@@ -27,7 +30,11 @@ LinuxDisplay::LinuxDisplay() : Display() {
         return;
     }
 
-    printf("LinuxDisplay: %ix%i (texture pitch: %i)\n", m_size.x, m_size.y, m_pitch);
+    if (displaySize != renderSize) {
+        SDL_RenderSetLogicalSize(p_renderer, renderSize.x, renderSize.y);
+    }
+
+    printf("LinuxDisplay: %ix%i (texture pitch: %i)\n", m_displaySize.x, m_displaySize.y, m_pitch);
 }
 
 void LinuxDisplay::setCursorPos(int16_t x, int16_t y) {
@@ -48,7 +55,7 @@ void LinuxDisplay::setPixel(uint16_t color) {
 
     // emulate tft lcd "put_pixel" buffer
     m_cursor.x++;
-    if (m_cursor.x >= m_size.x) {
+    if (m_cursor.x >= m_renderSize.x) {
         m_cursor.x = 0;
         m_cursor.y += 1;
     }

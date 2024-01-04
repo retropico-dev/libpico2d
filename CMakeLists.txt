@@ -36,4 +36,4 @@ endif ()
 add_subdirectory(src/skeleton)
 
 # microboy-ui (ui binary)
-add_subdirectory(src/example)
+add_subdirectory(example)

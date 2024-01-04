@@ -15,7 +15,7 @@
 namespace mb {
     class LinuxPlatform : public Platform {
     public:
-        explicit LinuxPlatform(bool useDoubleBufferDisplay = false, bool overclock = false);
+        explicit LinuxPlatform(const Display::Buffering &buffering = Display::Buffering::Double, bool overclock = false);
 
         ~LinuxPlatform() override;
     };

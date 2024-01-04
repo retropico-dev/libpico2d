@@ -9,7 +9,7 @@ namespace mb {
     class PicoDisplayBuffered : public Display {
     public:
         explicit PicoDisplayBuffered(const Utility::Vec2i &displaySize = {240, 240},
-                                     const Utility::Vec2i &renderSize = {240, 240},
+                                     const Utility::Vec2i &renderSize = {120, 120},
                                      const Buffering &buffering = Buffering::Double);
 
         void setCursorPos(int16_t x, int16_t y) override;

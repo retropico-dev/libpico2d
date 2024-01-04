@@ -21,11 +21,14 @@
 #include "text.h"
 #include "tweeny.h"
 #include "bitmap.h"
-#include "bitmaps/star.h"
+//#include "bitmaps/star.h"
 //#include "bitmaps/monster.h"
 //#include "bitmaps/explosion-sprite.h"
 //#include "bitmaps/girl_240x240_alpha.h"
 #include "bitmaps/girl_120x120.h"
+
+extern const unsigned char girl_120x120_bmp[];
+extern const unsigned girl_120x120_bmp_size;
 
 using namespace mb;
 
@@ -40,9 +43,13 @@ int main() {
     auto center = new Utility::Vec2i((int16_t) (platform->getSize().x / 2),
                                      (int16_t) (platform->getSize().y / 2));
 
-    auto bitmap = new Bitmap({}, (Surface *) &girl_120x120_surface);
-    //bitmap->setOrigin(Widget::Origin::Center);
+    auto surface = Surface::fromBmp(girl_120x120_bmp);
+    auto bitmap = new Bitmap({}, surface);
     platform->add(bitmap);
+
+    //auto bitmap = new Bitmap({}, (Surface *) &girl_120x120_surface);
+    //bitmap->setOrigin(Widget::Origin::Center);
+    //platform->add(bitmap);
 
     /*
     auto sprite = new Bitmap({center->x, center->y}, (Surface *) &explosion_sprite_surf);
