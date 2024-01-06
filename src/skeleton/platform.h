@@ -13,6 +13,7 @@
 #include "clock.h"
 #include "utility"
 #include "rectangle.h"
+#include "resource.h"
 
 namespace mb {
     class Platform : public Rectangle {

@@ -25,9 +25,9 @@ namespace mb {
         };
 
         enum ScaleMode {
-            Point,      // integer scaling, fast
-            Scanline,   // integer scaling, fast
-            Nearest     // free scaling, slower
+            Scale2x,    // integer scaling, fast
+            Scanline2x, // integer scaling, fast
+            Nearest     // free scaling ratio, slower
         };
 
         enum Color {
@@ -48,7 +48,7 @@ namespace mb {
         // default display size used for "ST7789 1.54" TFT IPS 240x240"
         explicit Display(const Utility::Vec2i &displaySize = {240, 240},
                          const Utility::Vec2i &renderSize = {240, 240},
-                         const ScaleMode &scaleMode = ScaleMode::Point,
+                         const ScaleMode &scaleMode = ScaleMode::Scale2x,
                          const Buffering &buffering = Buffering::Double);
 
         // destroy the display (hardware dependant, to be implemented)
@@ -136,7 +136,7 @@ namespace mb {
         Buffering m_buffering = Buffering::Double;
         Utility::Vec2i m_displaySize{};
         Utility::Vec2i m_renderSize{};
-        ScaleMode m_scaleMode = ScaleMode::Point;
+        ScaleMode m_scaleMode = ScaleMode::Scale2x;
         int m_pitch = 0;
         int m_bpp = 2;
     };

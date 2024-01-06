@@ -1,20 +1,17 @@
-# Creates C resources file from files in given directory
-function(add_resources dir output)
-    # Create empty output file
-    file(WRITE ${output} "")
-    # Collect input files
-    file(GLOB bins ${dir}/*)
-    # Iterate through input files
-    foreach (bin ${bins})
-        # Get short filename
-        string(REGEX MATCH "([^/]+)$" filename ${bin})
-        # Replace filename spaces & extension separator for C compatibility
-        string(REGEX REPLACE "\\.| |-" "_" filename ${filename})
-        # Read hex data from file
-        file(READ ${bin} filedata HEX)
-        # Convert hex data for C compatibility
-        string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1," filedata ${filedata})
-        # Append data to output file
-        file(APPEND ${output} "const unsigned char ${filename}[] = {${filedata}};\nconst unsigned ${filename}_size = sizeof(${filename});\n")
+function(add_resource_binary out_var)
+    set(result)
+    foreach (in_f ${ARGN})
+        set(out_f "${PROJECT_BINARY_DIR}/${in_f}.o")
+        get_filename_component(in_path ${CMAKE_CURRENT_SOURCE_DIR}/${in_f} DIRECTORY)
+        get_filename_component(in_file ${CMAKE_CURRENT_SOURCE_DIR}/${in_f} NAME)
+        add_custom_command(OUTPUT ${out_f}
+                WORKING_DIRECTORY ${in_path}
+                COMMAND ${CMAKE_LINKER} -r -b binary -o ${out_f} ${in_file}
+                DEPENDS ${in_f}
+                COMMENT "Building binary object ${out_f}"
+                VERBATIM
+        )
+        list(APPEND result ${out_f})
     endforeach ()
+    set(${out_var} "${result}" PARENT_SCOPE)
 endfunction()

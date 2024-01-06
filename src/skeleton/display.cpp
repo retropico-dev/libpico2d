@@ -177,8 +177,8 @@ void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, c
 
 void in_ram(Display::clear)() {
     setCursorPos(0, 0);
-    for (int y = 0; y < m_renderSize.y; y++) {
-        for (int x = 0; x < m_renderSize.x; x++) {
+    for (int y = 0; y < m_displaySize.y; y++) {
+        for (int x = 0; x < m_displaySize.x; x++) {
             setPixel(m_clearColor);
         }
     }

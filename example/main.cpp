@@ -21,14 +21,6 @@
 #include "text.h"
 #include "tweeny.h"
 #include "bitmap.h"
-//#include "bitmaps/star.h"
-//#include "bitmaps/monster.h"
-//#include "bitmaps/explosion-sprite.h"
-//#include "bitmaps/girl_240x240_alpha.h"
-#include "bitmaps/girl_120x120.h"
-
-extern const unsigned char girl_120x120_bmp[];
-extern const unsigned girl_120x120_bmp_size;
 
 using namespace mb;
 
@@ -36,45 +28,27 @@ int main() {
     Clock clock, deltaClock;
     int frames = 0;
 
-    auto platform = new P2DPlatform(Display::Buffering::Double);
-    platform->addDisplay((Display *) new P2DDisplay({240, 240}, {120, 120}, Display::ScaleMode::Point));
+    auto platform = new P2DPlatform(false);
+    platform->addDisplay((Display *) new P2DDisplay({240, 240}, {120, 120}));
     platform->getDisplay()->setClearColor(Display::Color::Blue);
 
-    auto center = new Utility::Vec2i((int16_t) (platform->getSize().x / 2),
-                                     (int16_t) (platform->getSize().y / 2));
+    auto center = Utility::Vec2i((int16_t) (platform->getSize().x / 2),
+                                 (int16_t) (platform->getSize().y / 2));
 
-    auto surface = new Surface(girl_120x120_bmp);
-    auto bitmap = new Bitmap(surface);
-    platform->add(bitmap);
+    // load bitmap resources
+    Resource girl = P2D_LOAD_RES(girl_120x120_bmp);
+    auto girl_bmp = new Bitmap(girl.data());
+    platform->add(girl_bmp);
 
-    auto bitmap2 = new Bitmap(surface, {32, 32});
-    platform->add(bitmap2);
+    Resource star = P2D_LOAD_RES(star_bmp);
+    auto star_bmp = new Bitmap(star.data(), center);
+    star_bmp->setOrigin(Widget::Origin::Center);
+    platform->add(star_bmp);
 
-    //auto bitmap = new Bitmap({}, (Surface *) &girl_120x120_surface);
-    //bitmap->setOrigin(Widget::Origin::Center);
-    //platform->add(bitmap);
-
-    /*
-    auto sprite = new Bitmap({center->x, center->y}, (Surface *) &explosion_sprite_surf);
-    sprite->setOrigin(Widget::Origin::Center);
-    platform->add(sprite);
-
-    auto bitmap = new Bitmap({center->x, center->y}, (Surface *) &girl_240x240_alpha_surface);
-    bitmap->setOrigin(Widget::Origin::Center);
-    platform->add(bitmap);
-
-    for (int16_t i = 0; i < 64; i++) {
-        auto b = new Bitmap({(int16_t)(i * 2), (int16_t)(i * 2)}, (Surface *) &star_surface);
-        platform->add(b);
-    }
-    */
-
-    /*
-    auto text = new Text(center->x, center->y, "MiamMiam");
-    text->setColor(Display::Color::Black);
-    text->setOrigin(Widget::Origin::Center);
+    auto text = new Text(platform->getSize().x - 2, platform->getSize().y - 2, "Hello MicroBoy");
+    text->setColor(Display::Color::Red);
+    text->setOrigin(Widget::Origin::BottomRight);
     platform->add(text);
-    */
 
     /*
     auto tween = tweeny::from(bitmap->getPosition().x)
@@ -85,7 +59,6 @@ int main() {
     */
 
     while (platform->loop(true)) {
-
         //int16_t x = tween.step((int32_t) deltaClock.restart().asMilliseconds(), true);
         //bitmap->setPosition(x, bitmap->getPosition().y);
 

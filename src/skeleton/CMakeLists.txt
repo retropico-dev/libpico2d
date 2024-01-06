@@ -36,6 +36,9 @@ endif ()
 # tweeny
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/tweeny tweeny)
 
+# resources
+include(cmake/add_res.cmake)
+
 if (PLATFORM_LINUX)
     file(GLOB_RECURSE TEMP ${CMAKE_CURRENT_SOURCE_DIR}/platforms/linux/*.c*)
     list(APPEND PLATFORM_SOURCES ${TEMP})

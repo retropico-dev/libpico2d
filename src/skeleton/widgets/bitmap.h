@@ -10,7 +10,9 @@
 namespace mb {
     class Bitmap : public Widget {
     public:
-        Bitmap(Surface *surface, const Utility::Vec2i &pos = {});
+        explicit Bitmap(Surface *surface, const Utility::Vec2i &pos = {});
+
+        explicit Bitmap(const uint8_t *bmp, const Utility::Vec2i &pos = {});
 
         void loop(const Utility::Vec2i &pos, const uint16_t &buttons) override;
 

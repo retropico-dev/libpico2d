@@ -162,11 +162,11 @@ static void in_ram(draw)(Surface *surface, const Display::ScaleMode &mode,
                         // line 1
                         auto p1 = *(uint16_t *) (pixels + y * pitch + x * bpp);
                         st7789_put(p1);
-                        st7789_put(mode == mb::Display::Point ? p1 : Display::Color::Black);
+                        st7789_put(mode == mb::Display::Scale2x ? p1 : Display::Color::Black);
                         // line 2
                         auto p2 = *(uint16_t *) (pixels + y * pitch + (x + 1) * bpp);
                         st7789_put(p2);
-                        st7789_put(mode == mb::Display::Point ? p2 : Display::Color::Black);
+                        st7789_put(mode == mb::Display::Scale2x ? p2 : Display::Color::Black);
                     }
                 }
             }
