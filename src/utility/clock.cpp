@@ -10,7 +10,7 @@
 #endif
 #include "clock.h"
 
-using namespace mb;
+using namespace p2d;
 
 Clock::Clock() {
     m_startTime = Clock::getCurrentTime();

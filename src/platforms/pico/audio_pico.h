@@ -7,7 +7,7 @@
 
 #include <pico/audio_i2s.h>
 
-namespace mb {
+namespace p2d {
     class PicoAudio : public Audio {
     public:
         void setup(uint16_t rate, uint16_t samples, uint8_t channels = 2) override;

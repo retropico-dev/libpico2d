@@ -8,7 +8,7 @@
 #include "f_util.h"
 #include "hw_config.h"
 
-using namespace mb;
+using namespace p2d;
 
 PicoIo::PicoIo() : Io() {
     p_sd = sd_get_by_num(0);

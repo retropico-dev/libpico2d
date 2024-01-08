@@ -14,7 +14,7 @@
 #define FLASH_TARGET_OFFSET_MISC (FLASH_TARGET_OFFSET_ROM_DATA + FLASH_BLOCK_SIZE + (1024 * 1024)) // 1MB max rom size
 
 
-namespace mb {
+namespace p2d {
     class PicoIo : public Io {
     public:
         PicoIo();

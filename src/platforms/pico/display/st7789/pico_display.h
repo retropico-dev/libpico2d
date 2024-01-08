@@ -5,7 +5,7 @@
 #ifndef PICO2D_PICO_DISPLAY_H
 #define PICO2D_PICO_DISPLAY_H
 
-namespace mb {
+namespace p2d {
     class PicoDisplay : public Display {
     public:
         explicit PicoDisplay(const Utility::Vec2i &displaySize = {240, 240},

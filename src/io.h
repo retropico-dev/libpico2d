@@ -12,7 +12,7 @@
 #define IO_MAX_FILES 2048
 #define IO_MAX_PATH 128
 
-namespace mb {
+namespace p2d {
     class Io {
     public:
         enum Target {

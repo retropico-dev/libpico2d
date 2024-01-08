@@ -4,7 +4,7 @@
 
 #include "platform.h"
 
-using namespace mb;
+using namespace p2d;
 
 Display::Display(const Utility::Vec2i &displaySize, const Utility::Vec2i &renderSize,
                  const ScaleMode &scaleMode, const Buffering &buffering)

@@ -4,7 +4,7 @@
 
 #include "platform.h"
 
-using namespace mb;
+using namespace p2d;
 
 LinuxPlatform::LinuxPlatform(bool overclock) : Platform(overclock) {
     p_audio = new LinuxAudio();

@@ -22,7 +22,7 @@
 #include "tweeny.h"
 #include "bitmap.h"
 
-using namespace mb;
+using namespace p2d;
 
 int main() {
     Clock clock, deltaClock;

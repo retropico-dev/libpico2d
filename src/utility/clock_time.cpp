@@ -4,7 +4,7 @@
 
 #include "clock_time.h"
 
-namespace mb {
+namespace p2d {
     Time::Time() :
             m_microseconds(0) {
     }

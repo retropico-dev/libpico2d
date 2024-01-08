@@ -9,7 +9,7 @@
 #include "platform.h"
 #include "platform_pico.h"
 
-using namespace mb;
+using namespace p2d;
 
 PicoPlatform::PicoPlatform(bool overclock) : Platform() {
     // overclock

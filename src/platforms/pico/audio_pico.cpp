@@ -5,7 +5,7 @@
 #include "platform.h"
 #include "pinout.h"
 
-using namespace mb;
+using namespace p2d;
 
 void PicoAudio::setup(uint16_t rate, uint16_t samples, uint8_t channels) {
     Audio::setup(rate, samples, channels);

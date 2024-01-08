@@ -5,7 +5,7 @@
 #include "platform.h"
 #include "audio_linux.h"
 
-using namespace mb;
+using namespace p2d;
 
 LinuxAudio::LinuxAudio() {
     if (!SDL_WasInit(SDL_INIT_AUDIO)) {

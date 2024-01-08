@@ -4,7 +4,7 @@
 
 #include "input.h"
 
-using namespace mb;
+using namespace p2d;
 
 uint16_t Input::getButtons() {
     // handle auto-repeat

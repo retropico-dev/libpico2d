@@ -7,7 +7,7 @@
 
 // linux sdl2 display interface
 
-namespace mb {
+namespace p2d {
     class LinuxDisplay : public Display {
     public:
         LinuxDisplay(const Utility::Vec2i &displaySize = {240, 240},

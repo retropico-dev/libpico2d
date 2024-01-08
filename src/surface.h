@@ -9,7 +9,7 @@
 #include <cstdlib>
 #include "utility.h"
 
-namespace mb {
+namespace p2d {
     class Surface {
     public:
         Surface(const Utility::Vec2i &size, uint8_t *buffer) {
@@ -36,7 +36,7 @@ namespace mb {
                 return;
             }
 
-            printf("Surface(): loading new bitmap (%li x %li @ %i bpp)\r\n",
+            printf("Surface(): loading new bitmap (%i x %i @ %i bpp)\r\n",
                    bmp->w, bmp->h, bmp->bpp);
 
             auto padding = ((4 - (bmp->w * 3) % 4) % 4);

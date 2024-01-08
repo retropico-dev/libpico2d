@@ -7,7 +7,7 @@
 
 #include "widget.h"
 
-namespace mb {
+namespace p2d {
     class Bitmap : public Widget {
     public:
         explicit Bitmap(Surface *surface, const Utility::Vec2i &pos = {});

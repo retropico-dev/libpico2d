@@ -7,7 +7,7 @@
 
 #include "fonts/future7pt7b.h"
 
-using namespace mb;
+using namespace p2d;
 
 Text::Text(int16_t x, int16_t y, const std::string &str, uint16_t color) : Widget() {
     // default stuff

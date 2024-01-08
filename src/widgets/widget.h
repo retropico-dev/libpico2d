@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace mb {
+namespace p2d {
     class Widget {
     public:
         enum class Origin : uint8_t {

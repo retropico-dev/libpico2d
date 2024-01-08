@@ -15,7 +15,7 @@
 #include "rectangle.h"
 #include "resource.h"
 
-namespace mb {
+namespace p2d {
     class Platform : public Widget {
     public:
         explicit Platform(bool overclock = false);

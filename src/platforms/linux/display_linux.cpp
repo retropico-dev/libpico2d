@@ -6,7 +6,7 @@
 #include "platform.h"
 #include "display_linux.h"
 
-using namespace mb;
+using namespace p2d;
 
 LinuxDisplay::LinuxDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i &renderSize,
                            const ScaleMode &scaleMode, const Buffering &buffering)

@@ -8,7 +8,7 @@
 #include "widget.h"
 #include "rectangle.h"
 
-namespace mb {
+namespace p2d {
     class Text : public Widget {
     public:
         Text(int16_t x, int16_t y,

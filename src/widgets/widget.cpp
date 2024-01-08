@@ -6,7 +6,7 @@
 #include "platform.h"
 #include "widget.h"
 
-using namespace mb;
+using namespace p2d;
 
 void Widget::add(Widget *widget) {
     if (widget) {

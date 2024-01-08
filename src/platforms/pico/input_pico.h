@@ -5,7 +5,7 @@
 #ifndef MICROBOY_INPUT_PICO_H
 #define MICROBOY_INPUT_PICO_H
 
-namespace mb {
+namespace p2d {
     class PicoInput : public Input {
     public:
         PicoInput();

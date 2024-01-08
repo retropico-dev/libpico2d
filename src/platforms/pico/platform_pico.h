@@ -22,7 +22,7 @@
 
 #define in_ram __not_in_flash_func
 
-namespace mb {
+namespace p2d {
     class PicoPlatform : public Platform {
     public:
         explicit PicoPlatform(bool overclock = true);

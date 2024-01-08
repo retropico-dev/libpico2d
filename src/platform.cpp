@@ -4,7 +4,7 @@
 
 #include "platform.h"
 
-using namespace mb;
+using namespace p2d;
 
 static Platform *s_platform = nullptr;
 

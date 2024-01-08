@@ -7,7 +7,7 @@
 
 #include "clock_time.h"
 
-namespace mb {
+namespace p2d {
     class Clock {
     public:
         Clock();

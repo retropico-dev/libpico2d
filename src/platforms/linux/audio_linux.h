@@ -5,7 +5,7 @@
 #ifndef MICROBOY_AUDIO_LINUX_H
 #define MICROBOY_AUDIO_LINUX_H
 
-namespace mb {
+namespace p2d {
     class LinuxAudio : public Audio {
     public:
         explicit LinuxAudio();

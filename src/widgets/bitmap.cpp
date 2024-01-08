@@ -5,13 +5,13 @@
 #include "platform.h"
 #include "bitmap.h"
 
-using namespace mb;
+using namespace p2d;
 
 Bitmap::Bitmap(Surface *surface, const Utility::Vec2i &pos) : Widget() {
     m_surface = surface;
     Widget::setPosition(pos);
     Widget::setSize(m_surface->getSize());
-    printf("Bitmap(): %ix%i, bytes: %lu\r\n",
+    printf("Bitmap(): %ix%i, bytes: %u\r\n",
            m_surface->getSize().x, m_surface->getSize().y, m_surface->getPixelsSize());
 }
 
@@ -19,7 +19,7 @@ Bitmap::Bitmap(const uint8_t *bmp, const Utility::Vec2i &pos) {
     m_surface = new Surface(bmp);
     Widget::setPosition(pos);
     Widget::setSize(m_surface->getSize());
-    printf("Bitmap(bmp): %ix%i, bytes: %lu\r\n",
+    printf("Bitmap(bmp): %ix%i, bytes: %u\r\n",
            m_surface->getSize().x, m_surface->getSize().y, m_surface->getPixelsSize());
 }
 

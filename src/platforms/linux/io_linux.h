@@ -5,7 +5,7 @@
 #ifndef MICROBOY_IO_LINUX_H
 #define MICROBOY_IO_LINUX_H
 
-namespace mb {
+namespace p2d {
     class LinuxIo : public Io {
     public:
         FileBuffer read(const std::string &path, const Target &target = Flash) override;

@@ -16,7 +16,7 @@
 #define MAX_BUTTONS 8
 #define INPUT_DELAY_UI 300
 
-namespace mb {
+namespace p2d {
     class Input {
     public:
         enum Button {

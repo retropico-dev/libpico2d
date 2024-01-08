@@ -4,7 +4,7 @@
 
 #include "platform.h"
 
-using namespace mb;
+using namespace p2d;
 
 struct Mapping {
     uint8_t button;

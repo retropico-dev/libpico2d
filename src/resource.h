@@ -7,7 +7,7 @@
 
 #include <cstddef>
 
-namespace mb {
+namespace p2d {
     class Resource {
     public:
         Resource(const uint8_t *start, const uint8_t *end) : mData(start), mSize(end - start) {}

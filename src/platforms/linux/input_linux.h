@@ -5,7 +5,7 @@
 #ifndef MICROBOY_INPUT_LINUX_H
 #define MICROBOY_INPUT_LINUX_H
 
-namespace mb {
+namespace p2d {
     class LinuxInput : public Input {
     public:
         uint16_t getButtons() override;

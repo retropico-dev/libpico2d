@@ -9,7 +9,7 @@
 #include "surface.h"
 #include "utility.h"
 
-namespace mb {
+namespace p2d {
     class Display : public Adafruit_GFX {
     public:
         enum Buffering {

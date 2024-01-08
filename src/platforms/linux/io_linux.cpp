@@ -9,7 +9,7 @@
 #include "platform.h"
 #include "io_linux.h"
 
-using namespace mb;
+using namespace p2d;
 
 Io::FileBuffer LinuxIo::read(const std::string &path, const Target &target) {
     Io::FileBuffer fileBuffer;

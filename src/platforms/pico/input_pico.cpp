@@ -5,7 +5,7 @@
 #include "platform.h"
 #include "pinout.h"
 
-using namespace mb;
+using namespace p2d;
 
 PicoInput::PicoInput() : Input() {
     // setup buttons pins

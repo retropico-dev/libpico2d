@@ -12,7 +12,7 @@
 #include "io_linux.h"
 #include "pico.h"
 
-namespace mb {
+namespace p2d {
     class LinuxPlatform : public Platform {
     public:
         explicit LinuxPlatform(bool overclock = false);

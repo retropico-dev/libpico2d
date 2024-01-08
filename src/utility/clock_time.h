@@ -7,7 +7,7 @@
 
 #include <cstdint>
 
-namespace mb {
+namespace p2d {
     class Time {
     public:
         Time();

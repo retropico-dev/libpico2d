@@ -4,7 +4,7 @@
 
 #include "utility.h"
 
-using namespace mb;
+using namespace p2d;
 
 std::string Utility::removeExt(const std::string &str) {
     size_t pos = str.find_last_of('.');

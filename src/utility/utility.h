@@ -12,7 +12,7 @@
 extern "C" char __StackLimit;
 extern "C" char __bss_end__;
 
-namespace mb {
+namespace p2d {
     class Utility {
     public:
         struct Vec2i {
