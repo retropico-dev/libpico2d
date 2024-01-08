@@ -8,6 +8,7 @@
 #include <cstring>
 #include <cstdlib>
 #include "utility.h"
+#include "resource.h"
 
 namespace p2d {
     class Surface {
@@ -19,8 +20,21 @@ namespace p2d {
             m_read_only = true;
         }
 
-        explicit Surface(const uint8_t *bitmap) {
-            auto bmp = (BMPHeader *) bitmap;
+        explicit Surface(const Utility::Vec2i &size, uint32_t bufferSize = 0) {
+            m_size = size;
+            if (bufferSize > 0) {
+                p_buffer = (uint8_t *) malloc(bufferSize);
+                memset(p_buffer, 0, bufferSize);
+            } else {
+                p_buffer = (uint8_t *) malloc(m_size.x * m_size.y * m_bpp);
+                memset(p_buffer, 0, m_size.x * m_size.y * m_bpp);
+            }
+            m_pitch = m_size.x * m_bpp;
+        }
+
+        explicit Surface(const Resource &resource) {
+
+            auto bmp = (BMPHeader *) resource.data();
             if ((bmp->header[0] != 'B') || (bmp->header[1] != 'M')) {
                 printf("Surface: binary is not a bitmap dump...\r\n");
                 return;
@@ -40,23 +54,11 @@ namespace p2d {
                    bmp->w, bmp->h, bmp->bpp);
 
             auto padding = ((4 - (bmp->w * 3) % 4) % 4);
-            p_buffer = (uint8_t *) bitmap + bmp->data_offset;
+            p_buffer = (uint8_t *) resource.data() + bmp->data_offset;
             m_size = {(int16_t) bmp->w, (int16_t) bmp->h};
             m_pitch = (m_size.x * m_bpp) - padding;
             m_read_only = true;
             m_is_bitmap = true;
-        }
-
-        explicit Surface(const Utility::Vec2i &size, uint32_t bufferSize = 0) {
-            m_size = size;
-            if (bufferSize > 0) {
-                p_buffer = (uint8_t *) malloc(bufferSize);
-                memset(p_buffer, 0, bufferSize);
-            } else {
-                p_buffer = (uint8_t *) malloc(m_size.x * m_size.y * m_bpp);
-                memset(p_buffer, 0, m_size.x * m_size.y * m_bpp);
-            }
-            m_pitch = m_size.x * m_bpp;
         }
 
         ~Surface() {

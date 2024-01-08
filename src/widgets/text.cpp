@@ -5,13 +5,10 @@
 #include "platform.h"
 #include "text.h"
 
-#include "fonts/future7pt7b.h"
-
 using namespace p2d;
 
 Text::Text(int16_t x, int16_t y, const std::string &str, uint16_t color) : Widget() {
     // default stuff
-    //Ui::getDisplay()->setFont(&future7pt7b);
     Platform::instance()->getDisplay()->setTextWrap(false);
 
     Widget::setPosition(x, y);
@@ -23,7 +20,6 @@ Text::Text(int16_t x, int16_t y, const std::string &str, uint16_t color) : Widge
 Text::Text(int16_t x, int16_t y, int16_t w, int16_t h,
            const std::string &str, uint16_t color) : Widget() {
     // default stuff
-    //Ui::getDisplay()->setFont(&future7pt7b);
     Platform::instance()->getDisplay()->setTextWrap(false);
 
     Widget::setPosition(x, y);
@@ -35,7 +31,6 @@ Text::Text(int16_t x, int16_t y, int16_t w, int16_t h,
 Text::Text(const Utility::Vec2i &pos, const Utility::Vec2i &size,
            const std::string &str, uint16_t color) : Widget() {
     // default stuff
-    //Ui::getDisplay()->setFont(&future7pt7b);
     Platform::instance()->getDisplay()->setTextWrap(false);
 
     Widget::setPosition(pos);
@@ -68,8 +63,8 @@ void Text::loop(const Utility::Vec2i &pos, const uint16_t &buttons) {
     Platform::instance()->getDisplay()->drawText(
             (int16_t) (pos.x - m_bounds.x), (int16_t) (pos.y - m_bounds.y), m_text);
     Platform::instance()->getDisplay()->setClipArea(
-            {0, 0, Platform::instance()->getDisplay()->getRenderSize().x,
-             Platform::instance()->getDisplay()->getRenderSize().y});
+            {0, 0, Platform::instance()->getDisplay()->getSize().x,
+             Platform::instance()->getDisplay()->getSize().y});
 
     // draw child's
     Widget::loop(pos, buttons);

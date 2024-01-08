@@ -26,7 +26,7 @@ namespace p2d {
     };
 }
 
-#define P2D_LOAD_RES(x) ([]() {                                    \
+#define P2D_GET_RES(x) ([]() {                                    \
         extern const uint8_t _binary_##x##_start, _binary_##x##_end;   \
         return Resource(&_binary_##x##_start, &_binary_##x##_end);  \
     })()

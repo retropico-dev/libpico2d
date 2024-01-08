@@ -25,27 +25,25 @@
 using namespace p2d;
 
 int main() {
-    Clock clock, deltaClock;
+    Clock clock; //deltaClock;
     int frames = 0;
 
     auto platform = new P2DPlatform(false);
     platform->addDisplay((Display *) new P2DDisplay({240, 240}, {120, 120}));
     platform->getDisplay()->setClearColor(Display::Color::Blue);
 
-    auto center = Utility::Vec2i((int16_t) (platform->getSize().x / 2),
-                                 (int16_t) (platform->getSize().y / 2));
+    auto bounds = platform->getDisplay()->getBounds();
+    auto center = Utility::Vec2i((int16_t) (bounds.w / 2), (int16_t) (bounds.h / 2));
 
     // load bitmap resources
-    Resource girl = P2D_LOAD_RES(girl_120x120_bmp);
-    auto girl_bmp = new Bitmap(girl.data());
+    auto girl_bmp = new Bitmap(P2D_GET_RES(girl_120x120_bmp));
     platform->add(girl_bmp);
 
-    Resource star = P2D_LOAD_RES(star_bmp);
-    auto star_bmp = new Bitmap(star.data(), center);
+    auto star_bmp = new Bitmap(P2D_GET_RES(star_bmp), center);
     star_bmp->setOrigin(Widget::Origin::Center);
     platform->add(star_bmp);
 
-    auto text = new Text(platform->getSize().x - 2, platform->getSize().y - 2, "Hello MicroBoy");
+    auto text = new Text((int16_t) (bounds.w - 2), (int16_t) (bounds.h - 2), "Hello MicroBoy");
     text->setColor(Display::Color::Red);
     text->setOrigin(Widget::Origin::BottomRight);
     platform->add(text);

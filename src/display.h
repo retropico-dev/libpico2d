@@ -112,7 +112,11 @@ namespace p2d {
         // get display size
         Utility::Vec2i getDisplaySize() { return m_displaySize; };
 
-        Utility::Vec2i getRenderSize() { return m_renderSize; };
+        Utility::Vec2i getSize() { return m_renderSize; };
+
+        Utility::Vec4i getBounds() {
+            return {0, 0, m_renderSize.x, m_renderSize.y};
+        }
 
         int getPitch() { return m_pitch; };
 

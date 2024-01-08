@@ -16,7 +16,7 @@
 #include "resource.h"
 
 namespace p2d {
-    class Platform : public Widget {
+    class Platform : Widget {
     public:
         explicit Platform(bool overclock = false);
 
@@ -32,7 +32,7 @@ namespace p2d {
 
         void addDisplay(Display *display) {
             p_display = display;
-            Widget::setSize(p_display->getRenderSize());
+            Widget::setSize(p_display->getSize());
         }
 
         Display *getDisplay() { return p_display; }
@@ -46,6 +46,10 @@ namespace p2d {
         virtual bool loop(bool forceDraw = false);
 
         virtual void reboot() {};
+
+        void add(Widget *widget) override { Widget::add(widget); }
+
+        void remove(Widget *widget) override { Widget::remove(widget); };
 
     protected:
         Display *p_display = nullptr;

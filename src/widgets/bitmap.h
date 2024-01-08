@@ -12,7 +12,7 @@ namespace p2d {
     public:
         explicit Bitmap(Surface *surface, const Utility::Vec2i &pos = {});
 
-        explicit Bitmap(const uint8_t *bmp, const Utility::Vec2i &pos = {});
+        explicit Bitmap(const Resource &resource, const Utility::Vec2i &pos = {});
 
         ~Bitmap();
 
