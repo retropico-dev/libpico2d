@@ -16,7 +16,7 @@
 #include "resource.h"
 
 namespace mb {
-    class Platform {
+    class Platform : public Widget {
     public:
         explicit Platform(bool overclock = false);
 
@@ -32,6 +32,7 @@ namespace mb {
 
         void addDisplay(Display *display) {
             p_display = display;
+            Widget::setSize(p_display->getRenderSize());
         }
 
         Display *getDisplay() { return p_display; }
@@ -42,7 +43,7 @@ namespace mb {
 
         Io *getIo() { return p_io; }
 
-        virtual bool loop() { return false; };
+        virtual bool loop(bool forceDraw = false);
 
         virtual void reboot() {};
 

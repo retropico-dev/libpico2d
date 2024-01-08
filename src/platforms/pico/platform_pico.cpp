@@ -33,7 +33,8 @@ PicoPlatform::PicoPlatform(bool overclock) : Platform() {
     while (!stdio_usb_connected()) { sleep_ms(100); }
 #endif
 #endif
-    printf("\r\nPicoPlatform: pico\r\n");
+    if (overclock) printf("\r\nPicoPlatform: %s @ 300 MHz\r\n", PICO_BOARD);
+    else printf("\r\nPicoPlatform: %s @ 266 MHz\r\n", PICO_BOARD);
 
     p_audio = new PicoAudio();
     p_input = new PicoInput();
