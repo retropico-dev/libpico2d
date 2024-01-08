@@ -5,9 +5,6 @@
 #ifndef MICROBOY_PINOUT_H
 #define MICROBOY_PINOUT_H
 
-//#define MICROBOY_10
-#define MICROBOY_11
-
 #if defined(MICROBOY_10)
 // SPI LCD PINS         GPIO                        FEATHER RP2040
 #define LCD_PIN_DC      8   // SPI1 RX              6
