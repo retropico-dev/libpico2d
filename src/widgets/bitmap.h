@@ -14,6 +14,8 @@ namespace mb {
 
         explicit Bitmap(const uint8_t *bmp, const Utility::Vec2i &pos = {});
 
+        ~Bitmap();
+
         void loop(const Utility::Vec2i &pos, const uint16_t &buttons) override;
 
     private:

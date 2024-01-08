@@ -31,3 +31,7 @@ void Bitmap::loop(const Utility::Vec2i &pos, const uint16_t &buttons) {
     // draw child's
     Widget::loop(pos, buttons);
 }
+
+Bitmap::~Bitmap() {
+    delete (m_surface);
+}

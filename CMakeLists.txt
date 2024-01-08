@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.5)
 #set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "ON")
 
 # linux platform
@@ -7,8 +7,8 @@ option(BUILD_EXAMPLE "Build example project" OFF)
 
 # libpico2d default board is adafruit feather rp2040
 if (NOT PLATFORM_LINUX AND NOT PICO_BOARD)
-    set(PICO_BOARD "adafruit_feather_rp2040") # v1.0 rev board
-    #set(PICO_BOARD "pico") # v1.1 rev board
+    set(PICO_BOARD "adafruit_feather_rp2040" CACHE STRING "" FORCE) # v1.0 rev board
+    #set(PICO_BOARD "pico" CACHE STRING "" FORCE) # v1.1 rev board
 endif ()
 
 # pico options
@@ -18,10 +18,10 @@ option(PICO_DISPLAY_ST7789_PIO "Pico ST7789 display driver (pio)" ON)
 if (NOT PLATFORM_LINUX)
     # initialize the SDK based on PICO_SDK_PATH
     # note: this must happen before project()
-    include(${CMAKE_SOURCE_DIR}/src/platforms/pico/cmake/pico_sdk_import.cmake)
+    include(${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/cmake/pico_sdk_import.cmake)
 
     # for pico_audio_i2s, hardware_sleep
-    include(${CMAKE_SOURCE_DIR}/src/platforms/pico/cmake/pico_extras_import.cmake)
+    include(${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/cmake/pico_extras_import.cmake)
 endif ()
 
 project(pico2d-skeleton)
@@ -44,18 +44,18 @@ set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3 ${CMAKE_FLAGS_RELEASE_FIX}" CACHE STRI
 
 # set source files
 file(GLOB PLATFORM_SOURCES
-        ${CMAKE_SOURCE_DIR}/src/*.c*
-        ${CMAKE_SOURCE_DIR}/src/widgets/*.c*
-        ${CMAKE_SOURCE_DIR}/src/utility/*.c*
-        ${CMAKE_SOURCE_DIR}/src/compat/*.c*
-        ${CMAKE_SOURCE_DIR}/external/Adafruit-GFX-Library/Adafruit_GFX.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c*
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/*.c*
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/utility/*.c*
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/compat/*.c*
+        ${CMAKE_CURRENT_SOURCE_DIR}/external/Adafruit-GFX-Library/Adafruit_GFX.cpp
 )
 set(PLATFORM_INCLUDES
-        ${CMAKE_SOURCE_DIR}/src
-        ${CMAKE_SOURCE_DIR}/src/widgets
-        ${CMAKE_SOURCE_DIR}/src/utility
-        ${CMAKE_SOURCE_DIR}/src/compat
-        ${CMAKE_SOURCE_DIR}/external/Adafruit-GFX-Library
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/widgets
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/utility
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/compat
+        ${CMAKE_CURRENT_SOURCE_DIR}/external/Adafruit-GFX-Library
 )
 
 set(PLATFORM_FLAGS "-DNO_PICO_LED -DARDUINO=123 -ffast-math")
@@ -64,15 +64,15 @@ if (PICO_STDIO_UART)
 endif ()
 
 # tweeny
-add_subdirectory(${CMAKE_SOURCE_DIR}/external/tweeny tweeny)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/tweeny tweeny)
 
 # resources
-include(${CMAKE_SOURCE_DIR}/src/cmake/add_res.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/src/cmake/add_res.cmake)
 
 if (PLATFORM_LINUX)
-    file(GLOB_RECURSE TEMP ${CMAKE_SOURCE_DIR}/src/platforms/linux/*.c*)
+    file(GLOB_RECURSE TEMP ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/linux/*.c*)
     list(APPEND PLATFORM_SOURCES ${TEMP})
-    list(APPEND PLATFORM_INCLUDES ${CMAKE_SOURCE_DIR}/src/platforms/linux)
+    list(APPEND PLATFORM_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/linux)
     # SDL2
     include(FindPkgConfig)
     pkg_search_module(SDL2 REQUIRED sdl2)
@@ -80,9 +80,9 @@ if (PLATFORM_LINUX)
     list(APPEND PLATFORM_FLAGS -DLINUX)
     list(APPEND PLATFORM_LIBS ${SDL2_LIBRARIES})
 else ()
-    file(GLOB TEMP ${CMAKE_SOURCE_DIR}/src/platforms/pico/*.c*)
+    file(GLOB TEMP ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/*.c*)
     list(APPEND PLATFORM_SOURCES ${TEMP})
-    list(APPEND PLATFORM_INCLUDES ${CMAKE_SOURCE_DIR}/src/platforms/pico)
+    list(APPEND PLATFORM_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico)
     list(APPEND PLATFORM_FLAGS
             PARAM_ASSERTIONS_DISABLE_ALL=1
             PICO_ENTER_USB_BOOT_ON_EXIT=1
@@ -108,15 +108,15 @@ else ()
             hardware_flash
     )
     # spi sdcard driver
-    add_subdirectory(${CMAKE_SOURCE_DIR}/external/no-OS-FatFS-SD-SPI-RPi-Pico/FatFs_SPI build)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/no-OS-FatFS-SD-SPI-RPi-Pico/FatFs_SPI build)
     list(APPEND PLATFORM_LIBS FatFs_SPI)
     # display driver
     if (PICO_DISPLAY_ST7789_PIO)
         list(APPEND PLATFORM_SOURCES
-                ${CMAKE_SOURCE_DIR}/src/platforms/pico/display/st7789/st7789.cpp
-                ${CMAKE_SOURCE_DIR}/src/platforms/pico/display/st7789/pico_display.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/st7789.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/pico_display.cpp
         )
-        list(APPEND PLATFORM_INCLUDES ${CMAKE_SOURCE_DIR}/src/platforms/pico/display/st7789)
+        list(APPEND PLATFORM_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789)
         list(APPEND PLATFORM_LIBS hardware_dma)
     endif ()
     # microboy board revision define
@@ -137,7 +137,7 @@ target_link_libraries(pico2d-skeleton ${PLATFORM_LIBS} tweeny)
 if (NOT PLATFORM_LINUX)
     if (PICO_DISPLAY_ST7789_PIO)
         pico_generate_pio_header(pico2d-skeleton
-                ${CMAKE_SOURCE_DIR}/src/platforms/pico/display/st7789/st7789_lcd.pio)
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/st7789_lcd.pio)
     endif ()
     # debug output
     if (PICO_STDIO_UART)
