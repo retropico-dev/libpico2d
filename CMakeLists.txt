@@ -115,7 +115,6 @@ else ()
         list(APPEND PLATFORM_SOURCES
                 ${CMAKE_SOURCE_DIR}/src/platforms/pico/display/st7789/st7789.cpp
                 ${CMAKE_SOURCE_DIR}/src/platforms/pico/display/st7789/pico_display.cpp
-                ${CMAKE_SOURCE_DIR}/src/platforms/pico/display/st7789/pico_display_buffered.cpp
         )
         list(APPEND PLATFORM_INCLUDES ${CMAKE_SOURCE_DIR}/src/platforms/pico/display/st7789)
         list(APPEND PLATFORM_LIBS hardware_dma)

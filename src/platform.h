@@ -62,7 +62,7 @@ namespace mb {
 #else
 #include "platform_pico.h"
 #define P2DPlatform PicoPlatform
-#define P2DDisplay PicoDisplayBuffered
+#define P2DDisplay PicoDisplay
 #endif
 
 #endif //PICO2D_PLATFORM_H

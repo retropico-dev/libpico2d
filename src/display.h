@@ -13,7 +13,7 @@ namespace mb {
     class Display : public Adafruit_GFX {
     public:
         enum Buffering {
-            //None,   // direct drawing to the screen (no mem usage)
+            None,   // direct drawing to the screen (no mem usage)
             Single, // use a single buffer (screen (w * h * bpp) mem usage)
             Double  // use two buffers + core1 rendering (screen (w * h * bpp * 2) mem usage)
         };

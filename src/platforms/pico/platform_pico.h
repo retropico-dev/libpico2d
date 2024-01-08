@@ -15,7 +15,7 @@
 #include <hardware/sync.h>
 
 #include "pico_display.h"
-#include "pico_display_buffered.h"
+#include "pico_display.h"
 #include "input_pico.h"
 #include "audio_pico.h"
 #include "io_pico.h"
