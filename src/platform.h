@@ -16,7 +16,7 @@
 #include "resource.h"
 
 namespace mb {
-    class Platform : public Rectangle {
+    class Platform {
     public:
         explicit Platform(bool overclock = false);
 
@@ -32,7 +32,6 @@ namespace mb {
 
         void addDisplay(Display *display) {
             p_display = display;
-            Rectangle::setSize(p_display->getRenderSize());
         }
 
         Display *getDisplay() { return p_display; }
@@ -43,7 +42,7 @@ namespace mb {
 
         Io *getIo() { return p_io; }
 
-        virtual bool loop(bool forceDraw = false);
+        virtual bool loop() { return false; };
 
         virtual void reboot() {};
 
