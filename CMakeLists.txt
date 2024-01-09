@@ -35,7 +35,7 @@ else ()
 endif ()
 
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 # TODO: why ?
 #set(CMAKE_FLAGS_RELEASE_FIX "-fno-move-loop-invariants -fno-devirtualize -fno-devirtualize-speculatively")
@@ -67,7 +67,13 @@ endif ()
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/tweeny tweeny)
 
 # resources
-include(${CMAKE_CURRENT_SOURCE_DIR}/src/cmake/add_res.cmake)
+list(APPEND PLATFORM_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/external/libromfs/lib/include)
+function(target_add_romfs target path)
+    set(LIBROMFS_PROJECT_NAME pico2d)
+    set(LIBROMFS_RESOURCE_LOCATION "${path}")
+    add_subdirectory(${CMAKE_SOURCE_DIR}/external/libromfs libromfs)
+    target_link_libraries(${target} ${LIBROMFS_LIBRARY})
+endfunction()
 
 if (PLATFORM_LINUX)
     file(GLOB_RECURSE TEMP ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/linux/*.c*)
@@ -133,7 +139,7 @@ endif ()
 add_library(pico2d-skeleton ${PLATFORM_SOURCES})
 target_include_directories(pico2d-skeleton PUBLIC ${PLATFORM_INCLUDES})
 target_compile_definitions(pico2d-skeleton PUBLIC ${PLATFORM_FLAGS})
-target_link_libraries(pico2d-skeleton ${PLATFORM_LIBS} tweeny)
+target_link_libraries(pico2d-skeleton PUBLIC ${PLATFORM_LIBS} tweeny)
 if (NOT PLATFORM_LINUX)
     if (PICO_DISPLAY_ST7789_PIO)
         pico_generate_pio_header(pico2d-skeleton

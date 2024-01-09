@@ -32,16 +32,17 @@ int main() {
     platform->addDisplay((Display *) new P2DDisplay({240, 240}, {120, 120}));
     platform->getDisplay()->setClearColor(Display::Color::Blue);
 
+
     auto bounds = platform->getDisplay()->getBounds();
     auto center = Utility::Vec2i((int16_t) (bounds.w / 2), (int16_t) (bounds.h / 2));
 
     // load bitmap resources
-    auto girl_bmp = new Bitmap(P2D_GET_RES(girl_120x120_bmp));
-    platform->add(girl_bmp);
+    auto girl = new Bitmap(romfs::get("girl_120x120.bmp"));
+    platform->add(girl);
 
-    auto star_bmp = new Bitmap(P2D_GET_RES(star_bmp), center);
-    star_bmp->setOrigin(Widget::Origin::Center);
-    platform->add(star_bmp);
+    auto star = new Bitmap(romfs::get("star.bmp"), center);
+    star->setOrigin(Widget::Origin::Center);
+    platform->add(star);
 
     auto text = new Text((int16_t) (bounds.w - 2), (int16_t) (bounds.h - 2), "Hello MicroBoy");
     text->setColor(Display::Color::Red);

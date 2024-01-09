@@ -7,8 +7,8 @@
 
 #include <cstring>
 #include <cstdlib>
+#include "romfs/romfs.hpp"
 #include "utility.h"
-#include "resource.h"
 
 namespace p2d {
     class Surface {
@@ -32,8 +32,7 @@ namespace p2d {
             m_pitch = m_size.x * m_bpp;
         }
 
-        explicit Surface(const Resource &resource) {
-
+        explicit Surface(const romfs::Resource &resource) {
             auto bmp = (BMPHeader *) resource.data();
             if ((bmp->header[0] != 'B') || (bmp->header[1] != 'M')) {
                 printf("Surface: binary is not a bitmap dump...\r\n");

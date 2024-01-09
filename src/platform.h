@@ -13,7 +13,7 @@
 #include "clock.h"
 #include "utility"
 #include "rectangle.h"
-#include "resource.h"
+//#include "romfs.hpp"
 
 namespace p2d {
     class Platform : Widget {

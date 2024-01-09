@@ -7,3 +7,6 @@
 [submodule "external/tweeny"]
 	path = external/tweeny
 	url = https://github.com/mobius3/tweeny.git
+[submodule "external/libromfs"]
+	path = external/libromfs
+	url = https://github.com/WerWolv/libromfs.git
