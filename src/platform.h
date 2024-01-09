@@ -29,7 +29,7 @@ namespace p2d {
 
         static Platform *instance();
 
-        void addDisplay(Display *display) {
+        void setDisplay(Display *display) {
             p_display = display;
             Widget::setPosition(0, 0);
             Widget::setSize(p_display->getSize());
