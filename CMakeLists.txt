@@ -34,8 +34,8 @@ else ()
     pico_sdk_init()
 endif ()
 
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_C_STANDARD 11 CACHE STRING "" FORCE)
+set(CMAKE_CXX_STANDARD 20 CACHE STRING "" FORCE)
 
 # TODO: why ?
 #set(CMAKE_FLAGS_RELEASE_FIX "-fno-move-loop-invariants -fno-devirtualize -fno-devirtualize-speculatively")
@@ -66,12 +66,12 @@ endif ()
 # tweeny
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/tweeny tweeny)
 
-# resources
+# resources (romfs)
 list(APPEND PLATFORM_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/external/libromfs/lib/include)
 function(target_add_romfs target path)
     set(LIBROMFS_PROJECT_NAME pico2d)
     set(LIBROMFS_RESOURCE_LOCATION "${path}")
-    add_subdirectory(${CMAKE_SOURCE_DIR}/external/libromfs libromfs)
+    add_subdirectory("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/external/libromfs" libromfs)
     target_link_libraries(${target} ${LIBROMFS_LIBRARY})
 endfunction()
 
