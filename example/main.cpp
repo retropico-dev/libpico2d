@@ -28,10 +28,10 @@ int main() {
     Clock clock; //deltaClock;
     int frames = 0;
 
-    auto platform = new P2DPlatform();
+    auto platform = new P2DPlatform(true);
     auto display = (Display *) new P2DDisplay({240, 240}, {120, 120});
     platform->addDisplay(display);
-    platform->getDisplay()->setClearColor(Display::Color::Red);
+    platform->getDisplay()->setClearColor(Display::Color::Black);
 
     auto bounds = platform->getDisplay()->getBounds();
     auto center = Utility::Vec2i((int16_t) (bounds.w / 2), (int16_t) (bounds.h / 2));

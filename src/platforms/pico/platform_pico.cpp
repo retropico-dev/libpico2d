@@ -14,7 +14,7 @@ using namespace p2d;
 PicoPlatform::PicoPlatform(bool overclock) : Platform() {
     // overclock
     if (overclock) {
-        vreg_set_voltage(VREG_VOLTAGE_1_15);
+        vreg_set_voltage(VREG_VOLTAGE_1_25);
         sleep_ms(2);
         set_sys_clock_khz(300000, true);
         sleep_ms(2);

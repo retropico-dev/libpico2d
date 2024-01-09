@@ -8,8 +8,8 @@
 #include "st7789.h"
 #include "pinout.h"
 
-static PIO m_pio = pio0;
-static uint m_sm = 0;
+static PIO pio = pio0;
+static uint pio_sm = 0;
 
 // Format: cmd length (including cmd byte), post delay in units of 5 ms, then cmd payload
 // Note the delays have been shortened a little
@@ -33,24 +33,24 @@ static inline void st7789_lcd_set_dc_cs(bool dc, bool cs) {
 }
 
 static inline void st7789_lcd_write_cmd(const uint8_t *cmd, size_t count) {
-    st7789_lcd_wait_idle(m_pio, m_sm);
+    st7789_lcd_wait_idle(pio, pio_sm);
     st7789_lcd_set_dc_cs(false, false);
-    st7789_lcd_put(m_pio, m_sm, *cmd++);
+    st7789_lcd_put(pio, pio_sm, *cmd++);
     if (count >= 2) {
-        st7789_lcd_wait_idle(m_pio, m_sm);
+        st7789_lcd_wait_idle(pio, pio_sm);
         st7789_lcd_set_dc_cs(true, false);
         for (size_t i = 0; i < count - 1; ++i)
-            st7789_lcd_put(m_pio, m_sm, *cmd++);
+            st7789_lcd_put(pio, pio_sm, *cmd++);
     }
-    st7789_lcd_wait_idle(m_pio, m_sm);
+    st7789_lcd_wait_idle(pio, pio_sm);
     st7789_lcd_set_dc_cs(true, true);
 }
 
 static inline void st7789_lcd_write_cmd(uint8_t cmd) {
-    st7789_lcd_wait_idle(m_pio, m_sm);
+    st7789_lcd_wait_idle(pio, pio_sm);
     st7789_lcd_set_dc_cs(false, false);
-    st7789_lcd_put(m_pio, m_sm, cmd);
-    st7789_lcd_wait_idle(m_pio, m_sm);
+    st7789_lcd_put(pio, pio_sm, cmd);
+    st7789_lcd_wait_idle(pio, pio_sm);
     st7789_lcd_set_dc_cs(true, true);
 }
 
@@ -115,9 +115,10 @@ static inline void st7789_lcd_set_rotation(uint8_t m) {
     */
 }
 
-void st7789_init() {
-    uint offset = pio_add_program(m_pio, &st7789_lcd_program);
-    st7789_lcd_program_init(m_pio, m_sm, offset, LCD_PIN_DIN, LCD_PIN_CLK, SERIAL_CLK_DIV);
+void st7789_init(float clock_div) {
+    uint offset = pio_add_program(pio, &st7789_lcd_program);
+    pio_sm_claim(pio, pio_sm);
+    st7789_lcd_program_init(pio, pio_sm, offset, LCD_PIN_DIN, LCD_PIN_CLK, clock_div);
 
     gpio_init(LCD_PIN_CS);
     gpio_init(LCD_PIN_DC);
@@ -140,8 +141,8 @@ void st7789_start_pixels() {
 }
 
 void st7789_put(uint16_t pixel) {
-    st7789_lcd_put(m_pio, m_sm, pixel >> 8);
-    st7789_lcd_put(m_pio, m_sm, pixel & 0xff);
+    st7789_lcd_put(pio, pio_sm, pixel >> 8);
+    st7789_lcd_put(pio, pio_sm, pixel & 0xff);
 }
 
 void st7789_set_cursor(uint16_t x, uint16_t y) {

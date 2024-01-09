@@ -8,8 +8,6 @@
 #define DISPLAY_WIDTH 240
 #define DISPLAY_HEIGHT 240
 
-#define SERIAL_CLK_DIV 1.5f
-
 #define ST7789_MADCTL_MY 0x80
 #define ST7789_MADCTL_MX 0x40
 #define ST7789_MADCTL_MV 0x20
@@ -61,7 +59,7 @@
 #define Y_SHIFT 0
 #endif
 
-void st7789_init();
+void st7789_init(float clock_div);
 
 void st7789_start_pixels();
 

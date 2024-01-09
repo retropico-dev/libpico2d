@@ -47,8 +47,8 @@
 #endif
 #elif defined(MICROBOY_11)
 // SPI LCD PINS         GPIO
-#define LCD_PIN_CLK     2
-#define LCD_PIN_DIN     3
+#define LCD_PIN_CLK     2   // SCK
+#define LCD_PIN_DIN     3   // MOSI
 #define LCD_PIN_DC      4
 #define LCD_PIN_CS      5
 #define LCD_PIN_RESET   6

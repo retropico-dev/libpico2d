@@ -3,6 +3,7 @@
 //
 
 #include <cstdio>
+#include <hardware/clocks.h>
 #include "platform.h"
 #include "pico_display.h"
 #include "st7789.h"
@@ -34,7 +35,11 @@ PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i
     s_display = this;
 
     // init st7789 display
-    st7789_init();
+    auto sys_clock = (uint16_t) (clock_get_hz(clk_sys) / 1000000);
+    //auto spi_clock = sys_clock > 266 ? 62.5f : 85.0f; // 88.6 Mhz @ 266 Mhz clock
+    auto spi_clock = 56.0f;
+    auto clock_div = (float) sys_clock * (62.5f / spi_clock) / 125;
+    st7789_init(clock_div);
 
     // alloc frames buffers
     if (m_buffering != Buffering::None) {
@@ -46,12 +51,15 @@ PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i
             multicore_reset_core1(); // seems to be needed for "picoprobe" debugging
 #endif
             multicore_launch_core1(core1_main);
-            printf("PicoDisplay: st7789 pio with double buffering @ %ix%i\r\n", m_renderSize.x, m_renderSize.y);
+            printf("PicoDisplay: st7789 pio with double buffering @ %i Mhz (%ix%i)\r\n",
+                   (uint16_t) spi_clock, m_renderSize.x, m_renderSize.y);
         } else {
-            printf("PicoDisplay: st7789 pio with single buffering @ %ix%i\r\n", m_renderSize.x, m_renderSize.y);
+            printf("PicoDisplay: st7789 pio with single buffering @ %i Mhz (%ix%i)\r\n",
+                   (uint16_t) spi_clock, m_renderSize.x, m_renderSize.y);
         }
     } else {
-        printf("PicoDisplay: st7789 pio with no buffering @ %ix%i\r\n", renderSize.x, renderSize.y);
+        printf("PicoDisplay: st7789 pio without buffering @ %i Mhz (%ix%i)\r\n",
+               (uint16_t) spi_clock, renderSize.x, renderSize.y);
     }
 
     // clear display buffers
@@ -71,8 +79,9 @@ void in_ram(PicoDisplay::setCursorPos)(int16_t x, int16_t y) {
 
 void in_ram(PicoDisplay::setPixel)(uint16_t color) {
     if (m_buffering == Buffering::None) {
-        if (color != m_colorKey) st7789_put(color);
-        else {
+        if (color != m_colorKey) {
+            st7789_put(color);
+        } else {
             m_cursor.x++;
             if (m_cursor.x >= m_displaySize.x) {
                 m_cursor.x = 0;
@@ -81,7 +90,9 @@ void in_ram(PicoDisplay::setPixel)(uint16_t color) {
             st7789_set_cursor(m_cursor.x, m_cursor.y);
         }
     } else {
-        if (color != m_colorKey) p_surfaces[m_bufferIndex]->setPixel(m_cursor, color);
+        if (color != m_colorKey && m_cursor.x < m_renderSize.x && m_cursor.y < m_renderSize.y) {
+            *(uint16_t *) (p_surfaces[m_bufferIndex]->getPixels() + m_cursor.y * m_pitch + m_cursor.x * m_bpp) = color;
+        }
         // emulate tft lcd "put_pixel"
         m_cursor.x++;
         if (m_cursor.x >= m_displaySize.x) {
