@@ -42,6 +42,9 @@ PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i
         if (m_buffering == Buffering::Double) {
             p_surfaces[1] = new Surface(m_renderSize);
             // launch core1
+#if !defined(NDEBUG) && defined(PICO_STDIO_UART)
+            multicore_reset_core1(); // seems to be needed for "picoprobe" debugging
+#endif
             multicore_launch_core1(core1_main);
             printf("PicoDisplay: st7789 pio with double buffering @ %ix%i\r\n", m_renderSize.x, m_renderSize.y);
         } else {

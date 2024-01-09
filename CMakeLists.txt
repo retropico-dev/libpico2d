@@ -7,8 +7,8 @@ option(BUILD_EXAMPLE "Build example project" OFF)
 
 # libpico2d default board is adafruit feather rp2040
 if (NOT PLATFORM_LINUX AND NOT PICO_BOARD)
-    set(PICO_BOARD "adafruit_feather_rp2040" CACHE STRING "" FORCE) # v1.0 rev board
-    #set(PICO_BOARD "pico" CACHE STRING "" FORCE) # v1.1 rev board
+    #set(PICO_BOARD "adafruit_feather_rp2040" CACHE STRING "" FORCE) # v1.0 rev board
+    set(PICO_BOARD "pico" CACHE STRING "" FORCE) # v1.1 rev board
 endif ()
 
 # pico options

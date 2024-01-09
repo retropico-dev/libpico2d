@@ -47,32 +47,32 @@
 #endif
 #elif defined(MICROBOY_11)
 // SPI LCD PINS         GPIO
-#define LCD_PIN_DC      8
+#define LCD_PIN_CLK     2
+#define LCD_PIN_DIN     3
+#define LCD_PIN_DC      4
 #define LCD_PIN_CS      5
-#define LCD_PIN_CLK     6
-#define LCD_PIN_DIN     7
-#define LCD_PIN_BL      9
-#define LCD_PIN_RESET   4
+#define LCD_PIN_RESET   6
+#define LCD_PIN_BL      7
 
-// SPI SDCARD PINS
-#define SD_PIN_CS       2
-#define SD_PIN_CLK      13
-#define SD_PIN_MOSI     14
-#define SD_PIN_MISO     15
+// SPI SDCARD PINS      GPIO
+#define SD_PIN_CS       17
+#define SD_PIN_CLK      18
+#define SD_PIN_MOSI     19
+#define SD_PIN_MISO     20
 
-// AUDIO PINS (I2S, DIGITAL)
+// AUDIO PINS (I2S)     GPIO
 #define AUDIO_PIN_DATA  10  // DIN
 #define AUDIO_PIN_CLOCK 11  // BCLK
 #define AUDIO_PIN_LRC   12  // LRC (CLOCK + 1)
 
-#define BTN_PIN_START   (16)
-#define BTN_PIN_SELECT  (17)
-#define BTN_PIN_A       (18)
-#define BTN_PIN_B       (19)
-#define BTN_PIN_DOWN    (20)
-#define BTN_PIN_RIGHT   (21)
-#define BTN_PIN_LEFT    (22)
-#define BTN_PIN_UP      (26)
+#define BTN_PIN_START   (24)
+#define BTN_PIN_SELECT  (-1)
+#define BTN_PIN_A       (24)
+#define BTN_PIN_B       (-1)
+#define BTN_PIN_DOWN    (-1)
+#define BTN_PIN_RIGHT   (-1)
+#define BTN_PIN_LEFT    (-1)
+#define BTN_PIN_UP      (-1)
 
 #else
 #error "microboy device version not defined"
