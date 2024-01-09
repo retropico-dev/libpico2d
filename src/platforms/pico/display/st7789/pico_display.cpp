@@ -13,7 +13,7 @@ static int s_core1_busy = 0;
 
 static PicoDisplay *s_display;
 
-static uint16_t in_ram(s_line_buffer)[240];
+static uint16_t in_ram(s_line_buffer)[DISPLAY_WIDTH];
 
 static void in_ram(draw)(Surface *surface, const Display::ScaleMode &mode,
                          const Utility::Vec2i &pos, const Utility::Vec2i &size);

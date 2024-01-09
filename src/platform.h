@@ -13,7 +13,6 @@
 #include "clock.h"
 #include "utility"
 #include "rectangle.h"
-//#include "romfs.hpp"
 
 namespace p2d {
     class Platform : Widget {
@@ -32,6 +31,7 @@ namespace p2d {
 
         void addDisplay(Display *display) {
             p_display = display;
+            Widget::setPosition(0, 0);
             Widget::setSize(p_display->getSize());
         }
 

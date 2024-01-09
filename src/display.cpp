@@ -13,9 +13,9 @@ Display::Display(const Utility::Vec2i &displaySize, const Utility::Vec2i &render
     m_displaySize = displaySize;
     m_renderSize = renderSize;
     m_scaleMode = scaleMode;
-    m_bpp = 2;
-    m_pitch = m_renderSize.x * m_bpp;
     m_buffering = buffering;
+    m_pitch = m_renderSize.x * m_bpp;
+    m_bpp = 2;
 
     // pixel line buffer for drawSurface
     m_line_buffer = (uint16_t *) malloc(m_pitch);

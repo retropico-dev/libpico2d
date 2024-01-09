@@ -7,7 +7,7 @@
 
 #include <cstring>
 #include <cstdlib>
-#include "romfs/romfs.hpp"
+#include "romfs.h"
 #include "utility.h"
 
 namespace p2d {
@@ -32,8 +32,8 @@ namespace p2d {
             m_pitch = m_size.x * m_bpp;
         }
 
-        explicit Surface(const romfs::Resource &resource) {
-            auto bmp = (BMPHeader *) resource.data();
+        explicit Surface(const RomFs::Binary &binary) {
+            auto bmp = (BMPHeader *) binary.data;
             if ((bmp->header[0] != 'B') || (bmp->header[1] != 'M')) {
                 printf("Surface: binary is not a bitmap dump...\r\n");
                 return;
@@ -53,7 +53,7 @@ namespace p2d {
                    bmp->w, bmp->h, bmp->bpp);
 
             auto padding = ((4 - (bmp->w * 3) % 4) % 4);
-            p_buffer = (uint8_t *) resource.data() + bmp->data_offset;
+            p_buffer = (uint8_t *) binary.data + bmp->data_offset;
             m_size = {(int16_t) bmp->w, (int16_t) bmp->h};
             m_pitch = (m_size.x * m_bpp) - padding;
             m_read_only = true;

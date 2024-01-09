@@ -28,19 +28,19 @@ int main() {
     Clock clock; //deltaClock;
     int frames = 0;
 
-    auto platform = new P2DPlatform(false);
+    auto platform = new P2DPlatform();
     platform->addDisplay((Display *) new P2DDisplay({240, 240}, {120, 120}));
-    platform->getDisplay()->setClearColor(Display::Color::Blue);
+    platform->getDisplay()->setClearColor(Display::Color::Red);
 
+    //auto bounds = platform->getDisplay()->getBounds();
+    //auto center = Utility::Vec2i((int16_t) (bounds.w / 2), (int16_t) (bounds.h / 2));
 
-    auto bounds = platform->getDisplay()->getBounds();
-    auto center = Utility::Vec2i((int16_t) (bounds.w / 2), (int16_t) (bounds.h / 2));
-
+    /*
     // load bitmap resources
-    auto girl = new Bitmap(romfs::get("girl_120x120.bmp"));
+    auto girl = new Bitmap(RomFs::get("data/girl_120x120.bmp"));
     platform->add(girl);
 
-    auto star = new Bitmap(romfs::get("star.bmp"), center);
+    auto star = new Bitmap(RomFs::get("data/star.bmp"), center);
     star->setOrigin(Widget::Origin::Center);
     platform->add(star);
 
@@ -48,6 +48,7 @@ int main() {
     text->setColor(Display::Color::Red);
     text->setOrigin(Widget::Origin::BottomRight);
     platform->add(text);
+    */
 
     /*
     auto tween = tweeny::from(bitmap->getPosition().x)

@@ -34,8 +34,8 @@ else ()
     pico_sdk_init()
 endif ()
 
-set(CMAKE_C_STANDARD 11 CACHE STRING "" FORCE)
-set(CMAKE_CXX_STANDARD 20 CACHE STRING "" FORCE)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 # TODO: why ?
 #set(CMAKE_FLAGS_RELEASE_FIX "-fno-move-loop-invariants -fno-devirtualize -fno-devirtualize-speculatively")
@@ -67,12 +67,11 @@ endif ()
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/tweeny tweeny)
 
 # resources (romfs)
-list(APPEND PLATFORM_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/external/libromfs/lib/include)
-function(target_add_romfs target path)
-    set(LIBROMFS_PROJECT_NAME pico2d)
-    set(LIBROMFS_RESOURCE_LOCATION "${path}")
-    add_subdirectory("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/external/libromfs" libromfs)
-    target_link_libraries(${target} ${LIBROMFS_LIBRARY})
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CMakeRC.cmake)
+list(APPEND PLATFORM_INCLUDES ${CMAKE_CURRENT_BINARY_DIR}/_cmrc/include)
+function(target_add_resources target)
+    cmrc_add_resource_library(pico2d-resources NAMESPACE pico2d ${ARGN})
+    target_link_libraries(${target} pico2d-skeleton pico2d-resources)
 endfunction()
 
 if (PLATFORM_LINUX)
