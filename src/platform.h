@@ -45,7 +45,7 @@ namespace p2d {
 
         virtual bool loop(bool forceDraw = false);
 
-        virtual void reboot() {};
+        virtual void reboot(volatile uint32_t watchdog_scratch = 0) {};
 
         void add(Widget *widget) override { Widget::add(widget); }
 

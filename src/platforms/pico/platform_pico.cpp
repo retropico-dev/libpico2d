@@ -41,7 +41,7 @@ PicoPlatform::PicoPlatform(bool overclock) : Platform() {
     p_io = new PicoIo();
 }
 
-void PicoPlatform::reboot() {
+void PicoPlatform::reboot(volatile uint32_t watchdog_scratch) {
     printf("PicoPlatform::reboot\r\n");
 
     if (p_display) {
@@ -52,6 +52,7 @@ void PicoPlatform::reboot() {
         p_display->flip();
     }
 
+    watchdog_hw->scratch[0] = watchdog_scratch;
     watchdog_reboot(0, 0, 50);
 
     // wait for the reset
