@@ -7,7 +7,7 @@
 using namespace p2d;
 
 Display::Display(const Utility::Vec2i &displaySize, const Utility::Vec2i &renderSize,
-                 const ScaleMode &scaleMode, const Buffering &buffering)
+                 const Buffering &buffering, const ScaleMode &scaleMode)
         : Adafruit_GFX(renderSize.x, renderSize.y) {
     m_clip = {0, 0, renderSize.x, renderSize.y};
     m_displaySize = displaySize;

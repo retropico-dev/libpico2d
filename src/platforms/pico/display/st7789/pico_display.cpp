@@ -33,8 +33,8 @@ union core_cmd {
 #endif
 
 PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i &renderSize,
-                         const ScaleMode &scaleMode, const Buffering &buffering)
-        : Display(displaySize, renderSize, scaleMode, buffering) {
+                         const Buffering &buffering, const ScaleMode &scaleMode)
+        : Display(displaySize, renderSize, buffering, scaleMode) {
 
     // init st7789 display
     auto sys_clock = (uint16_t) (clock_get_hz(clk_sys) / 1000000);

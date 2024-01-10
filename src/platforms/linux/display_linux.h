@@ -12,8 +12,8 @@ namespace p2d {
     public:
         LinuxDisplay(const Utility::Vec2i &displaySize = {240, 240},
                      const Utility::Vec2i &renderSize = {240, 240},
-                     const ScaleMode &scaleMode = ScaleMode::Scale2x,
-                     const Buffering &buffering = Buffering::Double);
+                     const Buffering &buffering = Buffering::Double,
+                     const ScaleMode &scaleMode = ScaleMode::Scale2x);
 
         ~LinuxDisplay() override;
 

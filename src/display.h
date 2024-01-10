@@ -13,14 +13,13 @@ namespace p2d {
     class Display : public Adafruit_GFX {
     public:
         enum Buffering {
-            None,   // direct drawing to the screen (no mem usage)
             Single, // use a single buffer (screen (w * h * bpp) mem usage)
             Double  // use two buffers + core1 rendering (screen (w * h * bpp * 2) mem usage)
         };
 
         enum Format {
             RGB444,
-            RGB555,
+            //RGB555,
             RGB565
         };
 
@@ -48,8 +47,8 @@ namespace p2d {
         // default display size used for "ST7789 1.54" TFT IPS 240x240"
         explicit Display(const Utility::Vec2i &displaySize = {240, 240},
                          const Utility::Vec2i &renderSize = {240, 240},
-                         const ScaleMode &scaleMode = ScaleMode::Scale2x,
-                         const Buffering &buffering = Buffering::Double);
+                         const Buffering &buffering = Buffering::Double,
+                         const ScaleMode &scaleMode = ScaleMode::Scale2x);
 
         // destroy the display (hardware dependant, to be implemented)
         virtual ~Display();

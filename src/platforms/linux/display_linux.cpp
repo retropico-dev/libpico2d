@@ -9,8 +9,8 @@
 using namespace p2d;
 
 LinuxDisplay::LinuxDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i &renderSize,
-                           const ScaleMode &scaleMode, const Buffering &buffering)
-        : Display(displaySize, renderSize, scaleMode, buffering) {
+                           const Buffering &buffering, const ScaleMode &scaleMode)
+        : Display(displaySize, renderSize, buffering, scaleMode) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "SDL_Init error: %s", SDL_GetError());
         return;
