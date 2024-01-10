@@ -1,20 +1,19 @@
 cmake_minimum_required(VERSION 3.5)
 #set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "ON")
 
-# linux platform
+# main options
 option(PLATFORM_LINUX "Linux target platform" OFF)
 option(BUILD_EXAMPLE "Build example project" OFF)
+# pico options
+option(PICO_STDIO_UART "Pico UART debug" ON)
+option(PICO_DISPLAY_ST7789_PIO "Pico ST7789 display driver (pio)" ON)
+option(PICO_DISPLAY_DIRECT_DRAW "Pico ST7789 direct draw driver (slow)" OFF)
 
 # libpico2d default board is adafruit feather rp2040
 if (NOT PLATFORM_LINUX AND NOT PICO_BOARD)
     #set(PICO_BOARD "adafruit_feather_rp2040" CACHE STRING "" FORCE) # v1.0 rev board
     set(PICO_BOARD "pico" CACHE STRING "" FORCE) # v1.1 rev board
 endif ()
-
-# pico options
-option(PICO_STDIO_UART "Pico UART debug" ON)
-option(PICO_DISPLAY_ST7789_PIO "Pico ST7789 display driver (pio)" ON)
-option(PICO_DISPLAY_DIRECT_DRAW "Pico ST7789 direct draw driver (slow)" OFF)
 
 if (NOT PLATFORM_LINUX)
     # initialize the SDK based on PICO_SDK_PATH
