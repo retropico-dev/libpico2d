@@ -41,7 +41,7 @@ PicoPlatform::PicoPlatform(bool overclock) : Platform() {
     p_io = new PicoIo();
 }
 
-void PicoPlatform::reboot(volatile uint32_t watchdog_scratch) {
+void PicoPlatform::reboot(uint32_t watchdog_scratch) {
     printf("PicoPlatform::reboot\r\n");
 
     if (p_display) {
