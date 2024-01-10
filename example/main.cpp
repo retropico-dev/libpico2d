@@ -30,7 +30,7 @@ int main() {
 
     auto platform = new P2DPlatform();
     auto display = (Display *) new P2DDisplay({240, 240}, {120, 120});
-    platform->addDisplay(display);
+    platform->setDisplay(display);
     platform->getDisplay()->setClearColor(Display::Color::Black);
 
     auto bounds = platform->getDisplay()->getBounds();

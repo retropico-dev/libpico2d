@@ -73,7 +73,7 @@ PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i
     PicoDisplay::clear();
 }
 
-void PicoDisplay::setCursorPos(int16_t x, int16_t y) {
+void PicoDisplay::setCursor(int16_t x, int16_t y) {
 #ifdef PICO_DISPLAY_DIRECT_DRAW
     if (x >= 0 && x < m_renderSize.x && y >= 0 && y < m_renderSize.y) {
         st7789_set_cursor(x, y);

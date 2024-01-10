@@ -54,7 +54,7 @@ namespace p2d {
         virtual ~Display();
 
         // set the position inside pixel buffer (hardware dependant, to be implemented)
-        virtual void setCursorPos(int16_t x, int16_t y) {};
+        virtual void setCursor(int16_t x, int16_t y) {};
 
         // set pixel color at cursor position
         virtual void setPixel(uint16_t color) {};

@@ -50,7 +50,7 @@ void in_ram(Display::drawPixel)(int16_t x, int16_t y, uint16_t color) {
         }
     }
 
-    setCursorPos(x, y);
+    setCursor(x, y);
     setPixel(color);
 }
 
@@ -89,7 +89,7 @@ void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, c
             // skip horizontal lines if out of screen
             if (pos.y + y < 0 || pos.y + y >= m_renderSize.y) continue;
             // set cursor position
-            setCursorPos(pos.x, (int16_t) (pos.y + y));
+            setCursor(pos.x, (int16_t) (pos.y + y));
             // draw line
             if (isBitmap) // invert Y axis
                 drawPixelLine((uint16_t *) (pixels + (height - y - 1) * pitch), width);
@@ -107,7 +107,7 @@ void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, c
         int xRatio = (srcSize.x << 16) / size.x + 1;
         int yRatio = (srcSize.y << 16) / size.y + 1;
 
-        setCursorPos(pos.x, pos.y);
+        setCursor(pos.x, pos.y);
 
         for (uint8_t i = 0; i < size.y; i++) {
             for (uint8_t j = 0; j < size.x; j++) {
@@ -118,7 +118,7 @@ void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, c
             if (size.x == m_renderSize.x) {
                 drawPixelLine(m_line_buffer, size.x);
             } else {
-                setCursorPos(pos.x, i + pos.y);
+                setCursor(pos.x, i + pos.y);
                 drawPixelLine(m_line_buffer, size.x);
             }
         }
@@ -176,7 +176,7 @@ void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, c
 }
 
 void in_ram(Display::clear)() {
-    setCursorPos(0, 0);
+    setCursor(0, 0);
     for (int y = 0; y < m_displaySize.y; y++) {
         for (int x = 0; x < m_displaySize.x; x++) {
             setPixel(m_clearColor);
