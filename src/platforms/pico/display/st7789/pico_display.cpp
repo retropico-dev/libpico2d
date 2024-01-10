@@ -38,8 +38,8 @@ PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i
 
     // init st7789 display
     auto sys_clock = (uint16_t) (clock_get_hz(clk_sys) / 1000000);
-    //auto spi_clock = sys_clock > 266 ? 62.5f : 85.0f; // 88.6 Mhz @ 266 Mhz clock
-    auto spi_clock = 85.0f; // 60 fps
+    //auto spi_clock = sys_clock > 266 ? 62.5f : 85.0f; // max 88.6 Mhz @ 266 Mhz clock
+    auto spi_clock = 62.5f; // 62.5f = pico default @ 125 Mhz sys clock (safe), 56 Mhz ~ 60 fps
     auto clock_div = (float) sys_clock * (62.5f / spi_clock) / 125;
     st7789_init(clock_div);
 
