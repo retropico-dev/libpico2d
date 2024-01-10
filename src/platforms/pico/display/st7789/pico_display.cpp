@@ -103,11 +103,6 @@ void PicoDisplay::setPixel(uint16_t color) {
 #ifndef PICO_DISPLAY_DIRECT_DRAW
 
 void in_ram(PicoDisplay::clear)() {
-    if (m_buffering == Buffering::None) {
-        Display::clear();
-        return;
-    }
-
     auto buffer = p_surfaces[m_bufferIndex]->getPixels();
     if (m_clearColor == Color::Black || m_clearColor == Color::White) {
         memset((uint16_t *) buffer, m_clearColor, p_surfaces[m_bufferIndex]->getPixelsSize());
