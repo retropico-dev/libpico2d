@@ -14,6 +14,7 @@ endif ()
 # pico options
 option(PICO_STDIO_UART "Pico UART debug" ON)
 option(PICO_DISPLAY_ST7789_PIO "Pico ST7789 display driver (pio)" ON)
+option(PICO_DISPLAY_DIRECT_DRAW "Pico ST7789 direct draw driver (slow)" OFF)
 
 if (NOT PLATFORM_LINUX)
     # initialize the SDK based on PICO_SDK_PATH
@@ -61,6 +62,9 @@ set(PLATFORM_INCLUDES
 set(PLATFORM_FLAGS "-DNO_PICO_LED -DARDUINO=123 -ffast-math")
 if (PICO_STDIO_UART)
     list(APPEND PLATFORM_FLAGS -DPICO_STDIO_UART)
+endif ()
+if (PICO_DISPLAY_DIRECT_DRAW)
+    list(APPEND PLATFORM_FLAGS -DPICO_DISPLAY_DIRECT_DRAW)
 endif ()
 
 # tweeny
@@ -122,7 +126,6 @@ else ()
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/pico_display.cpp
         )
         list(APPEND PLATFORM_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789)
-        list(APPEND PLATFORM_LIBS hardware_dma)
     endif ()
     # microboy board revision define
     if (PICO_BOARD STREQUAL "adafruit_feather_rp2040")

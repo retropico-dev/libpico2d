@@ -10,6 +10,8 @@
 
 using namespace p2d;
 
+#ifndef PICO_DISPLAY_DIRECT_DRAW
+
 static int s_core1_busy = 0;
 
 static PicoDisplay *s_display;
@@ -28,39 +30,42 @@ union core_cmd {
     uint32_t full;
 };
 
+#endif
+
 PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i &renderSize,
                          const ScaleMode &scaleMode, const Buffering &buffering)
         : Display(displaySize, renderSize, scaleMode, buffering) {
-    // my own core1 crap
-    s_display = this;
 
     // init st7789 display
     auto sys_clock = (uint16_t) (clock_get_hz(clk_sys) / 1000000);
     //auto spi_clock = sys_clock > 266 ? 62.5f : 85.0f; // 88.6 Mhz @ 266 Mhz clock
-    auto spi_clock = 56.0f;
+    auto spi_clock = 85.0f; // 60 fps
     auto clock_div = (float) sys_clock * (62.5f / spi_clock) / 125;
     st7789_init(clock_div);
 
+#ifdef PICO_DISPLAY_DIRECT_DRAW
+    printf("PicoDisplay: st7789 pio without buffering @ %i Mhz (%ix%i)\r\n",
+           (uint16_t) spi_clock, renderSize.x, renderSize.y);
+#else
+    // my own core1 crap
+    s_display = this;
+
     // alloc frames buffers
-    if (m_buffering != Buffering::None) {
-        p_surfaces[0] = new Surface(m_renderSize);
-        if (m_buffering == Buffering::Double) {
-            p_surfaces[1] = new Surface(m_renderSize);
-            // launch core1
+    p_surfaces[0] = new Surface(m_renderSize);
+    if (m_buffering == Buffering::Double) {
+        p_surfaces[1] = new Surface(m_renderSize);
+        // launch core1
 #if !defined(NDEBUG) && defined(PICO_STDIO_UART)
-            multicore_reset_core1(); // seems to be needed for "picoprobe" debugging
+        multicore_reset_core1(); // seems to be needed for "picoprobe" debugging
 #endif
-            multicore_launch_core1(core1_main);
-            printf("PicoDisplay: st7789 pio with double buffering @ %i Mhz (%ix%i)\r\n",
-                   (uint16_t) spi_clock, m_renderSize.x, m_renderSize.y);
-        } else {
-            printf("PicoDisplay: st7789 pio with single buffering @ %i Mhz (%ix%i)\r\n",
-                   (uint16_t) spi_clock, m_renderSize.x, m_renderSize.y);
-        }
+        multicore_launch_core1(core1_main);
+        printf("PicoDisplay: st7789 pio with double buffering @ %i Mhz (%ix%i)\r\n",
+               (uint16_t) spi_clock, m_renderSize.x, m_renderSize.y);
     } else {
-        printf("PicoDisplay: st7789 pio without buffering @ %i Mhz (%ix%i)\r\n",
-               (uint16_t) spi_clock, renderSize.x, renderSize.y);
+        printf("PicoDisplay: st7789 pio with single buffering @ %i Mhz (%ix%i)\r\n",
+               (uint16_t) spi_clock, m_renderSize.x, m_renderSize.y);
     }
+#endif
 
     // clear display buffers
     PicoDisplay::clear();
@@ -69,38 +74,30 @@ PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i
 }
 
 void in_ram(PicoDisplay::setCursorPos)(int16_t x, int16_t y) {
+#ifdef PICO_DISPLAY_DIRECT_DRAW
+    st7789_set_cursor(x, y);
+#else
     m_cursor = {x, y};
-    if (m_buffering == Buffering::None) {
-        if (x >= 0 && x < m_renderSize.x && y >= 0 && y < m_renderSize.y) {
-            st7789_set_cursor(x, y);
-        }
-    }
+#endif
 }
 
 void in_ram(PicoDisplay::setPixel)(uint16_t color) {
-    if (m_buffering == Buffering::None) {
-        if (color != m_colorKey) {
-            st7789_put(color);
-        } else {
-            m_cursor.x++;
-            if (m_cursor.x >= m_displaySize.x) {
-                m_cursor.x = 0;
-                m_cursor.y++;
-            }
-            st7789_set_cursor(m_cursor.x, m_cursor.y);
-        }
-    } else {
-        if (color != m_colorKey && m_cursor.x < m_renderSize.x && m_cursor.y < m_renderSize.y) {
-            *(uint16_t *) (p_surfaces[m_bufferIndex]->getPixels() + m_cursor.y * m_pitch + m_cursor.x * m_bpp) = color;
-        }
-        // emulate tft lcd "put_pixel"
-        m_cursor.x++;
-        if (m_cursor.x >= m_displaySize.x) {
-            m_cursor.x = 0;
-            m_cursor.y += 1;
-        }
+#ifdef PICO_DISPLAY_DIRECT_DRAW
+    st7789_put(color);
+#else
+    if (color != m_colorKey && m_cursor.x < m_renderSize.x && m_cursor.y < m_renderSize.y) {
+        *(uint16_t *) (p_surfaces[m_bufferIndex]->getPixels() + m_cursor.y * m_pitch + m_cursor.x * m_bpp) = color;
     }
+    // emulate tft lcd "put_pixel"
+    m_cursor.x++;
+    if (m_cursor.x >= m_displaySize.x) {
+        m_cursor.x = 0;
+        m_cursor.y += 1;
+    }
+#endif
 }
+
+#ifndef PICO_DISPLAY_DIRECT_DRAW
 
 void in_ram(PicoDisplay::clear)() {
     if (m_buffering == Buffering::None) {
@@ -210,3 +207,5 @@ static void in_ram(draw)(Surface *surface, const Display::ScaleMode &mode,
         }
     }
 }
+
+#endif

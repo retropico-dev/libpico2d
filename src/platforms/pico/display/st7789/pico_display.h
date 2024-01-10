@@ -17,6 +17,8 @@ namespace p2d {
 
         void setPixel(uint16_t color) override;
 
+#ifndef PICO_DISPLAY_DIRECT_DRAW
+
         void clear() override;
 
         void flip() override;
@@ -29,6 +31,7 @@ namespace p2d {
         Utility::Vec2i m_cursor;
         Surface *p_surfaces[2];
         uint8_t m_bufferIndex = 0;
+#endif
     };
 }
 
