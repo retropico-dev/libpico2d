@@ -35,11 +35,11 @@ union core_cmd {
 PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i &renderSize,
                          const Buffering &buffering, const ScaleMode &scaleMode)
         : Display(displaySize, renderSize, buffering, scaleMode) {
-
     // init st7789 display
+    // 62.5f = pico default @ 125 Mhz sys clock (safe)
+    // tested working at 88.6 Mhz @ 266 Mhz clock (unsafe)
+    auto spi_clock = 62.5f;
     auto sys_clock = (uint16_t) (clock_get_hz(clk_sys) / 1000000);
-    //auto spi_clock = sys_clock > 266 ? 62.5f : 85.0f; // max 88.6 Mhz @ 266 Mhz clock
-    auto spi_clock = 62.5f; // 62.5f = pico default @ 125 Mhz sys clock (safe), 56 Mhz ~ 60 fps
     auto clock_div = (float) sys_clock * (62.5f / spi_clock) / 125;
     st7789_init(clock_div);
 
@@ -75,7 +75,9 @@ PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i
 
 void PicoDisplay::setCursorPos(int16_t x, int16_t y) {
 #ifdef PICO_DISPLAY_DIRECT_DRAW
-    st7789_set_cursor(x, y);
+    if (x >= 0 && x < m_renderSize.x && y >= 0 && y < m_renderSize.y) {
+        st7789_set_cursor(x, y);
+    }
 #else
     m_cursor = {x, y};
 #endif
@@ -83,6 +85,7 @@ void PicoDisplay::setCursorPos(int16_t x, int16_t y) {
 
 void PicoDisplay::setPixel(uint16_t color) {
 #ifdef PICO_DISPLAY_DIRECT_DRAW
+    // no alpha support, prevent slowdown in "direct drawing" mode
     st7789_put(color);
 #else
     if (color != m_colorKey && m_cursor.x < m_renderSize.x && m_cursor.y < m_renderSize.y) {
