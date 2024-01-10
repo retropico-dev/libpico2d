@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <string>
 #include <malloc.h>
+#include "clock.h"
 
 extern "C" char __StackLimit;
 extern "C" char __bss_end__;
@@ -95,6 +96,10 @@ namespace p2d {
         static inline int getFreeHeap() {
             return getTotalHeap() - getUsedHeap();
         }
+
+        static void timerStart();
+
+        static uint64_t timerStopPrintMicro();
     };
 }
 

@@ -73,7 +73,7 @@ PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i
     PicoDisplay::clear();
 }
 
-void in_ram(PicoDisplay::setCursorPos)(int16_t x, int16_t y) {
+void PicoDisplay::setCursorPos(int16_t x, int16_t y) {
 #ifdef PICO_DISPLAY_DIRECT_DRAW
     st7789_set_cursor(x, y);
 #else
@@ -81,7 +81,7 @@ void in_ram(PicoDisplay::setCursorPos)(int16_t x, int16_t y) {
 #endif
 }
 
-void in_ram(PicoDisplay::setPixel)(uint16_t color) {
+void PicoDisplay::setPixel(uint16_t color) {
 #ifdef PICO_DISPLAY_DIRECT_DRAW
     st7789_put(color);
 #else

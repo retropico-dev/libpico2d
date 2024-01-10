@@ -6,6 +6,8 @@
 
 using namespace p2d;
 
+static Clock m_timing_clock;
+
 std::string Utility::removeExt(const std::string &str) {
     size_t pos = str.find_last_of('.');
     if (pos != std::string::npos) {
@@ -24,4 +26,14 @@ std::string Utility::baseName(const std::string &path) {
         }
     }
     return name;
+}
+
+void Utility::timerStart() {
+    m_timing_clock.restart();
+}
+
+uint64_t Utility::timerStopPrintMicro() {
+    uint64_t t = m_timing_clock.getElapsedTime().asMicroseconds();
+    printf("%llu\r\n", t);
+    return t;
 }
