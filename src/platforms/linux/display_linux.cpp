@@ -36,7 +36,7 @@ LinuxDisplay::LinuxDisplay(const Utility::Vec2i &displaySize, const Utility::Vec
     printf("LinuxDisplay: %ix%i (texture pitch: %i)\n", m_displaySize.x, m_displaySize.y, m_pitch);
 }
 
-void LinuxDisplay::setCursorPos(int16_t x, int16_t y) {
+void LinuxDisplay::setCursor(int16_t x, int16_t y) {
     m_cursor = {x, y};
 }
 

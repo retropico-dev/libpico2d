@@ -17,7 +17,7 @@ namespace p2d {
 
         ~LinuxDisplay() override;
 
-        void setCursorPos(int16_t x, int16_t y) override;
+        void setCursor(int16_t x, int16_t y) override;
 
         void setPixel(uint16_t color) override;
 
