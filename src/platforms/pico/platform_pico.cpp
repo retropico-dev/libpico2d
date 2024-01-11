@@ -14,14 +14,14 @@ using namespace p2d;
 PicoPlatform::PicoPlatform(bool overclock) : Platform() {
     // overclock
     if (overclock) {
-        vreg_set_voltage(VREG_VOLTAGE_1_25);
+        vreg_set_voltage(VREG_VOLTAGE_1_20);
         sleep_ms(2);
         set_sys_clock_khz(300000, true);
         sleep_ms(2);
     } else {
         vreg_set_voltage(VREG_VOLTAGE_DEFAULT);
         sleep_ms(2);
-        set_sys_clock_khz(266000, true);
+        set_sys_clock_khz(280000, true);
         sleep_ms(2);
     }
 
