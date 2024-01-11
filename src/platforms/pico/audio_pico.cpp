@@ -26,10 +26,10 @@ void PicoAudio::setup(uint16_t rate, uint16_t samples, uint8_t channels) {
             .sample_stride = (uint16_t) (m_channels * 2)
     };
 
-    uint8_t dma_channel = dma_claim_unused_channel(true);
-    uint8_t pio_sm = pio_claim_unused_sm(audio_pio, true);
-
     // audio_i2s_setup claims
+    uint8_t pio_sm = pio_claim_unused_sm(audio_pio, true);
+    uint8_t dma_channel = dma_claim_unused_channel(true);
+    // audio_i2s_setup will use pio_sm_claim / dma_channel_claim so free them before
     dma_channel_unclaim(dma_channel);
     pio_sm_unclaim(audio_pio, pio_sm);
 
@@ -40,7 +40,7 @@ void PicoAudio::setup(uint16_t rate, uint16_t samples, uint8_t channels) {
             .pio_sm = pio_sm
     };
 
-    p_producer_pool = audio_new_producer_pool(&producer_format, 3, samples);
+    p_producer_pool = audio_new_producer_pool(&producer_format, 4, m_samples);
     const struct audio_format *output_format = audio_i2s_setup(&audio_format, &m_i2s_config);
     if (!output_format) {
         panic("PicoAudio::setup: audio_i2s_setup failed\n");
