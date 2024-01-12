@@ -24,6 +24,7 @@ namespace p2d {
         };
 
         enum ScaleMode {
+            None,
             Scale2x,    // integer scaling, fast
             Scanline2x, // integer scaling, fast
             Nearest     // free scaling ratio, slower
@@ -43,12 +44,25 @@ namespace p2d {
             Transparent = 0x0588 // #00b242
         };
 
+        struct Settings {
+            Utility::Vec2i displaySize = {240, 240};
+            Utility::Vec2i renderSize = {240, 240};
+            Buffering bufferingMode = Double;
+            ScaleMode scaleMode = Scale2x;
+            Format format = RGB565;
+        };
+
+        explicit Display(const Settings &settings)
+                : Display(settings.displaySize, settings.renderSize,
+                          settings.bufferingMode, settings.scaleMode, settings.format) {}
+
         // init a display (hardware dependant, to be implemented)
         // default display size used for "ST7789 1.54" TFT IPS 240x240"
         explicit Display(const Utility::Vec2i &displaySize = {240, 240},
                          const Utility::Vec2i &renderSize = {240, 240},
-                         const Buffering &buffering = Buffering::Double,
-                         const ScaleMode &scaleMode = ScaleMode::Scale2x);
+                         const Buffering &buffering = Double,
+                         const ScaleMode &scaleMode = None,
+                         const Format &format = RGB565);
 
         // destroy the display (hardware dependant, to be implemented)
         virtual ~Display();

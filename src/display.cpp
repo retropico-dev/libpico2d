@@ -7,12 +7,13 @@
 using namespace p2d;
 
 Display::Display(const Utility::Vec2i &displaySize, const Utility::Vec2i &renderSize,
-                 const Buffering &buffering, const ScaleMode &scaleMode)
+                 const Buffering &buffering, const ScaleMode &scaleMode, const Format &format)
         : Adafruit_GFX(renderSize.x, renderSize.y) {
     m_clip = {0, 0, renderSize.x, renderSize.y};
     m_displaySize = displaySize;
     m_renderSize = renderSize;
     m_scaleMode = scaleMode;
+    m_format = format;
     m_buffering = buffering;
     m_pitch = m_renderSize.x * m_bpp;
     m_bpp = 2;

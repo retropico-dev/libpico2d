@@ -33,8 +33,8 @@ union core_cmd {
 #endif
 
 PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i &renderSize,
-                         const Buffering &buffering, const ScaleMode &scaleMode)
-        : Display(displaySize, renderSize, buffering, scaleMode) {
+                         const Buffering &buffering, const ScaleMode &scaleMode, const Format &format)
+        : Display(displaySize, renderSize, buffering, scaleMode, format) {
     // init st7789 display
     // 62.5f = pico default @ 125 Mhz sys clock (safe)
     // tested working at 88.6 Mhz @ 266 Mhz clock (unsafe)

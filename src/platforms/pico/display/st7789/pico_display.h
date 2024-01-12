@@ -8,10 +8,15 @@
 namespace p2d {
     class PicoDisplay : public Display {
     public:
+        explicit PicoDisplay(const Settings &settings)
+                : PicoDisplay(settings.displaySize, settings.renderSize,
+                              settings.bufferingMode, settings.scaleMode, settings.format) {}
+
         explicit PicoDisplay(const Utility::Vec2i &displaySize = {240, 240},
                              const Utility::Vec2i &renderSize = {120, 120},
-                             const Buffering &buffering = Buffering::Double,
-                             const ScaleMode &scaleMode = ScaleMode::Scale2x);
+                             const Buffering &buffering = Double,
+                             const ScaleMode &scaleMode = Scale2x,
+                             const Format &format = RGB565);
 
         void setCursor(int16_t x, int16_t y) override;
 
