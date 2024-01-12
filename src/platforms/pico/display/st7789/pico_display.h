@@ -18,7 +18,6 @@ namespace p2d {
         void setPixel(uint16_t color) override;
 
 #ifndef PICO_DISPLAY_DIRECT_DRAW
-
         void clear() override;
 
         void flip() override;
@@ -26,8 +25,11 @@ namespace p2d {
         Surface *getSurface(uint8_t index) {
             return p_surfaces[index];
         }
+#endif
 
     private:
+        uint8_t m_bit_shift = 0;
+#ifndef PICO_DISPLAY_DIRECT_DRAW
         Utility::Vec2i m_cursor;
         Surface *p_surfaces[2];
         uint8_t m_bufferIndex = 0;

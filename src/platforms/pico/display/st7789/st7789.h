@@ -40,8 +40,9 @@
 #define ST7789_COLMOD  0x3A
 #define ST7789_MADCTL  0x36
 
+#define ST7789_COLOR_MODE_12bit 0x53    //  RGB444 (12bit)
 #define ST7789_COLOR_MODE_16bit 0x55    //  RGB565 (16bit)
-#define ST7789_COLOR_MODE_18bit 0x66    //  RGB666 (18bit)
+//#define ST7789_COLOR_MODE_18bit 0x66    //  RGB666 (18bit)
 
 #define ST7789_ROTATION 2
 
@@ -59,12 +60,16 @@
 #define Y_SHIFT 0
 #endif
 
-void st7789_init(float clock_div);
+void st7789_init(uint8_t format, float clock_div);
 
 void st7789_start_pixels();
 
 void st7789_set_cursor(uint16_t x, uint16_t y);
 
-void st7789_put(uint16_t pixel);
+void st7789_put16(uint16_t pixel);
+
+void st7789_put32(uint32_t pixel);
+
+void st7789_set_data_size(uint8_t size);
 
 #endif //MICROBOY_ST7789_H

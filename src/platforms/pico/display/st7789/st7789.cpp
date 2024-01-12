@@ -4,20 +4,22 @@
 
 #include <hardware/gpio.h>
 #include <pico/time.h>
+#include <cstdio>
 #include "st7789_lcd.pio.h"
 #include "st7789.h"
 #include "pinout.h"
 
 static PIO pio = pio0;
 static uint pio_sm = 0;
+static uint8_t pio_bit_size = 16;
 
 // Format: cmd length (including cmd byte), post delay in units of 5 ms, then cmd payload
 // Note the delays have been shortened a little
-static const uint8_t st7789_init_seq[] = {
+static uint8_t st7789_init_seq[] = {
         1, 20, ST7789_SWRESET,      // Software reset
         1, 10, ST7789_SLPOUT,       // Exit sleep mode
-        2, 2, ST7789_COLMOD, 0x55,  // Set colour mode to 16 bit
-        2, 0, ST7789_MADCTL, 0x00,  // Set MADCTL: row then column, refresh is bottom to top ????
+        2, 2, ST7789_COLMOD, ST7789_COLOR_MODE_16bit,  // Set colour mode to 16 bit (RGB565)
+        2, 0, ST7789_MADCTL, 0x00,  // Set MADCTL (ST7789_MADCTL_BGR)
         5, 0, ST7789_CASET, 0x00, 0x00, DISPLAY_WIDTH >> 8, DISPLAY_WIDTH & 0xff,   // CASET: column addresses
         5, 0, ST7789_RASET, 0x00, 0x00, DISPLAY_HEIGHT >> 8, DISPLAY_HEIGHT & 0xff, // RASET: row addresses
         1, 2, ST7789_INVON,         // Inversion on, then 10 ms delay (supposedly a hack?)
@@ -35,23 +37,31 @@ static inline void st7789_lcd_set_dc_cs(bool dc, bool cs) {
 static inline void st7789_lcd_write_cmd(const uint8_t *cmd, size_t count) {
     st7789_lcd_wait_idle(pio, pio_sm);
     st7789_lcd_set_dc_cs(false, false);
-    st7789_lcd_put(pio, pio_sm, *cmd++);
+    st7789_lcd_set_autopull_threshold(pio, pio_sm, 8); // switch to 8 bit mode
+    st7789_lcd_put8(pio, pio_sm, *cmd++);
     if (count >= 2) {
         st7789_lcd_wait_idle(pio, pio_sm);
         st7789_lcd_set_dc_cs(true, false);
         for (size_t i = 0; i < count - 1; ++i)
-            st7789_lcd_put(pio, pio_sm, *cmd++);
+            st7789_lcd_put8(pio, pio_sm, *cmd++);
     }
     st7789_lcd_wait_idle(pio, pio_sm);
     st7789_lcd_set_dc_cs(true, true);
+
+    // switch back to screen mode
+    st7789_lcd_set_autopull_threshold(pio, pio_sm, pio_bit_size);
 }
 
 static inline void st7789_lcd_write_cmd(uint8_t cmd) {
     st7789_lcd_wait_idle(pio, pio_sm);
     st7789_lcd_set_dc_cs(false, false);
-    st7789_lcd_put(pio, pio_sm, cmd);
+    st7789_lcd_set_autopull_threshold(pio, pio_sm, 8); // switch to 8 bit mode
+    st7789_lcd_put8(pio, pio_sm, cmd);
     st7789_lcd_wait_idle(pio, pio_sm);
     st7789_lcd_set_dc_cs(true, true);
+
+    // switch back to screen mode
+    st7789_lcd_set_autopull_threshold(pio, pio_sm, pio_bit_size);
 }
 
 static inline void st7789_lcd_init(const uint8_t *init_seq) {
@@ -81,41 +91,7 @@ static inline void st7789_lcd_set_cursor(uint16_t x, uint16_t y) {
     st7789_lcd_set_dc_cs(true, false);
 }
 
-static inline void st7789_lcd_set_rotation(uint8_t m) {
-    /*
-    static const uint8_t st7789_rotation_seq[] = {
-            2, 0, ST7789_MADCTL, ST7789_MADCTL_RGB,
-            0                                   // Terminate list
-    };
-
-    const uint8_t *cmd = st7789_rotation_seq;
-    while (*cmd) {
-        lcd_write_cmd(pio, sm, cmd + 2, *cmd);
-        sleep_ms(*(cmd + 1) * 5);
-        cmd += *cmd + 2;
-    }
-
-    st7789_lcd_write_cmd(ST7789_MADCTL);
-    switch (m) {
-        case 0:
-            st7789_lcd_put(m_pio, m_sm, ST7789_MADCTL_MX | ST7789_MADCTL_MY | ST7789_MADCTL_RGB);
-            break;
-        case 1:
-            st7789_lcd_put(m_pio, m_sm, ST7789_MADCTL_MY | ST7789_MADCTL_MV | ST7789_MADCTL_RGB);
-            break;
-        case 2:
-            st7789_lcd_put(m_pio, m_sm, ST7789_MADCTL_RGB);
-            break;
-        case 3:
-            st7789_lcd_put(m_pio, m_sm, ST7789_MADCTL_MX | ST7789_MADCTL_MV | ST7789_MADCTL_RGB);
-            break;
-        default:
-            break;
-    }
-    */
-}
-
-void st7789_init(float clock_div) {
+void st7789_init(uint8_t format, float clock_div) {
     uint offset = pio_add_program(pio, &st7789_lcd_program);
     pio_sm_claim(pio, pio_sm);
     st7789_lcd_program_init(pio, pio_sm, offset, LCD_PIN_DIN, LCD_PIN_CLK, clock_div);
@@ -131,7 +107,11 @@ void st7789_init(float clock_div) {
 
     gpio_put(LCD_PIN_CS, true);
     gpio_put(LCD_PIN_RESET, true);
+
+    pio_bit_size = format == ST7789_COLOR_MODE_12bit ? 12 : 16;
+    st7789_init_seq[9] = format;
     st7789_lcd_init(st7789_init_seq);
+
     gpio_put(LCD_PIN_BL, true);
 }
 
@@ -140,11 +120,20 @@ void st7789_start_pixels() {
     st7789_lcd_set_dc_cs(true, false);
 }
 
-void st7789_put(uint16_t pixel) {
-    st7789_lcd_put(pio, pio_sm, pixel >> 8);
-    st7789_lcd_put(pio, pio_sm, pixel & 0xff);
+void st7789_put16(uint16_t pixel) {
+    st7789_lcd_put16(pio, pio_sm, pixel);
+}
+
+void st7789_put32(uint32_t pixel) {
+    st7789_lcd_put32(pio, pio_sm, pixel);
 }
 
 void st7789_set_cursor(uint16_t x, uint16_t y) {
     st7789_lcd_set_cursor(x, y);
+}
+
+void st7789_set_data_size(uint8_t size) {
+    pio_bit_size = size;
+    st7789_lcd_wait_idle(pio, pio_sm);
+    st7789_lcd_set_autopull_threshold(pio, pio_sm, size);
 }

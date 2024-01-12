@@ -41,7 +41,8 @@ PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i
     auto spi_clock = 62.5f;
     auto sys_clock = (uint16_t) (clock_get_hz(clk_sys) / 1000000);
     auto clock_div = (float) sys_clock * (62.5f / spi_clock) / 125;
-    st7789_init(clock_div);
+    st7789_init(m_format == Format::RGB565 ? ST7789_COLOR_MODE_16bit : ST7789_COLOR_MODE_12bit, clock_div);
+    if (m_format == Format::ARGB444) m_bit_shift = 4;
 
 #ifdef PICO_DISPLAY_DIRECT_DRAW
     printf("PicoDisplay: st7789 pio without buffering @ %i Mhz (%ix%i)\r\n",
@@ -86,7 +87,7 @@ void PicoDisplay::setCursor(int16_t x, int16_t y) {
 void PicoDisplay::setPixel(uint16_t color) {
 #ifdef PICO_DISPLAY_DIRECT_DRAW
     // no alpha support, prevent slowdown in "direct drawing" mode
-    st7789_put(color);
+    st7789_put16(color << m_bit_shift);
 #else
     if (color != m_colorKey && m_cursor.x < m_renderSize.x && m_cursor.y < m_renderSize.y) {
         *(uint16_t *) (p_surfaces[m_bufferIndex]->getPixels() + m_cursor.y * m_pitch + m_cursor.x * m_bpp) = color;

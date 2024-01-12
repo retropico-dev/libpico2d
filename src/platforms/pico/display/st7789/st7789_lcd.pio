@@ -37,13 +37,36 @@ static inline void st7789_lcd_program_init(PIO pio, uint sm, uint offset, uint d
     pio_sm_set_enabled(pio, sm, true);
 }
 
+// switch autopull threshold
+static inline void st7789_lcd_set_autopull_threshold(PIO pio, uint sm, uint pull_threshold) {
+    pio->sm[sm].shiftctrl = (pio->sm[sm].shiftctrl &
+        ~(PIO_SM0_SHIFTCTRL_OUT_SHIFTDIR_BITS |
+        PIO_SM0_SHIFTCTRL_AUTOPULL_BITS |
+        PIO_SM0_SHIFTCTRL_PULL_THRESH_BITS)) |
+        (0 << PIO_SM0_SHIFTCTRL_OUT_SHIFTDIR_LSB) |
+        (1 << PIO_SM0_SHIFTCTRL_AUTOPULL_LSB) |
+        ((pull_threshold & 0x1fu) << PIO_SM0_SHIFTCTRL_PULL_THRESH_LSB);
+}
+
 // Making use of the narrow store replication behaviour on RP2040 to get the
 // data left-justified (as we are using shift-to-left to get MSB-first serial)
 
-static inline void st7789_lcd_put(PIO pio, uint sm, uint8_t x) {
+static inline void st7789_lcd_put8(PIO pio, uint sm, uint8_t x) {
     while (pio_sm_is_tx_fifo_full(pio, sm))
         ;
     *(volatile uint8_t*)&pio->txf[sm] = x;
+}
+
+static inline void st7789_lcd_put16(PIO pio, uint sm, uint16_t x) {
+    while (pio_sm_is_tx_fifo_full(pio, sm))
+        ;
+    *(volatile uint16_t*)&pio->txf[sm] = x;
+}
+
+static inline void st7789_lcd_put32(PIO pio, uint sm, uint32_t x) {
+    while (pio_sm_is_tx_fifo_full(pio, sm))
+        ;
+    *(volatile uint32_t*)&pio->txf[sm] = x;
 }
 
 // SM is done when it stalls on an empty FIFO

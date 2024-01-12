@@ -18,8 +18,8 @@ namespace p2d {
         };
 
         enum Format {
+            ARGB444, // infones
             RGB444,
-            //RGB555,
             RGB565
         };
 
@@ -59,6 +59,8 @@ namespace p2d {
         // set pixel color at cursor position
         virtual void setPixel(uint16_t color) {};
 
+        virtual void setPixel32(uint32_t color) {};
+
         // flip the display (hardware dependant, to be implemented)
         virtual void flip() {}
 
@@ -74,7 +76,7 @@ namespace p2d {
         }
 
         // draw a pixel line buffer to the display (fast)
-        virtual void drawPixelLine(const uint16_t *pixels, uint16_t width, const Format &format = RGB565);
+        virtual void drawPixelLine(const uint16_t *pixels, uint16_t width);
 
         // draw a surface (pixel buffer) to the display with scaling if requested
         void drawSurface(Surface *surface, const Utility::Vec2i &pos, const Utility::Vec2i &size);
@@ -131,7 +133,15 @@ namespace p2d {
 
         void setClearColor(uint16_t color) { m_clearColor = color; }
 
+        Format getFormat() { return m_format; }
+
+        void setFormat(const Format &fmt) {
+#warning "TODO: implement Display::setFormat"
+            m_format = fmt;
+        }
+
     protected:
+        Format m_format = Format::RGB565;
         uint16_t m_clearColor = Color::Black;
         uint16_t m_colorKey = Color::Transparent;
         uint16_t *m_line_buffer;

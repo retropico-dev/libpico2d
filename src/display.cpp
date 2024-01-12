@@ -55,24 +55,9 @@ void in_ram(Display::drawPixel)(int16_t x, int16_t y, uint16_t color) {
 }
 
 // faster
-void in_ram(Display::drawPixelLine)(const uint16_t *pixels, uint16_t width, const Format &format) {
-    if (format == Format::RGB565) {
-        for (uint_fast16_t i = 0; i < width; i++) {
-            setPixel(pixels[i]);
-        }
-    } else {
-        uint_fast16_t p;
-        uint_fast8_t red, green, blue;
-        for (uint_fast16_t i = 0; i < width; i++) {
-            p = pixels[i];
-            red = (p >> 8) & 0xF;
-            green = (p >> 4) & 0xF;
-            blue = p & 0xF;
-            red = (red << 1) | (red >> 3);
-            green = (green << 2) | (green >> 2);
-            blue = (blue << 1) | (blue >> 3);
-            setPixel((red << 11) | (green << 5) | blue);
-        }
+void in_ram(Display::drawPixelLine)(const uint16_t *pixels, uint16_t width) {
+    for (uint_fast16_t i = 0; i < width; i++) {
+        setPixel(pixels[i]);
     }
 }
 
@@ -97,7 +82,6 @@ void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, c
                 drawPixelLine((uint16_t *) (pixels + y * pitch), width);
         }
     } else {
-#if 1
         // nearest-neighbor scaling
         int x, y;
         auto pitch = surface->getPitch();
@@ -122,56 +106,6 @@ void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, c
                 drawPixelLine(m_line_buffer, size.x);
             }
         }
-#else
-        // bi-linear interpolation
-        auto pixels = (uint16_t *) surface->getPixels();
-        auto srcSize = surface->getSize();
-        int x_ratio = (srcSize.x << 16) / size.x + 1;
-        int y_ratio = (srcSize.y << 16) / size.y + 1;
-        int x, y, x_diff, y_diff;
-        uint16_t a, b, c, d;
-
-        setCursor(pos.x, pos.y);
-
-        for (int i = 0; i < size.y; i++) {
-            y = (i * y_ratio) >> 16;
-            y_diff = ((i * y_ratio) >> 8) & 0xFF;
-
-            for (int j = 0; j < size.x; j++) {
-                x = (j * x_ratio) >> 16;
-                x_diff = ((j * x_ratio) >> 8) & 0xFF;
-
-                a = pixels[(y * srcSize.x) + x];
-                b = pixels[(y * srcSize.x) + x + 1];
-                c = pixels[((y + 1) * srcSize.x) + x];
-                d = pixels[((y + 1) * srcSize.x) + x + 1];
-
-                uint16_t red = (((a & 0xF800) >> 11) * (256 - x_diff) * (256 - y_diff) +
-                                ((b & 0xF800) >> 11) * x_diff * (256 - y_diff) +
-                                ((c & 0xF800) >> 11) * y_diff * (256 - x_diff) +
-                                ((d & 0xF800) >> 11) * x_diff * y_diff) >> 16;
-
-                uint16_t green = (((a & 0x07E0) >> 5) * (256 - x_diff) * (256 - y_diff) +
-                                  ((b & 0x07E0) >> 5) * x_diff * (256 - y_diff) +
-                                  ((c & 0x07E0) >> 5) * y_diff * (256 - x_diff) +
-                                  ((d & 0x07E0) >> 5) * x_diff * y_diff) >> 16;
-
-                uint16_t blue = ((a & 0x001F) * (256 - x_diff) * (256 - y_diff) +
-                                 (b & 0x001F) * x_diff * (256 - y_diff) +
-                                 (c & 0x001F) * y_diff * (256 - x_diff) +
-                                 (d & 0x001F) * x_diff * y_diff) >> 16;
-
-                //drawPixel(j, i, pixel);
-                m_line_buffer[j + pos.x] = (red << 11) | (green << 5) | blue;
-            }
-            if (size.x == m_size.x) {
-                drawPixelLine(m_line_buffer, size.x);
-            } else {
-                setCursor(pos.x, i + pos.y);
-                drawPixelLine(m_line_buffer, size.x);
-            }
-        }
-#endif
     }
 }
 
