@@ -10,10 +10,15 @@
 namespace p2d {
     class LinuxDisplay : public Display {
     public:
-        LinuxDisplay(const Utility::Vec2i &displaySize = {240, 240},
-                     const Utility::Vec2i &renderSize = {240, 240},
-                     const Buffering &buffering = Buffering::Double,
-                     const ScaleMode &scaleMode = ScaleMode::Scale2x);
+        explicit LinuxDisplay(const Settings &settings)
+                : LinuxDisplay(settings.displaySize, settings.renderSize,
+                               settings.bufferingMode, settings.scaleMode, settings.format) {}
+
+        explicit LinuxDisplay(const Utility::Vec2i &displaySize = {240, 240},
+                              const Utility::Vec2i &renderSize = {240, 240},
+                              const Buffering &buffering = Buffering::Double,
+                              const ScaleMode &scaleMode = ScaleMode::Scale2x,
+                              const Format &format = RGB565);
 
         ~LinuxDisplay() override;
 
