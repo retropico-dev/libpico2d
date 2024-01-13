@@ -64,7 +64,6 @@ void in_ram(PicoAudio::play)(const void *data, int samples) {
     } else {
         auto dataBuffer = (int16_t *) data;
         for (uint_fast16_t i = 0; i < (uint_fast16_t) samples * m_channels; i++) {
-            //sampleBuffer[i] = (int16_t) (dataBuffer[i] >> m_volume);
             sampleBuffer[i] = (int16_t) ((dataBuffer[i] * m_volume) / 100);
         }
     }
