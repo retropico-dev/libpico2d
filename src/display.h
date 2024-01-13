@@ -31,7 +31,7 @@ namespace p2d {
             Nearest     // free scaling ratio, slower
         };
 
-        enum Color : uint16_t {
+        enum Color {
             Black = 0x0000,
             White = 0xFFFF,
             Red = 0xC083,
