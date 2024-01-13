@@ -7,7 +7,8 @@
 using namespace p2d;
 
 Display::Display(const Utility::Vec2i &displaySize, const Utility::Vec2i &renderSize,
-                 const Buffering &buffering, const ScaleMode &scaleMode, const Format &format)
+                 const Buffering &buffering, const ScaleMode &scaleMode,
+                 const Format &format, float spiSpeedMhz)
         : Adafruit_GFX(renderSize.x, renderSize.y) {
     m_clip = {0, 0, renderSize.x, renderSize.y};
     m_displaySize = displaySize;
@@ -98,9 +99,7 @@ void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, c
             for (uint8_t j = 0; j < dstSize.x; j++) {
                 x = (j * xRatio) >> 16;
                 y = (i * yRatio) >> 16;
-                if (x >= m_renderSize.x) {
-                    setCursor(pos.x, (int16_t) (pos.y + i));
-                }
+                if (x >= dstSize.x) setCursor(pos.x, (int16_t) (pos.y + i));
                 setPixel(*(uint16_t *) (pixels + y * pitch + x * bpp));
             }
         }

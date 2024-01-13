@@ -37,3 +37,9 @@ uint64_t Utility::timerStopPrintMicro() {
     printf("%llu\r\n", t);
     return t;
 }
+
+uint32_t Utility::timerStopPrintMillis() {
+    uint32_t t = m_timing_clock.getElapsedTime().asMilliseconds();
+    printf("%lu\r\n", t);
+    return t;
+}

@@ -12,25 +12,26 @@
 namespace p2d {
     class Display : public Adafruit_GFX {
     public:
-        enum Buffering {
+        enum class Buffering {
+            None,
             Single, // use a single buffer (screen (w * h * bpp) mem usage)
             Double  // use two buffers + core1 rendering (screen (w * h * bpp * 2) mem usage)
         };
 
-        enum Format {
+        enum class Format {
             ARGB444, // infones
             RGB444,
             RGB565
         };
 
-        enum ScaleMode {
+        enum class ScaleMode {
             None,
             Scale2x,    // integer scaling, fast
             Scanline2x, // integer scaling, fast
             Nearest     // free scaling ratio, slower
         };
 
-        enum Color {
+        enum Color : uint16_t {
             Black = 0x0000,
             White = 0xFFFF,
             Red = 0xC083,
@@ -47,22 +48,25 @@ namespace p2d {
         struct Settings {
             Utility::Vec2i displaySize = {240, 240};
             Utility::Vec2i renderSize = {240, 240};
-            Buffering bufferingMode = Double;
-            ScaleMode scaleMode = Scale2x;
-            Format format = RGB565;
+            Buffering bufferingMode = Buffering::Double;
+            ScaleMode scaleMode = ScaleMode::Scale2x;
+            Format format = Format::RGB565;
+            float spiSpeedMhz = 62.5f;
         };
 
         explicit Display(const Settings &settings)
                 : Display(settings.displaySize, settings.renderSize,
-                          settings.bufferingMode, settings.scaleMode, settings.format) {}
+                          settings.bufferingMode, settings.scaleMode,
+                          settings.format, settings.spiSpeedMhz) {}
 
         // init a display (hardware dependant, to be implemented)
         // default display size used for "ST7789 1.54" TFT IPS 240x240"
         explicit Display(const Utility::Vec2i &displaySize = {240, 240},
                          const Utility::Vec2i &renderSize = {240, 240},
-                         const Buffering &buffering = Double,
-                         const ScaleMode &scaleMode = None,
-                         const Format &format = RGB565);
+                         const Buffering &buffering = Buffering::Double,
+                         const ScaleMode &scaleMode = ScaleMode::None,
+                         const Format &format = Format::RGB565,
+                         float spiSpeedMhz = 62.5f);
 
         // destroy the display (hardware dependant, to be implemented)
         virtual ~Display();
@@ -143,9 +147,9 @@ namespace p2d {
             m_scaleMode = scaleMode;
         }
 
-        [[nodiscard]] uint16_t getClearColor() const { return m_clearColor; }
+        [[nodiscard]] Color getClearColor() const { return m_clearColor; }
 
-        void setClearColor(uint16_t color) { m_clearColor = color; }
+        void setClearColor(Color color) { m_clearColor = color; }
 
         Format getFormat() { return m_format; }
 
@@ -156,8 +160,8 @@ namespace p2d {
 
     protected:
         Format m_format = Format::RGB565;
-        uint16_t m_clearColor = Color::Black;
-        uint16_t m_colorKey = Color::Transparent;
+        Color m_clearColor = Color::Black;
+        Color m_colorKey = Color::Transparent;
         uint16_t *m_line_buffer;
         Utility::Vec4i m_clip{};
         Buffering m_buffering = Buffering::Double;

@@ -7,7 +7,7 @@
 
 using namespace p2d;
 
-Text::Text(int16_t x, int16_t y, const std::string &str, uint16_t color) : Widget() {
+Text::Text(int16_t x, int16_t y, const std::string &str, Display::Color color) : Widget() {
     // default stuff
     Platform::instance()->getDisplay()->setTextWrap(false);
 
@@ -18,7 +18,7 @@ Text::Text(int16_t x, int16_t y, const std::string &str, uint16_t color) : Widge
 }
 
 Text::Text(int16_t x, int16_t y, int16_t w, int16_t h,
-           const std::string &str, uint16_t color) : Widget() {
+           const std::string &str, Display::Color color) : Widget() {
     // default stuff
     Platform::instance()->getDisplay()->setTextWrap(false);
 
@@ -29,7 +29,7 @@ Text::Text(int16_t x, int16_t y, int16_t w, int16_t h,
 }
 
 Text::Text(const Utility::Vec2i &pos, const Utility::Vec2i &size,
-           const std::string &str, uint16_t color) : Widget() {
+           const std::string &str, Display::Color color) : Widget() {
     // default stuff
     Platform::instance()->getDisplay()->setTextWrap(false);
 

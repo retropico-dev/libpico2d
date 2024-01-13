@@ -58,13 +58,13 @@ namespace p2d {
 
         virtual Origin getOrigin() { return m_origin; };
 
-        virtual void setColor(uint16_t color) { m_color = color; };
+        virtual void setColor(Display::Color color) { m_color = color; };
 
-        virtual uint16_t getColor() { return m_color; };
+        virtual Display::Color getColor() { return m_color; };
 
-        virtual void setOutlineColor(uint16_t color) { m_outline_color = color; };
+        virtual void setOutlineColor(Display::Color color) { m_outline_color = color; };
 
-        virtual uint16_t getOutlineColor() { return m_outline_color; };
+        virtual Display::Color getOutlineColor() { return m_outline_color; };
 
         virtual void setOutlineThickness(uint16_t size) { m_outline_thickness = size; };
 
@@ -83,8 +83,8 @@ namespace p2d {
         Utility::Vec2i m_position{};
         Utility::Vec2i m_size{};
         Origin m_origin = Origin::TopLeft;
-        uint16_t m_color = Display::Color::White;
-        uint16_t m_outline_color = Display::Color::Red;
+        Display::Color m_color = Display::Color::White;
+        Display::Color m_outline_color = Display::Color::Red;
         uint16_t m_outline_thickness = 0;
     };
 }

@@ -10,11 +10,9 @@
 
 using namespace p2d;
 
-#ifndef PICO_DISPLAY_DIRECT_DRAW
+static PicoDisplay *s_display;
 
 static int s_core1_busy = 0;
-
-static PicoDisplay *s_display;
 
 static uint16_t in_ram(s_line_buffer)[DISPLAY_WIDTH];
 
@@ -30,24 +28,17 @@ union core_cmd {
     uint32_t full;
 };
 
-#endif
-
 PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i &renderSize,
-                         const Buffering &buffering, const ScaleMode &scaleMode, const Format &format)
-        : Display(displaySize, renderSize, buffering, scaleMode, format) {
+                         const Buffering &buffering, const ScaleMode &scaleMode,
+                         const Format &format, float spiSpeedMhz)
+        : Display(displaySize, renderSize, buffering, scaleMode, format, spiSpeedMhz) {
     // init st7789 display
-    // 62.5f = pico default @ 125 Mhz sys clock (safe)
-    // tested working at 88.6 Mhz @ 266 Mhz clock (unsafe)
-    auto spi_clock = 70.0f;
-    auto sys_clock = (uint16_t) (clock_get_hz(clk_sys) / 1000000);
-    auto clock_div = (float) sys_clock * (62.5f / spi_clock) / 125;
-    st7789_init(m_format == Format::RGB565 ? ST7789_COLOR_MODE_16bit : ST7789_COLOR_MODE_12bit, clock_div);
+    st7789_init(m_format == Format::RGB565 ?
+                ST7789_COLOR_MODE_16BIT : ST7789_COLOR_MODE_12BIT, spiSpeedMhz);
+
+    // handle alpha channel removal (st7789 support rgb444)
     if (m_format == Format::ARGB444) m_bit_shift = 4;
 
-#ifdef PICO_DISPLAY_DIRECT_DRAW
-    printf("PicoDisplay: st7789 pio without buffering @ %i Mhz (%ix%i)\r\n",
-           (uint16_t) spi_clock, renderSize.x, renderSize.y);
-#else
     // my own core1 crap
     s_display = this;
 
@@ -61,34 +52,24 @@ PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i
 #endif
         multicore_launch_core1(core1_main);
         printf("PicoDisplay: st7789 pio with double buffering @ %i Mhz (%ix%i)\r\n",
-               (uint16_t) spi_clock, m_renderSize.x, m_renderSize.y);
+               (uint16_t) spiSpeedMhz, m_renderSize.x, m_renderSize.y);
     } else {
         printf("PicoDisplay: st7789 pio with single buffering @ %i Mhz (%ix%i)\r\n",
-               (uint16_t) spi_clock, m_renderSize.x, m_renderSize.y);
+               (uint16_t) spiSpeedMhz, m_renderSize.x, m_renderSize.y);
     }
-#endif
 
     // clear display buffers
     PicoDisplay::clear();
     PicoDisplay::flip();
     PicoDisplay::clear();
+    PicoDisplay::flip();
 }
 
 void PicoDisplay::setCursor(int16_t x, int16_t y) {
-#ifdef PICO_DISPLAY_DIRECT_DRAW
-    if (x >= 0 && x < m_renderSize.x && y >= 0 && y < m_renderSize.y) {
-        st7789_set_cursor(x, y);
-    }
-#else
     m_cursor = {x, y};
-#endif
 }
 
-void PicoDisplay::setPixel(uint16_t color) {
-#ifdef PICO_DISPLAY_DIRECT_DRAW
-    // no alpha support, prevent slowdown in "direct drawing" mode
-    st7789_put16(color << m_bit_shift);
-#else
+__always_inline void PicoDisplay::setPixel(uint16_t color) {
     if (color != m_colorKey && m_cursor.x < m_renderSize.x && m_cursor.y < m_renderSize.y) {
         *(uint16_t *) (p_surfaces[m_bufferIndex]->getPixels() + m_cursor.y * m_pitch + m_cursor.x * m_bpp) = color;
     }
@@ -98,10 +79,7 @@ void PicoDisplay::setPixel(uint16_t color) {
         m_cursor.x = 0;
         m_cursor.y += 1;
     }
-#endif
 }
-
-#ifndef PICO_DISPLAY_DIRECT_DRAW
 
 void in_ram(PicoDisplay::clear)() {
     auto buffer = p_surfaces[m_bufferIndex]->getPixels();
@@ -195,16 +173,14 @@ static void in_ram(draw)(Surface *surface, const Display::ScaleMode &mode,
                         // line 1
                         auto p1 = *(uint16_t *) (pixels + y * pitch + x * bpp);
                         st7789_put16(p1);
-                        st7789_put16(mode == p2d::Display::Scale2x ? p1 : Display::Color::Black);
+                        st7789_put16(mode == Display::ScaleMode::Scale2x ? p1 : Display::Color::Black);
                         // line 2
                         auto p2 = *(uint16_t *) (pixels + y * pitch + (x + 1) * bpp);
                         st7789_put16(p2);
-                        st7789_put16(mode == p2d::Display::Scale2x ? p2 : Display::Color::Black);
+                        st7789_put16(mode == Display::ScaleMode::Scale2x ? p2 : Display::Color::Black);
                     }
                 }
             }
         }
     }
 }
-
-#endif

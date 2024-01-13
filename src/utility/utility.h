@@ -100,6 +100,8 @@ namespace p2d {
         static void timerStart();
 
         static uint64_t timerStopPrintMicro();
+
+        static uint32_t timerStopPrintMillis();
     };
 }
 

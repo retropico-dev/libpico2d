@@ -7,7 +7,6 @@ option(BUILD_EXAMPLE "Build example project" OFF)
 # pico options
 option(PICO_STDIO_UART "Pico UART debug" ON)
 option(PICO_DISPLAY_ST7789_PIO "Pico ST7789 display driver (pio)" ON)
-option(PICO_DISPLAY_DIRECT_DRAW "Pico ST7789 direct draw driver (slow)" OFF)
 
 # libpico2d default board is adafruit feather rp2040
 if (NOT PLATFORM_LINUX)
@@ -116,11 +115,9 @@ else ()
         list(APPEND PLATFORM_SOURCES
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/st7789.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/pico_display.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/pico_display_direct.cpp
         )
         list(APPEND PLATFORM_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789)
-    endif ()
-    if (PICO_DISPLAY_DIRECT_DRAW)
-        list(APPEND PLATFORM_FLAGS -DPICO_DISPLAY_DIRECT_DRAW)
     endif ()
     # microboy board revision define
     if (PICO_BOARD STREQUAL "adafruit_feather_rp2040")

@@ -5,6 +5,8 @@
 #include <hardware/gpio.h>
 #include <pico/time.h>
 #include <cstdio>
+#include <hardware/structs/clocks.h>
+#include <hardware/clocks.h>
 #include "st7789_lcd.pio.h"
 #include "st7789.h"
 #include "pinout.h"
@@ -18,7 +20,7 @@ static uint8_t pio_bit_size = 16;
 static uint8_t st7789_init_seq[] = {
         1, 20, ST7789_SWRESET,      // Software reset
         1, 10, ST7789_SLPOUT,       // Exit sleep mode
-        2, 2, ST7789_COLMOD, ST7789_COLOR_MODE_16bit,  // Set colour mode to 16 bit (RGB565)
+        2, 2, ST7789_COLMOD, ST7789_COLOR_MODE_16BIT,  // Set colour mode to 16 bit (RGB565)
         2, 0, ST7789_MADCTL, 0x00,  // Set MADCTL (ST7789_MADCTL_BGR)
         5, 0, ST7789_CASET, 0x00, 0x00, DISPLAY_WIDTH >> 8, DISPLAY_WIDTH & 0xff,   // CASET: column addresses
         5, 0, ST7789_RASET, 0x00, 0x00, DISPLAY_HEIGHT >> 8, DISPLAY_HEIGHT & 0xff, // RASET: row addresses
@@ -91,7 +93,12 @@ static inline void st7789_lcd_set_cursor(uint16_t x, uint16_t y) {
     st7789_lcd_set_dc_cs(true, false);
 }
 
-void st7789_init(uint8_t format, float clock_div) {
+void st7789_init(uint8_t format, float spiClockMhz) {
+    // 62.5f = pico default @ 125 Mhz sys clock (safe)
+    // tested working at 88.6 Mhz @ 266 Mhz clock (unsafe)
+    auto sys_clock = (uint16_t) (clock_get_hz(clk_sys) / 1000000);
+    auto clock_div = (float) sys_clock * (62.5f / spiClockMhz) / 125;
+
     uint offset = pio_add_program(pio, &st7789_lcd_program);
     pio_sm_claim(pio, pio_sm);
     st7789_lcd_program_init(pio, pio_sm, offset, LCD_PIN_DIN, LCD_PIN_CLK, clock_div);
@@ -108,7 +115,7 @@ void st7789_init(uint8_t format, float clock_div) {
     gpio_put(LCD_PIN_CS, true);
     gpio_put(LCD_PIN_RESET, true);
 
-    pio_bit_size = format == ST7789_COLOR_MODE_12bit ? 12 : 16;
+    pio_bit_size = format == ST7789_COLOR_MODE_12BIT ? 12 : 16;
     st7789_init_seq[9] = format;
     st7789_lcd_init(st7789_init_seq);
 
@@ -118,6 +125,10 @@ void st7789_init(uint8_t format, float clock_div) {
 void st7789_start_pixels() {
     st7789_lcd_write_cmd(ST7789_RAMWR);
     st7789_lcd_set_dc_cs(true, false);
+}
+
+void st7789_put8(uint16_t pixel) {
+    st7789_lcd_put8(pio, pio_sm, pixel);
 }
 
 void st7789_put16(uint16_t pixel) {
