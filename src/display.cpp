@@ -62,16 +62,16 @@ void in_ram(Display::drawPixelLine)(const uint16_t *pixels, uint16_t width) {
     }
 }
 
-void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, const Utility::Vec2i &size) {
+void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, const Utility::Vec2i &dstSize) {
     if (!surface) return;
 
-    if (size == surface->getSize()) { // no scaling
+    if (surface->getSize() == dstSize) { // no scaling
         auto isBitmap = surface->isBitmap();
         auto pixels = surface->getPixels();
         auto pitch = surface->getPitch();
         auto height = surface->getSize().y;
         auto width = std::min(surface->getSize().x, (int16_t) (m_renderSize.x - pos.x));
-        for (int16_t y = 0; y < size.y; y++) {
+        for (int16_t y = 0; y < dstSize.y; y++) {
             // skip horizontal lines if out of screen
             if (pos.y + y < 0 || pos.y + y >= m_renderSize.y) continue;
             // set cursor position
@@ -89,22 +89,19 @@ void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, c
         auto bpp = surface->getBpp();
         auto pixels = surface->getPixels();
         auto srcSize = surface->getSize();
-        int xRatio = (srcSize.x << 16) / size.x + 1;
-        int yRatio = (srcSize.y << 16) / size.y + 1;
+        int xRatio = (srcSize.x << 16) / dstSize.x + 1;
+        int yRatio = (srcSize.y << 16) / dstSize.y + 1;
 
         setCursor(pos.x, pos.y);
 
-        for (uint8_t i = 0; i < size.y; i++) {
-            for (uint8_t j = 0; j < size.x; j++) {
+        for (uint8_t i = 0; i < dstSize.y; i++) {
+            for (uint8_t j = 0; j < dstSize.x; j++) {
                 x = (j * xRatio) >> 16;
                 y = (i * yRatio) >> 16;
-                m_line_buffer[j + pos.x] = *(uint16_t *) (pixels + y * pitch + x * bpp);
-            }
-            if (size.x == m_renderSize.x) {
-                drawPixelLine(m_line_buffer, size.x);
-            } else {
-                setCursor(pos.x, i + pos.y);
-                drawPixelLine(m_line_buffer, size.x);
+                if (x >= m_renderSize.x) {
+                    setCursor(pos.x, (int16_t) (pos.y + i));
+                }
+                setPixel(*(uint16_t *) (pixels + y * pitch + x * bpp));
             }
         }
     }

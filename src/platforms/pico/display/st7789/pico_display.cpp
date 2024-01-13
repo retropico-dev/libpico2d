@@ -38,7 +38,7 @@ PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i
     // init st7789 display
     // 62.5f = pico default @ 125 Mhz sys clock (safe)
     // tested working at 88.6 Mhz @ 266 Mhz clock (unsafe)
-    auto spi_clock = 62.5f;
+    auto spi_clock = 70.0f;
     auto sys_clock = (uint16_t) (clock_get_hz(clk_sys) / 1000000);
     auto clock_div = (float) sys_clock * (62.5f / spi_clock) / 125;
     st7789_init(m_format == Format::RGB565 ? ST7789_COLOR_MODE_16bit : ST7789_COLOR_MODE_12bit, clock_div);
@@ -154,7 +154,7 @@ static void in_ram(draw)(Surface *surface, const Display::ScaleMode &mode,
         st7789_set_cursor(0, 0);
         for (uint_fast16_t y = 0; y < size.y; y++) {
             for (uint_fast16_t x = 0; x < size.x; x++) {
-                st7789_put(*(uint16_t *) (buffer + y * pitch + x * bpp));
+                st7789_put16(*(uint16_t *) (buffer + y * pitch + x * bpp));
             }
         }
     } else {
@@ -179,12 +179,12 @@ static void in_ram(draw)(Surface *surface, const Display::ScaleMode &mode,
                 // render line
                 if (size.x == DISPLAY_WIDTH) {
                     for (uint_fast16_t k = 0; k < size.x; k++) {
-                        st7789_put(s_line_buffer[k]);
+                        st7789_put16(s_line_buffer[k]);
                     }
                 } else {
                     st7789_set_cursor(pos.x, i + pos.y);
                     for (uint_fast16_t k = 0; k < size.x; k++) {
-                        st7789_put(s_line_buffer[k]);
+                        st7789_put16(s_line_buffer[k]);
                     }
                 }
             }
@@ -194,12 +194,12 @@ static void in_ram(draw)(Surface *surface, const Display::ScaleMode &mode,
                     for (uint_fast16_t x = 0; x < srcSize.x; x += 2) {
                         // line 1
                         auto p1 = *(uint16_t *) (pixels + y * pitch + x * bpp);
-                        st7789_put(p1);
-                        st7789_put(mode == p2d::Display::Scale2x ? p1 : Display::Color::Black);
+                        st7789_put16(p1);
+                        st7789_put16(mode == p2d::Display::Scale2x ? p1 : Display::Color::Black);
                         // line 2
                         auto p2 = *(uint16_t *) (pixels + y * pitch + (x + 1) * bpp);
-                        st7789_put(p2);
-                        st7789_put(mode == p2d::Display::Scale2x ? p2 : Display::Color::Black);
+                        st7789_put16(p2);
+                        st7789_put16(mode == p2d::Display::Scale2x ? p2 : Display::Color::Black);
                     }
                 }
             }

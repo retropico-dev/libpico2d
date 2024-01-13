@@ -150,7 +150,7 @@ namespace p2d {
         Format getFormat() { return m_format; }
 
         void setFormat(const Format &fmt) {
-#warning "TODO: implement Display::setFormat"
+//#warning "TODO: implement Display::setFormat"
             m_format = fmt;
         }
 
