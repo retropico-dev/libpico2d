@@ -65,6 +65,7 @@ namespace p2d {
         }
 
         void setPixel(uint16_t x, uint16_t y, uint16_t pixel) {
+            // TODO: this add ~20µ delay
             if (m_read_only || !p_buffer) return;
             if (x >= m_size.x || y >= m_size.y) return;
             *(uint16_t *) (p_buffer + y * m_pitch + x * m_bpp) = pixel;
