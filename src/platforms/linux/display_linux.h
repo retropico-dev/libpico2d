@@ -18,7 +18,7 @@ namespace p2d {
                               const Utility::Vec2i &renderSize = {240, 240},
                               const Buffering &buffering = Buffering::Double,
                               const ScaleMode &scaleMode = ScaleMode::Scale2x,
-                              const Format &format = RGB565);
+                              const Format &format = Format::RGB565);
 
         ~LinuxDisplay() override;
 
