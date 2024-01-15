@@ -10,13 +10,13 @@ namespace p2d {
     public:
         explicit PicoDisplayDirectDraw(const Settings &settings)
                 : PicoDisplayDirectDraw(settings.displaySize, settings.renderSize,
-                                        settings.bufferingMode, settings.scaleMode,
+                                        settings.renderBounds, settings.bufferingMode,
                                         settings.format, settings.spiSpeedMhz) {}
 
         explicit PicoDisplayDirectDraw(const Utility::Vec2i &displaySize = {240, 240},
-                                       const Utility::Vec2i &renderSize = {120, 120},
+                                       const Utility::Vec2i &renderSize = {240, 240},
+                                       const Utility::Vec4i &renderBounds = {0, 0, 240, 240},
                                        const Buffering &buffering = Buffering::Double,
-                                       const ScaleMode &scaleMode = ScaleMode::Scale2x,
                                        const Format &format = Format::RGB565,
                                        float spiSpeedMhz = 62.5f);
 

@@ -9,8 +9,9 @@
 using namespace p2d;
 
 LinuxDisplay::LinuxDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i &renderSize,
-                           const Buffering &buffering, const ScaleMode &scaleMode, const Format &format)
-        : Display(displaySize, renderSize, buffering, scaleMode, format) {
+                           const Utility::Vec4i &renderBounds, const Buffering &buffering,
+                           const Format &format, float spiSpeedMhz)
+        : Display(displaySize, renderSize, renderBounds, buffering, format, spiSpeedMhz) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "SDL_Init error: %s", SDL_GetError());
         return;
@@ -29,8 +30,8 @@ LinuxDisplay::LinuxDisplay(const Utility::Vec2i &displaySize, const Utility::Vec
         return;
     }
 
-    if (displaySize != renderSize) {
-        SDL_RenderSetLogicalSize(p_renderer, renderSize.x, renderSize.y);
+    if (m_renderSize != Utility::Vec2i(m_renderBounds.w, m_renderBounds.h)) {
+        SDL_RenderSetLogicalSize(p_renderer, m_renderSize.x, m_renderSize.y);
     }
 
     printf("LinuxDisplay: %ix%i (texture pitch: %i)\n", m_displaySize.x, m_displaySize.y, m_pitch);
@@ -41,7 +42,9 @@ void LinuxDisplay::setCursor(int16_t x, int16_t y) {
 }
 
 void LinuxDisplay::setPixel(uint16_t color) {
-    if (color != Display::Color::Transparent) {
+    if (color != Display::Color::Transparent
+        && m_renderBounds.x + m_cursor.x < m_renderSize.x
+        && m_renderBounds.y + m_cursor.y < m_renderSize.y) {
         int32_t r, g, b;
 
         if (m_format == Format::RGB565) {
@@ -58,12 +61,12 @@ void LinuxDisplay::setPixel(uint16_t color) {
 
         // draw the pixel to the renderer
         SDL_SetRenderDrawColor(p_renderer, r, g, b, SDL_ALPHA_OPAQUE);
-        SDL_RenderDrawPoint(p_renderer, m_cursor.x, m_cursor.y);
+        SDL_RenderDrawPoint(p_renderer, m_renderBounds.x + m_cursor.x, m_renderBounds.y + m_cursor.y);
     }
 
     // emulate tft lcd "put_pixel" buffer
     m_cursor.x++;
-    if (m_cursor.x >= m_displaySize.x) {
+    if (m_cursor.x >= m_renderSize.x) {
         m_cursor.x = 0;
         m_cursor.y += 1;
     }

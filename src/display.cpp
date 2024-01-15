@@ -7,53 +7,21 @@
 using namespace p2d;
 
 Display::Display(const Utility::Vec2i &displaySize, const Utility::Vec2i &renderSize,
-                 const Buffering &buffering, const ScaleMode &scaleMode,
+                 const Utility::Vec4i &renderBounds, const Buffering &buffering,
                  const Format &format, float spiSpeedMhz)
-        : Adafruit_GFX(renderSize.x, renderSize.y) {
-    m_clip = {0, 0, renderSize.x, renderSize.y};
+        : Adafruit_GFX(renderBounds.w, renderBounds.h) {
+    m_clip = {0, 0, renderBounds.x, renderBounds.y};
     m_displaySize = displaySize;
     m_renderSize = renderSize;
-    m_scaleMode = scaleMode;
-    m_format = format;
+    m_renderBounds = renderBounds;
     m_buffering = buffering;
+    m_format = format;
     m_pitch = m_renderSize.x * m_bpp;
     m_bpp = 2;
 
     // pixel line buffer for drawSurface
     m_line_buffer = (uint16_t *) malloc(m_pitch);
     memset(m_line_buffer, 0, m_pitch);
-}
-
-// very slow, obviously...
-void in_ram(Display::drawPixel)(int16_t x, int16_t y, uint16_t color) {
-    if ((x < m_clip.x) || (y < m_clip.y)
-        || x >= m_clip.x + m_clip.w || y >= m_clip.y + m_clip.h)
-        return;
-
-    if (rotation) {
-        int16_t t;
-        switch (rotation) {
-            case 1:
-                t = x;
-                x = (int16_t) (m_renderSize.x - 1 - y);
-                y = t;
-                break;
-            case 2:
-                x = (int16_t) (m_renderSize.x - 1 - x);
-                y = (int16_t) (m_renderSize.y - 1 - y);
-                break;
-            case 3:
-                t = x;
-                x = y;
-                y = (int16_t) (m_renderSize.y - 1 - t);
-                break;
-            default:
-                break;
-        }
-    }
-
-    setCursor(x, y);
-    setPixel(color);
 }
 
 // faster
@@ -63,20 +31,23 @@ void in_ram(Display::drawPixelLine)(const uint16_t *pixels, uint16_t width) {
     }
 }
 
-void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, const Utility::Vec2i &dstSize) {
+#warning "TODO: use memcpy for non direct draw mode"
+
+void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec4i &bounds) {
     if (!surface) return;
 
-    if (surface->getSize() == dstSize) { // no scaling
+    if (surface->getSize() == Utility::Vec2i{bounds.w, bounds.h}) { // no scaling
         auto isBitmap = surface->isBitmap();
         auto pixels = surface->getPixels();
         auto pitch = surface->getPitch();
         auto height = surface->getSize().y;
-        auto width = std::min(surface->getSize().x, (int16_t) (m_renderSize.x - pos.x));
-        for (int16_t y = 0; y < dstSize.y; y++) {
-            // skip horizontal lines if out of screen
-            if (pos.y + y < 0 || pos.y + y >= m_renderSize.y) continue;
+        auto width = std::min(surface->getSize().x, (int16_t) (m_renderSize.x - bounds.x));
+        if (width <= 0) return;
+        for (int16_t y = 0; y < bounds.h; y++) {
+            // break if y is out of screen
+            if (bounds.y + y < 0 || bounds.y + y >= m_renderSize.y) break;
             // set cursor position
-            setCursor(pos.x, (int16_t) (pos.y + y));
+            setCursor(bounds.x, (int16_t) (bounds.y + y));
             // draw line
             if (isBitmap) // invert Y axis
                 drawPixelLine((uint16_t *) (pixels + (height - y - 1) * pitch), width);
@@ -90,16 +61,16 @@ void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec2i &pos, c
         auto bpp = surface->getBpp();
         auto pixels = surface->getPixels();
         auto srcSize = surface->getSize();
-        int xRatio = (srcSize.x << 16) / dstSize.x + 1;
-        int yRatio = (srcSize.y << 16) / dstSize.y + 1;
+        int xRatio = (srcSize.x << 16) / bounds.w + 1;
+        int yRatio = (srcSize.y << 16) / bounds.h + 1;
 
-        setCursor(pos.x, pos.y);
+        setCursor(bounds.x, bounds.y);
 
-        for (uint8_t i = 0; i < dstSize.y; i++) {
-            for (uint8_t j = 0; j < dstSize.x; j++) {
+        for (uint8_t i = 0; i < bounds.h; i++) {
+            for (uint8_t j = 0; j < bounds.w; j++) {
                 x = (j * xRatio) >> 16;
                 y = (i * yRatio) >> 16;
-                if (x >= dstSize.x) setCursor(pos.x, (int16_t) (pos.y + i));
+                if (x >= bounds.w) setCursor(bounds.x, (int16_t) (bounds.y + i));
                 setPixel(*(uint16_t *) (pixels + y * pitch + x * bpp));
             }
         }

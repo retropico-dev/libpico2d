@@ -24,13 +24,6 @@ namespace p2d {
             RGB565
         };
 
-        enum class ScaleMode {
-            None,
-            Scale2x,    // integer scaling, fast
-            Scanline2x, // integer scaling, fast
-            Nearest     // free scaling ratio, slower
-        };
-
         enum Color {
             Black = 0x0000,
             White = 0xFFFF,
@@ -48,23 +41,23 @@ namespace p2d {
         struct Settings {
             Utility::Vec2i displaySize = {240, 240};
             Utility::Vec2i renderSize = {240, 240};
+            Utility::Vec4i renderBounds = {0, 0, 240, 240};
             Buffering bufferingMode = Buffering::Double;
-            ScaleMode scaleMode = ScaleMode::Scale2x;
             Format format = Format::RGB565;
             float spiSpeedMhz = 62.5f;
         };
 
         explicit Display(const Settings &settings)
                 : Display(settings.displaySize, settings.renderSize,
-                          settings.bufferingMode, settings.scaleMode,
+                          settings.renderBounds, settings.bufferingMode,
                           settings.format, settings.spiSpeedMhz) {}
 
         // init a display (hardware dependant, to be implemented)
         // default display size used for "ST7789 1.54" TFT IPS 240x240"
-        explicit Display(const Utility::Vec2i &displaySize = {240, 240},
-                         const Utility::Vec2i &renderSize = {240, 240},
+        explicit Display(const Utility::Vec2i &displaySize = {240, 240},        // real display size
+                         const Utility::Vec2i &renderSize = {240, 240},         // render size
+                         const Utility::Vec4i &renderBounds = {0, 0, 240, 240}, // scale if renderBounds > renderSize
                          const Buffering &buffering = Buffering::Double,
-                         const ScaleMode &scaleMode = ScaleMode::None,
                          const Format &format = Format::RGB565,
                          float spiSpeedMhz = 62.5f);
 
@@ -86,7 +79,10 @@ namespace p2d {
         virtual void clear();
 
         // draw a pixel to the display (slow)
-        void drawPixel(int16_t x, int16_t y, uint16_t color) override;
+        void drawPixel(int16_t x, int16_t y, uint16_t color) override {
+            setCursor(x, y);
+            setPixel(color);
+        }
 
         // draw a pixel to the display (slow)
         void drawPixel(const Utility::Vec2i &pos, uint16_t color) {
@@ -97,18 +93,18 @@ namespace p2d {
         virtual void drawPixelLine(const uint16_t *pixels, uint16_t width);
 
         // draw a surface (pixel buffer) to the display with scaling if requested
-        void drawSurface(Surface *surface, const Utility::Vec2i &pos, const Utility::Vec2i &size);
+        void drawSurface(Surface *surface, const Utility::Vec4i &bounds);
 
         // draw a surface (pixel buffer) to the display
         void drawSurface(Surface *surface, const Utility::Vec2i &pos) {
             if (!surface) return;
-            drawSurface(surface, pos, surface->getSize());
+            drawSurface(surface, {pos.x, pos.y, surface->getSize().x, surface->getSize().y});
         }
 
         // draw a surface (pixel buffer) to the display
         void drawSurface(Surface *surface) {
             if (!surface) return;
-            drawSurface(surface, {0, 0}, surface->getSize());
+            drawSurface(surface, {0, 0, surface->getSize().x, surface->getSize().y});
         }
 
         void drawText(int16_t x, int16_t y, const std::string &text) {
@@ -128,30 +124,17 @@ namespace p2d {
             return m_clip;
         }
 
-        // get display size
-        Utility::Vec2i getDisplaySize() { return m_displaySize; };
+        [[nodiscard]] Utility::Vec2i getSize() const { return m_renderSize; }
 
-        Utility::Vec2i getSize() { return m_renderSize; };
+        [[nodiscard]] int getPitch() const { return m_pitch; };
 
-        Utility::Vec4i getBounds() {
-            return {0, 0, m_renderSize.x, m_renderSize.y};
-        }
-
-        int getPitch() { return m_pitch; };
-
-        int getBpp() { return m_bpp; };
-
-        ScaleMode getScaleMode() { return m_scaleMode; }
-
-        void setScaleMode(const ScaleMode &scaleMode) {
-            m_scaleMode = scaleMode;
-        }
+        [[nodiscard]] int getBpp() const { return m_bpp; };
 
         [[nodiscard]] Color getClearColor() const { return m_clearColor; }
 
         void setClearColor(Color color) { m_clearColor = color; }
 
-        Format getFormat() { return m_format; }
+        [[nodiscard]]  Format getFormat() const { return m_format; }
 
         void setFormat(const Format &fmt) {
 //#warning "TODO: implement Display::setFormat"
@@ -159,17 +142,25 @@ namespace p2d {
         }
 
     protected:
+        int m_bpp = 2;
+        int m_pitch = 0;
         Format m_format = Format::RGB565;
         Color m_clearColor = Color::Black;
         Color m_colorKey = Color::Transparent;
         uint16_t *m_line_buffer;
         Utility::Vec4i m_clip{};
+        Utility::Vec2i m_displaySize{};     // real display size (hardware)
+        Utility::Vec2i m_renderSize{};      // rendering size (framebuffer size)
+        Utility::Vec4i m_renderBounds{};    // rendering bounds, used for scaling
+
+        // frame-buffers
         Buffering m_buffering = Buffering::Double;
-        Utility::Vec2i m_displaySize{};
-        Utility::Vec2i m_renderSize{};
-        ScaleMode m_scaleMode = ScaleMode::Scale2x;
-        int m_pitch = 0;
-        int m_bpp = 2;
+        uint8_t m_bufferIndex = 0;
+        Surface *p_surfaces[2];
+
+        Surface *getSurface(uint8_t index) {
+            return p_surfaces[index];
+        }
     };
 }
 

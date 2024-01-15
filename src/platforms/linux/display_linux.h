@@ -12,13 +12,15 @@ namespace p2d {
     public:
         explicit LinuxDisplay(const Settings &settings)
                 : LinuxDisplay(settings.displaySize, settings.renderSize,
-                               settings.bufferingMode, settings.scaleMode, settings.format) {}
+                               settings.renderBounds, settings.bufferingMode,
+                               settings.format, settings.spiSpeedMhz) {}
 
         explicit LinuxDisplay(const Utility::Vec2i &displaySize = {240, 240},
                               const Utility::Vec2i &renderSize = {240, 240},
+                              const Utility::Vec4i &renderBounds = {0, 0, 240, 240},
                               const Buffering &buffering = Buffering::Double,
-                              const ScaleMode &scaleMode = ScaleMode::Scale2x,
-                              const Format &format = Format::RGB565);
+                              const Format &format = Format::RGB565,
+                              float spiSpeedMhz = 62.5f);
 
         ~LinuxDisplay() override;
 
