@@ -3,30 +3,11 @@
 //
 
 #include <cstdio>
-#include <hardware/clocks.h>
 #include "platform.h"
 #include "pico_display_direct.h"
 #include "st7789.h"
 
 using namespace p2d;
-
-static PicoDisplay *s_display;
-
-static int s_core1_busy = 0;
-
-static uint16_t in_ram(s_line_buffer)[DISPLAY_WIDTH];
-
-static void in_ram(draw)(Surface *surface, bool scale,
-                         const Utility::Vec2i &pos, const Utility::Vec2i &size);
-
-_Noreturn static void in_ram(core1_main)();
-
-union core_cmd {
-    struct {
-        uint8_t index = 0;
-    };
-    uint32_t full;
-};
 
 PicoDisplayDirectDraw::PicoDisplayDirectDraw(const Utility::Vec2i &displaySize, const Utility::Vec2i &renderSize,
                                              const Utility::Vec4i &renderBounds, const Buffering &buffering,

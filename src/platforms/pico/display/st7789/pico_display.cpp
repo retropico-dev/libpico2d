@@ -12,8 +12,6 @@ using namespace p2d;
 
 static PicoDisplay *s_display;
 
-static int s_core1_busy = 0;
-
 static Surface **s_surfaces;
 static Utility::Vec2i s_display_size;
 static Utility::Vec4i s_render_bounds;
@@ -110,10 +108,6 @@ void in_ram(PicoDisplay::clear)() {
 
 void in_ram(PicoDisplay::flip)() {
     if (m_buffering == Buffering::Double) {
-        // wait until previous flip on core1 complete
-        while (__atomic_load_n(&s_core1_busy, __ATOMIC_SEQ_CST)) tight_loop_contents();
-        // send "flip" cmd to core1
-        __atomic_store_n(&s_core1_busy, 1, __ATOMIC_SEQ_CST);
         union core_cmd cmd{.index = m_bufferIndex};
         multicore_fifo_push_blocking(cmd.full);
         // flip buffer
@@ -130,7 +124,6 @@ _Noreturn static void in_ram(core1_main)() {
     while (true) {
         cmd.full = multicore_fifo_pop_blocking();
         draw(s_surfaces[cmd.index]);
-        __atomic_store_n(&s_core1_busy, 0, __ATOMIC_SEQ_CST);
     }
 }
 

@@ -141,6 +141,10 @@ namespace p2d {
             m_format = fmt;
         }
 
+        Surface *getFramebuffer() {
+            return p_surfaces[m_bufferIndex];
+        }
+
     protected:
         int m_bpp = 2;
         int m_pitch = 0;
