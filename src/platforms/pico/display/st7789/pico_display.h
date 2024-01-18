@@ -18,7 +18,7 @@ namespace p2d {
                              const Utility::Vec4i &renderBounds = {0, 0, 240, 240},
                              const Buffering &buffering = Buffering::Double,
                              const Format &format = Format::RGB565,
-                             float spiSpeedMhz = 62.5f);
+                             float spiSpeedMhz = 80.0f);
 
         void setCursor(int16_t x, int16_t y) override;
 

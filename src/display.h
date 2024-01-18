@@ -44,7 +44,7 @@ namespace p2d {
             Utility::Vec4i renderBounds = {0, 0, 240, 240};
             Buffering bufferingMode = Buffering::Double;
             Format format = Format::RGB565;
-            float spiSpeedMhz = 62.5f;
+            float spiSpeedMhz = 80.0f;
         };
 
         explicit Display(const Settings &settings)
@@ -59,7 +59,7 @@ namespace p2d {
                          const Utility::Vec4i &renderBounds = {0, 0, 240, 240}, // scale if renderBounds > renderSize
                          const Buffering &buffering = Buffering::Double,
                          const Format &format = Format::RGB565,
-                         float spiSpeedMhz = 62.5f);
+                         float spiSpeedMhz = 80.0f);
 
         // destroy the display (hardware dependant, to be implemented)
         virtual ~Display();
