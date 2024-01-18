@@ -18,6 +18,8 @@ namespace p2d {
 
         static void write(uint32_t addr, uint8_t *src, size_t count);
 
+        static void memset(uint32_t addr, uint32_t value, size_t count);
+
         static uint32_t alloc(size_t size);
 
         // TODO

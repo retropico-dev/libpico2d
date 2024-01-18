@@ -15,10 +15,10 @@ using namespace p2d;
 
 static PIO pio = pio0;
 static uint pio_sm = 1;
-static psram_spi_inst_t ps_spi;
 static uint32_t current_address = 0;
 static uint32_t max_address = 8 * 1024 * 1024;
 static bool inited = false;
+psram_spi_inst_t p2d_psram_spi;
 psram_spi_inst_t *async_spi_inst;
 
 void PSram::init(float spi_mhz) {
@@ -30,13 +30,12 @@ void PSram::init(float spi_mhz) {
 
     // pio/sm setup
     pio_sm_claim(pio, pio_sm);
-    ps_spi = psram_spi_init_clkdiv(pio, (int) pio_sm, clock_div, true);
+    p2d_psram_spi = psram_spi_init_clkdiv(pio, (int) pio_sm, clock_div, true);
 
     // minimal psram test
     uint8_t write_buffer[12] = {'h', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', '\0'};
     PSram::write(0, write_buffer, 12);
     uint8_t read_buffer[12];
-    memset(read_buffer, 0, 12);
     PSram::read(0, read_buffer, 12);
     if (memcmp(write_buffer, read_buffer, 12) != 0) {
         printf("PSram::init: WARNING: psram read/write test failed, check your setup...\r\n");
@@ -59,7 +58,7 @@ void in_ram(PSram::read)(const uint32_t addr, uint8_t *dst, const size_t count) 
             printf("PSram::read[%i]: addr == %lu\r\n", i, addr + i);
             read += 30;
 #endif
-            psram_read(&ps_spi, addr + i, dst + i, 30);
+            psram_read(&p2d_psram_spi, addr + i, dst + i, 30);
         }
     }
 
@@ -69,7 +68,7 @@ void in_ram(PSram::read)(const uint32_t addr, uint8_t *dst, const size_t count) 
         printf("PSram::read[diff]: addr == %lu\r\n", addr + count - diff);
         read += diff;
 #endif
-        psram_read(&ps_spi, addr + count - diff, dst + count - diff, diff);
+        psram_read(&p2d_psram_spi, addr + count - diff, dst + count - diff, diff);
     }
 
 #if PSRAM_DEBUG
@@ -89,7 +88,7 @@ void in_ram(PSram::write)(const uint32_t addr, uint8_t *src, const size_t count)
             printf("PSram::write[%i]: addr == %lu\r\n", i, addr + i);
             wrote += 26;
 #endif
-            psram_write_async_fast(&ps_spi, addr + i, src + i, 26);
+            psram_write_async_fast(&p2d_psram_spi, addr + i, src + i, 26);
         }
     }
 
@@ -99,12 +98,18 @@ void in_ram(PSram::write)(const uint32_t addr, uint8_t *src, const size_t count)
         printf("PSram::write[diff]: addr == %lu\r\n", addr + count - diff);
         wrote += diff;
 #endif
-        psram_write_async_fast(&ps_spi, addr + count - diff, src + count - diff, diff);
+        psram_write_async_fast(&p2d_psram_spi, addr + count - diff, src + count - diff, diff);
     }
 
 #if PSRAM_DEBUG
     printf("PSram::write: wrote: %i, diff: %i\r\n", wrote, diff);
 #endif
+}
+
+void in_ram(PSram::memset)(uint32_t addr, uint32_t value, size_t count) {
+    for (uint_fast16_t i = 0; i < count; i++) {
+        psram_write32_async(&p2d_psram_spi, addr + i, value);
+    }
 }
 
 uint32_t in_ram(PSram::alloc)(size_t size) {
