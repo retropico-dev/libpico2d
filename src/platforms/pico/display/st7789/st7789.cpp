@@ -21,9 +21,20 @@ static uint8_t st7789_init_seq[] = {
         1, 20, ST7789_SWRESET,      // Software reset
         1, 10, ST7789_SLPOUT,       // Exit sleep mode
         2, 2, ST7789_COLMOD, ST7789_COLOR_MODE_16BIT,  // Set colour mode to 16 bit (RGB565)
-        2, 0, ST7789_MADCTL, 0x00,  // Set MADCTL (ST7789_MADCTL_BGR)
+        2, 0, ST7789_MADCTL, ST7789_MADCTL_RGB,  // Set MADCTL
         5, 0, ST7789_CASET, 0x00, 0x00, DISPLAY_WIDTH >> 8, DISPLAY_WIDTH & 0xff,   // CASET: column addresses
         5, 0, ST7789_RASET, 0x00, 0x00, DISPLAY_HEIGHT >> 8, DISPLAY_HEIGHT & 0xff, // RASET: row addresses
+        6, 1, ST7789_PORCTRL, 0x0c, 0x0c, 0x00, 0x33, 0x33,
+        2, 1, ST7789_GCTRL, 0x14,
+        2, 1, ST7789_VCOMS, 0x37,
+        2, 1, ST7789_LCMCTRL, 0x2c,
+        2, 1, ST7789_VDVVRHEN, 0x01,
+        2, 1, ST7789_VRHS, 0x12,
+        2, 1, ST7789_VDVS, 0x20,
+        15, 1, ST7789_PVGAMCTRL, 0xD0, 0x08, 0x11, 0x08, 0x0c, 0x15, 0x39, 0x33, 0x50, 0x36, 0x13, 0x14, 0x29, 0x2d,
+        15, 1, ST7789_NVGAMCTRL, 0xD0, 0x08, 0x10, 0x08, 0x06, 0x06, 0x39, 0x44, 0x51, 0x0b, 0x16, 0x14, 0x2f, 0x31,
+        3, 1, ST7789_PWCTRL1, 0xa4, 0xa1, // Power Control 1 -> VDS = 2.3V, AVCL = -4.8V, AVDD = 6.8v ?
+        //2, 1, ST7789_FRCTRL2, 0xf, // 0x15 -> 50Hz ? 0xf -> 60hz ?
         1, 2, ST7789_INVON,         // Inversion on, then 10 ms delay (supposedly a hack?)
         1, 2, ST7789_NORON,         // Normal display on, then 10 ms delay
         1, 2, ST7789_DISPON,        // Main screen turn on, then wait 500 ms
