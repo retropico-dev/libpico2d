@@ -14,6 +14,12 @@
 #include "utility"
 #include "rectangle.h"
 
+#ifdef PICO_PSRAM
+
+#include "psram.h"
+
+#endif
+
 namespace p2d {
     class Platform : Widget {
     public:

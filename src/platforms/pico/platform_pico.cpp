@@ -36,6 +36,10 @@ PicoPlatform::PicoPlatform(bool overclock) : Platform() {
     if (overclock) printf("\r\nPicoPlatform: %s @ 300 MHz\r\n", PICO_BOARD);
     else printf("\r\nPicoPlatform: %s @ 266 MHz\r\n", PICO_BOARD);
 
+#ifdef PICO_PSRAM
+    PSram::init();
+#endif
+
     p_audio = new PicoAudio();
     p_input = new PicoInput();
     p_io = new PicoIo();

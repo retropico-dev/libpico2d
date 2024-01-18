@@ -7,3 +7,6 @@
 [submodule "external/tweeny"]
 	path = external/tweeny
 	url = https://github.com/mobius3/tweeny.git
+[submodule "external/rp2040-psram"]
+	path = external/rp2040-psram
+	url = https://github.com/polpo/rp2040-psram.git

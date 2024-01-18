@@ -7,6 +7,7 @@ option(BUILD_EXAMPLE "Build example project" OFF)
 # pico options
 option(PICO_STDIO_UART "Pico UART debug" ON)
 option(PICO_DISPLAY_ST7789_PIO "Pico ST7789 display driver (pio)" ON)
+option(PICO_SPI_PSRAM "Pico psram spi driver (pio)" ON)
 
 # libpico2d default board is adafruit feather rp2040
 if (NOT PLATFORM_LINUX)
@@ -107,9 +108,11 @@ else ()
             hardware_dma
             hardware_flash
     )
+
     # spi sdcard driver
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/no-OS-FatFS-SD-SPI-RPi-Pico/FatFs_SPI build)
     list(APPEND PLATFORM_LIBS FatFs_SPI)
+
     # display driver
     if (PICO_DISPLAY_ST7789_PIO)
         list(APPEND PLATFORM_SOURCES
@@ -119,6 +122,23 @@ else ()
         )
         list(APPEND PLATFORM_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789)
     endif ()
+
+    if (PICO_SPI_PSRAM)
+        # psram module
+        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/rp2040-psram)
+        list(APPEND PLATFORM_FLAGS
+                -DPSRAM_MUTEX
+                #-DPSRAM_SPINLOCK=1
+                -DPSRAM_ASYNC=1
+                -DPSRAM_PIN_MOSI=12
+                -DPSRAM_PIN_MISO=15
+                -DPSRAM_PIN_CS=13
+                -DPSRAM_PIN_SCK=14
+                -DPICO_PSRAM=1
+        )
+        list(APPEND PLATFORM_LIBS rp2040-psram)
+    endif ()
+
     # microboy board revision define
     if (PICO_BOARD STREQUAL "adafruit_feather_rp2040")
         list(APPEND PLATFORM_FLAGS -DMICROBOY_10)

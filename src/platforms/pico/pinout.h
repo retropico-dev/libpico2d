@@ -61,9 +61,17 @@
 #define SD_PIN_MISO     20
 
 // AUDIO PINS (I2S)     GPIO
-#define AUDIO_PIN_DATA  10  // DIN
-#define AUDIO_PIN_CLOCK 11  // BCLK
-#define AUDIO_PIN_LRC   12  // LRC (CLOCK + 1)
+#define AUDIO_PIN_DATA  9  // DIN
+#define AUDIO_PIN_CLOCK 10  // BCLK
+#define AUDIO_PIN_LRC   11  // LRC (CLOCK + 1)
+
+// PSRAM
+/*
+#define PSRAM_PIN_MOSI  (12)
+#define PSRAM_PIN_CS    (13)
+#define PSRAM_PIN_SCK   (14)
+#define PSRAM_PIN_MISO  (15)
+*/
 
 #define BTN_PIN_START   (24)
 #define BTN_PIN_SELECT  (-1)
