@@ -15,18 +15,20 @@
 namespace p2d {
     class Io {
     public:
-        enum Target {
+        enum Device {
             Flash,
-            Ram
+            Sd,
+            //Ram
         };
 
         struct FileBuffer {
             char name[IO_MAX_PATH]{};
             uint8_t *data = nullptr;
             size_t size = 0;
+            bool rw = false;
         };
 
-        struct FileListBuffer {
+        struct FileBufferList {
 #ifdef LINUX
             std::vector<std::string> data;
 #else
@@ -49,7 +51,7 @@ namespace p2d {
             printf("~Io()\n");
         }
 
-        virtual FileBuffer read(const std::string &path, const Target &target = Flash) { return {}; }
+        virtual FileBuffer read(const std::string &path, const Device &target = Flash) { return {}; }
 
         virtual FileBuffer readRomFromFlash() { return {}; }
 
@@ -57,7 +59,7 @@ namespace p2d {
 
         virtual bool writeRomToFlash(const std::string &path, const std::string &name) { return false; }
 
-        virtual FileListBuffer getDir(const std::string &path) { return {}; }
+        virtual FileBufferList getDir(const std::string &path) { return {}; }
 
         virtual void createDir(const std::string &path) {};
     };

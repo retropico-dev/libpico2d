@@ -15,7 +15,7 @@ PicoIo::PicoIo() : Io() {
 }
 
 // TODO: target == Ram
-Io::FileBuffer PicoIo::read(const std::string &path, const Target &target) {
+Io::FileBuffer PicoIo::read(const std::string &path, const Device &target) {
     uint8_t buffer[FLASH_SECTOR_SIZE];
     Io::FileBuffer fileBuffer;
     uint32_t offset = 0;
@@ -42,7 +42,7 @@ Io::FileBuffer PicoIo::read(const std::string &path, const Target &target) {
     size = f_size(&fp);
 
     // set target flash offset
-    if (target == Target::Flash) {
+    if (target == Device::Flash) {
         if (m_flash_offset_user_data + size > PICO_FLASH_SIZE_BYTES) {
             printf("PicoIo::read: error: flash is full... (size: 0x%08llX, offset: 0x%08llX)\r\n",
                    size, m_flash_offset_user_data + size);
@@ -210,10 +210,10 @@ bool PicoIo::write(const std::string &path, const Io::FileBuffer &fileBuffer) {
 }
 
 // load array of filenames to flash for memory reduction
-Io::FileListBuffer PicoIo::getDir(const std::string &path) {
+Io::FileBufferList PicoIo::getDir(const std::string &path) {
     // static getDir filename allocation
     static char m_files_buffer[FLASH_SECTOR_SIZE / IO_MAX_PATH][IO_MAX_PATH];
-    Io::FileListBuffer fileListBuffer;
+    Io::FileBufferList fileListBuffer;
     uint32_t offsetBase = m_flash_offset_user_data;
     uint32_t fileCountTotal = 0;
     uint32_t fileCountCurrent = 0;
