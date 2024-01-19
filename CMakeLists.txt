@@ -85,7 +85,10 @@ if (PLATFORM_LINUX)
 else ()
     file(GLOB TEMP ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/*.c*)
     list(APPEND PLATFORM_SOURCES ${TEMP})
-    list(APPEND PLATFORM_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico)
+    list(APPEND PLATFORM_INCLUDES
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/misc
+    )
     list(APPEND PLATFORM_FLAGS
             PARAM_ASSERTIONS_DISABLE_ALL=1
             PICO_ENTER_USB_BOOT_ON_EXIT=1
@@ -147,10 +150,37 @@ else ()
     else ()
         list(APPEND PLATFORM_FLAGS -DMICROBOY_11)
     endif ()
+
     # picoprobe debug
     if (PICO_STDIO_UART)
         list(APPEND PLATFORM_FLAGS -DPICO_STDIO_UART)
     endif ()
+
+    # custom linker script
+    function(set_linker_script TARGET script)
+        get_filename_component(SCRIPT_PATH ${script} DIRECTORY)
+        target_link_directories(${TARGET} PRIVATE ${SCRIPT_PATH})
+        pico_set_linker_script(${TARGET} ${script})
+        # Add dependencies on the 'included' linker script
+        # so that the target gets rebuilt on changes
+        pico_add_link_depend(${TARGET} ${script})
+    endfunction()
+
+    # custom linker script (easy version)
+    function(set_linker_flash_size_4 TARGET)
+        set_linker_script(${TARGET}
+                "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/platforms/pico/misc/memmap_4mb.ld")
+    endfunction()
+    # custom linker script (easy version)
+    function(set_linker_flash_size_8 TARGET)
+        set_linker_script(${TARGET}
+                "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/platforms/pico/misc/memmap_8mb.ld")
+    endfunction()
+    # custom linker script (easy version)
+    function(set_linker_flash_size_16 TARGET)
+        set_linker_script(${TARGET}
+                "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/platforms/pico/misc/memmap_16mb.ld")
+    endfunction()
 endif ()
 
 ####################
@@ -161,17 +191,10 @@ target_include_directories(pico2d-skeleton PUBLIC ${PLATFORM_INCLUDES})
 target_compile_definitions(pico2d-skeleton PUBLIC ${PLATFORM_FLAGS})
 target_link_libraries(pico2d-skeleton PUBLIC ${PLATFORM_LIBS} tweeny)
 if (NOT PLATFORM_LINUX)
+    # ST7789 pio
     if (PICO_DISPLAY_ST7789_PIO)
         pico_generate_pio_header(pico2d-skeleton
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/st7789_lcd.pio)
-    endif ()
-    # debug output
-    if (PICO_STDIO_UART)
-        pico_enable_stdio_usb(pico2d-skeleton 0)
-        pico_enable_stdio_uart(pico2d-skeleton 1)
-    else ()
-        pico_enable_stdio_usb(pico2d-skeleton 1)
-        pico_enable_stdio_uart(pico2d-skeleton 0)
     endif ()
 endif ()
 

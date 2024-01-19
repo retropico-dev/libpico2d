@@ -20,6 +20,11 @@ target_include_directories(pico2d-example PUBLIC ${UI_INCLUDES})
 target_compile_definitions(pico2d-example PUBLIC ${UI_FLAGS})
 target_link_libraries(pico2d-example ${UI_LIBS} pico2d-skeleton)
 
+# custom linker script for 16mb flash
+if (PICO_BOARD STREQUAL "waveshare_rp2040_plus_16mb")
+    set_linker_flash_size_16(pico2d-example)
+endif ()
+
 if (NOT PLATFORM_LINUX)
     pico_add_uf2_output(pico2d-example)
     # debug output
