@@ -60,26 +60,6 @@ namespace p2d {
         virtual FileListBuffer getDir(const std::string &path) { return {}; }
 
         virtual void createDir(const std::string &path) {};
-
-        static std::string getRomPath(int core) {
-            if (core == 0) {
-                return "/roms/nes";
-            } else if (core == 1) {
-                return "/roms/gameboy";
-            } else {
-                return "/roms/sms";
-            }
-        }
-
-        static std::string getSavePath(int core) {
-            if (core == 0) {
-                return "/saves/nes";
-            } else if (core == 1) {
-                return "/saves/gameboy";
-            } else {
-                return "/saves/sms";
-            }
-        }
     };
 }
 
