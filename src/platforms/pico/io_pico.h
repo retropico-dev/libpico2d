@@ -7,12 +7,10 @@
 
 #include "sd_card.h"
 
-// 4MB available of 8MB (Feather rp2040) (1MB for rom data, 3MB for misc data)
-#define FLASH_TARGET_OFFSET_ROM_HEADER ((1024 * 1024) * 4)  // unused for now
-//#define FLASH_TARGET_OFFSET_ROM_HEADER ((uint32_t) &__FLASHLOADER_END)
+// 12MB available of 16MB (waveshare_rp2040_plus_16mb) (1MB for rom data, 11MB for misc data)
+#define FLASH_TARGET_OFFSET_ROM_HEADER ((1024 * 1024) * 4)
 #define FLASH_TARGET_OFFSET_ROM_DATA (FLASH_TARGET_OFFSET_ROM_HEADER + FLASH_SECTOR_SIZE)
-#define FLASH_TARGET_OFFSET_MISC (FLASH_TARGET_OFFSET_ROM_DATA + FLASH_BLOCK_SIZE + (1024 * 1024)) // 1MB max rom size
-
+#define FLASH_TARGET_OFFSET_USER_DATA (FLASH_TARGET_OFFSET_ROM_DATA + FLASH_BLOCK_SIZE + (1024 * 1024))
 
 namespace p2d {
     class PicoIo : public Io {
@@ -33,7 +31,7 @@ namespace p2d {
 
     private:
         sd_card_t *p_sd = nullptr;
-        size_t m_flash_offset_misc = FLASH_TARGET_OFFSET_MISC;
+        size_t m_flash_offset_user_data = FLASH_TARGET_OFFSET_USER_DATA;
 
         bool mount();
 

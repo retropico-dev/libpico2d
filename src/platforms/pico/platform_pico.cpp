@@ -5,6 +5,7 @@
 #include <pico/time.h>
 #include <pico/stdlib.h>
 #include <hardware/vreg.h>
+#include <hardware/clocks.h>
 #include <hardware/watchdog.h>
 #include "platform.h"
 #include "platform_pico.h"
@@ -33,8 +34,8 @@ PicoPlatform::PicoPlatform(bool overclock) : Platform() {
     while (!stdio_usb_connected()) { sleep_ms(100); }
 #endif
 #endif
-    if (overclock) printf("\r\nPicoPlatform: %s @ 300 MHz\r\n", PICO_BOARD);
-    else printf("\r\nPicoPlatform: %s @ 266 MHz\r\n", PICO_BOARD);
+
+    printf("\r\nPicoPlatform: %s @ %lu MHz\r\n", PICO_BOARD, clock_get_hz(clk_sys) / 1000000);
 
 #ifdef PICO_PSRAM
     PSram::init();

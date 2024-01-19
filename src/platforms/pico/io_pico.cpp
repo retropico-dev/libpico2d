@@ -43,15 +43,15 @@ Io::FileBuffer PicoIo::read(const std::string &path, const Target &target) {
 
     // set target flash offset
     if (target == Target::Flash) {
-        if (m_flash_offset_misc + size > PICO_FLASH_SIZE_BYTES) {
+        if (m_flash_offset_user_data + size > PICO_FLASH_SIZE_BYTES) {
             printf("PicoIo::read: error: flash is full... (size: 0x%08llX, offset: 0x%08llX)\r\n",
-                   size, m_flash_offset_misc + size);
+                   size, m_flash_offset_user_data + size);
             f_close(&fp);
             unmount();
             return {};
         }
-        offset = m_flash_offset_misc;
-        m_flash_offset_misc += ((size + FLASH_SECTOR_SIZE - 1) / size) * size;
+        offset = m_flash_offset_user_data;
+        m_flash_offset_user_data += ((size + FLASH_SECTOR_SIZE - 1) / size) * size;
     }
 
     stdio_flush();
@@ -214,7 +214,7 @@ Io::FileListBuffer PicoIo::getDir(const std::string &path) {
     // static getDir filename allocation
     static char m_files_buffer[FLASH_SECTOR_SIZE / IO_MAX_PATH][IO_MAX_PATH];
     Io::FileListBuffer fileListBuffer;
-    uint32_t offsetBase = m_flash_offset_misc;
+    uint32_t offsetBase = m_flash_offset_user_data;
     uint32_t fileCountTotal = 0;
     uint32_t fileCountCurrent = 0;
     FILINFO fno;
@@ -244,8 +244,8 @@ Io::FileListBuffer PicoIo::getDir(const std::string &path) {
                 fileCountTotal++;
                 fileCountCurrent++;
                 if (fileCountCurrent == maxFiles) { // FLASH_SECTOR_SIZE
-                    writeSector(m_flash_offset_misc, (uint8_t *) m_files_buffer);
-                    m_flash_offset_misc += FLASH_SECTOR_SIZE;
+                    writeSector(m_flash_offset_user_data, (uint8_t *) m_files_buffer);
+                    m_flash_offset_user_data += FLASH_SECTOR_SIZE;
                     fileCountCurrent = 0;
                     memset(m_files_buffer, 0, sizeof(m_files_buffer));
                 }
@@ -253,8 +253,8 @@ Io::FileListBuffer PicoIo::getDir(const std::string &path) {
         }
 
         if (fileCountCurrent > 0) {
-            writeSector(m_flash_offset_misc, (uint8_t *) m_files_buffer);
-            m_flash_offset_misc += FLASH_SECTOR_SIZE;
+            writeSector(m_flash_offset_user_data, (uint8_t *) m_files_buffer);
+            m_flash_offset_user_data += FLASH_SECTOR_SIZE;
         }
 
         f_closedir(&dir);

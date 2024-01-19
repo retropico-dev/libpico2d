@@ -7,13 +7,15 @@ option(BUILD_EXAMPLE "Build example project" OFF)
 # pico options
 option(PICO_STDIO_UART "Pico UART debug" ON)
 option(PICO_DISPLAY_ST7789_PIO "Pico ST7789 display driver (pio)" ON)
-option(PICO_SPI_PSRAM "Pico psram spi driver (pio)" ON)
+
+# tested at ~4Mb/sec, too slow for framebuffer usage
+#option(PICO_SPI_PSRAM "Pico psram spi driver (pio)" OFF)
 
 # libpico2d default board is adafruit feather rp2040
 if (NOT PLATFORM_LINUX)
     if (NOT PICO_BOARD)
         #set(PICO_BOARD "adafruit_feather_rp2040" CACHE STRING "" FORCE) # v1.0 rev board
-        set(PICO_BOARD "pico" CACHE STRING "" FORCE) # v1.1 rev board
+        set(PICO_BOARD "waveshare_rp2040_plus_16mb" CACHE STRING "" FORCE) # v1.1 rev board
     endif ()
     # initialize the SDK based on PICO_SDK_PATH
     # note: this must happen before project()
@@ -143,7 +145,7 @@ else ()
     if (PICO_BOARD STREQUAL "adafruit_feather_rp2040")
         list(APPEND PLATFORM_FLAGS -DMICROBOY_10)
     else ()
-        list(APPEND PLATFORM_FLAGS -DMICROBOY_11 "-DPICO_FLASH_SIZE_BYTES=(16 * 1024 * 1024)")
+        list(APPEND PLATFORM_FLAGS -DMICROBOY_11)
     endif ()
     # picoprobe debug
     if (PICO_STDIO_UART)
