@@ -41,6 +41,10 @@ int main() {
     platform->setDisplay(display);
     platform->getDisplay()->setClearColor(Display::Color::Black);
 
+    auto files = Io::list("sd:/roms/nes");
+    printf("files: %zu\r\n", files.size());
+
+    /*
     auto bounds = platform->getDisplay()->getSize();
     auto center = Utility::Vec2i((int16_t) (bounds.x / 2), (int16_t) (bounds.y / 2));
 
@@ -60,6 +64,7 @@ int main() {
     text->setColor(Display::Color::Red);
     text->setOrigin(Widget::Origin::BottomRight);
     platform->add(text);
+    */
 
     /*
     auto tween = tweeny::from(bitmap->getPosition().x)

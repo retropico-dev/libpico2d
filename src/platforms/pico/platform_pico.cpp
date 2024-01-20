@@ -41,9 +41,9 @@ PicoPlatform::PicoPlatform(bool overclock) : Platform() {
     PSram::init();
 #endif
 
+    Io::init();
     p_audio = new PicoAudio();
     p_input = new PicoInput();
-    p_io = new PicoIo();
 }
 
 void PicoPlatform::reboot(uint32_t watchdog_scratch) {

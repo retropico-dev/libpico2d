@@ -9,8 +9,8 @@
 #include <string>
 #include <hardware/flash.h>
 
-// 16MB flash: 4MB for bootloader/emulators, 12MB for fatfs "user" data/cache
-#define FLASH_TARGET_OFFSET_FATFS ((1024 * 1024) * 4)
+// 16MB flash: 5MB for bootloader/emulators/cache, 10MB for fatfs "user" data/cache
+#define FLASH_TARGET_OFFSET_FATFS ((1024 * 1024) * 5)
 
 namespace p2d {
     bool io_flash_init();

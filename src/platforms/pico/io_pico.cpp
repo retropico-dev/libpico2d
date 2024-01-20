@@ -3,7 +3,7 @@
 
 #include <cstring>
 #include "platform.h"
-#include "io_pico.h"
+#include "flash.h"
 #include "sdcard.h"
 #include "ff.h"
 #include "diskio.h"
@@ -12,10 +12,14 @@ using namespace p2d;
 
 static FATFS sd_fs;
 static FATFS flash_fs;
+static bool io_initialised = false;
 static bool sd_initialised = false;
 static std::vector<void *> open_files;
 
-PicoIo::PicoIo() : Io() {
+void Io::init() {
+    if (io_initialised) return;
+    io_initialised = true;
+
     // init sdcard
     auto res = f_mount(&sd_fs, "sd:", 1);
     if (res != FR_OK) {
@@ -45,13 +49,12 @@ PicoIo::PicoIo() : Io() {
     }
 }
 
-
-bool PicoIo::directoryExists(const std::string &path) {
+bool Io::directoryExists(const std::string &path) {
     FILINFO info;
     return f_stat(path.c_str(), &info) == FR_OK && (info.fattrib & AM_DIR);
 }
 
-bool PicoIo::create(const std::string &path) {
+bool Io::create(const std::string &path) {
     FRESULT fr;
     const char *p;
     char *temp;
@@ -84,11 +87,11 @@ bool PicoIo::create(const std::string &path) {
     return fr == FR_OK || fr == FR_EXIST;
 }
 
-bool PicoIo::rename(const std::string &old_name, const std::string &new_name) {
+bool Io::rename(const std::string &old_name, const std::string &new_name) {
     return f_rename(old_name.c_str(), new_name.c_str()) == FR_OK;
 }
 
-bool PicoIo::format(const Io::Device &device) {
+bool Io::format(const Io::Device &device) {
     FRESULT res;
     MKFS_PARM opts{.fmt =  FM_ANY | FM_SFD};
     std::string path = device == Device::Flash ? "flash:" : "sd:";
@@ -111,15 +114,15 @@ bool PicoIo::format(const Io::Device &device) {
     return true;
 }
 
-void *PicoIo::open_file_priv(const std::string &file, int mode) {
+void *Io::FatFs::open_file(const std::string &file, int mode) {
     FIL *f = new FIL();
     BYTE ff_mode = 0;
 
-    if (mode & OpenMode::Read)
+    if (mode & File::OpenMode::Read)
         ff_mode |= FA_READ;
-    if (mode & OpenMode::Write)
+    if (mode & File::OpenMode::Write)
         ff_mode |= FA_WRITE;
-    if (mode == OpenMode::Write)
+    if (mode == File::OpenMode::Write)
         ff_mode |= FA_CREATE_ALWAYS;
 
     FRESULT r = f_open(f, file.c_str(), ff_mode);
@@ -132,7 +135,7 @@ void *PicoIo::open_file_priv(const std::string &file, int mode) {
     return nullptr;
 }
 
-int32_t PicoIo::read_file_priv(void *fh, uint32_t offset, uint32_t length, char *buffer) {
+int32_t Io::FatFs::read_file(void *fh, uint32_t offset, uint32_t length, char *buffer) {
     FRESULT r = FR_OK;
     FIL *f = (FIL *) fh;
 
@@ -150,7 +153,7 @@ int32_t PicoIo::read_file_priv(void *fh, uint32_t offset, uint32_t length, char 
     return -1;
 }
 
-int32_t PicoIo::write_file_priv(void *fh, uint32_t offset, uint32_t length, const char *buffer) {
+int32_t Io::FatFs::write_file(void *fh, uint32_t offset, uint32_t length, const char *buffer) {
     FRESULT r = FR_OK;
     FIL *f = (FIL *) fh;
 
@@ -168,7 +171,7 @@ int32_t PicoIo::write_file_priv(void *fh, uint32_t offset, uint32_t length, cons
     return -1;
 }
 
-int32_t PicoIo::close_file_priv(void *fh) {
+int32_t Io::FatFs::close_file(void *fh) {
     FRESULT r;
 
     r = f_close((FIL *) fh);
@@ -184,11 +187,11 @@ int32_t PicoIo::close_file_priv(void *fh) {
     return r == FR_OK ? 0 : -1;
 }
 
-uint32_t PicoIo::get_file_length_priv(void *fh) {
+uint32_t Io::FatFs::get_file_length(void *fh) {
     return f_size((FIL *) fh);
 }
 
-void PicoIo::list_files_priv(const std::string &path, std::function<void(FileInfo & )> callback) {
+void Io::FatFs::list_files(const std::string &path, std::function<void(File::Info &)> callback) {
     DIR dir;
 
     if (f_opendir(&dir, path.c_str()) != FR_OK)
@@ -197,14 +200,14 @@ void PicoIo::list_files_priv(const std::string &path, std::function<void(FileInf
     FILINFO ent;
 
     while (f_readdir(&dir, &ent) == FR_OK && ent.fname[0]) {
-        FileInfo info{
+        File::Info info{
                 .name = ent.fname,
                 .flags = 0,
                 .size = ent.fsize
         };
 
         if (ent.fattrib & AM_DIR)
-            info.flags |= FileFlags::Directory;
+            info.flags |= File::Flags::Directory;
 
         callback(info);
     }
@@ -212,27 +215,26 @@ void PicoIo::list_files_priv(const std::string &path, std::function<void(FileInf
     f_closedir(&dir);
 }
 
-bool PicoIo::file_exists_priv(const std::string &path) {
+bool Io::FatFs::file_exists(const std::string &path) {
     FILINFO info;
     return f_stat(path.c_str(), &info) == FR_OK && !(info.fattrib & AM_DIR);
 }
 
-bool PicoIo::remove_file_priv(const std::string &path) {
+bool Io::FatFs::remove_file(const std::string &path) {
     return f_unlink(path.c_str()) == FR_OK;
 }
 
-bool PicoIo::is_files_open_priv() {
+bool Io::FatFs::is_files_open() {
     return open_files.size() > 0;
 }
 
-void PicoIo::close_open_files_priv() {
-    while (!open_files.empty()) close_file_priv(open_files.back());
+void Io::FatFs::close_open_files() {
+    while (!open_files.empty()) close_file(open_files.back());
 }
 
-PicoIo::~PicoIo() {
+void Io::fini() {
 #warning "TODO: ~PicoIo: unmount stuff"
 }
-
 
 // fatfs io funcs
 DSTATUS disk_initialize(BYTE drv) {

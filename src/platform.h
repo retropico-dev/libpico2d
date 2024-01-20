@@ -30,7 +30,6 @@ namespace p2d {
             delete (p_display);
             delete (p_audio);
             delete (p_input);
-            delete (p_io);
         };
 
         static Platform *instance();
@@ -47,8 +46,6 @@ namespace p2d {
 
         Input *getInput() { return p_input; }
 
-        Io *getIo() { return p_io; }
-
         virtual bool loop(bool forceDraw = false);
 
         virtual void reboot(uint32_t watchdog_scratch = 0) {};
@@ -61,7 +58,6 @@ namespace p2d {
         Display *p_display = nullptr;
         Input *p_input = nullptr;
         Audio *p_audio = nullptr;
-        Io *p_io = nullptr;
     };
 }
 
