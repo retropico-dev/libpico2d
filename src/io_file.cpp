@@ -92,7 +92,7 @@ void File::close() {
  *
  * \return Length of the file in bytes.
  */
-uint32_t File::length() {
+uint32_t File::length() const {
     if (buf) return buf_len;
 
     return Io::FatFs::get_file_length(fh);

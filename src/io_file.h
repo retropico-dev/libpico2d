@@ -74,7 +74,7 @@ namespace p2d {
 
         void close();
 
-        uint32_t length();
+        [[nodiscard]] uint32_t length() const;
 
         [[nodiscard]] bool isOpen() const { return buf != nullptr || fh != nullptr; }
 
