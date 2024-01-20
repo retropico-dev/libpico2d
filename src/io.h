@@ -23,9 +23,26 @@ namespace p2d {
             //Ram
         };
 
-        struct BufferFile {
-            const uint8_t *ptr;
-            uint32_t length;
+        struct FileBuffer {
+            const uint8_t *ptr{};
+            uint32_t length{};
+        };
+
+        struct ListBuffer {
+#ifdef LINUX
+            std::vector<std::string> data;
+#else
+            uint8_t *data = nullptr;
+#endif
+            uint16_t length = 0;
+
+            [[nodiscard]] char *at(int idx) const {
+#ifdef LINUX
+                return const_cast<char *>(data.at(idx).c_str());
+#else
+                return (char *) &data[idx * IO_MAX_PATH];
+#endif
+            }
         };
 
         static void init();
@@ -35,8 +52,10 @@ namespace p2d {
 #warning "TODO: is_device_available"
         //bool is_device_available(const Device &device);
 
-        static std::vector<File::Info> list(
+        static std::vector<File::Info> getList(
                 const std::string &path, std::function<bool(const File::Info &)> filter = nullptr);
+
+        static ListBuffer getBufferedList(const std::string &path);
 
         static bool copy(const File &src, const File &dst);
 
@@ -56,7 +75,7 @@ namespace p2d {
 
         class FatFs {
         public:
-            static void *open_file(const std::string &file, int mode);
+            static void *open_file(const std::string &path, int mode);
 
             static int32_t read_file(void *fh, uint32_t offset, uint32_t length, char *buffer);
 

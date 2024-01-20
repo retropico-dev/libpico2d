@@ -8,7 +8,7 @@
 
 using namespace p2d;
 
-extern std::map<std::string, Io::BufferFile> p2d_io_buf_files;
+extern std::map<std::string, Io::FileBuffer> p2d_io_buf_files;
 
 bool File::open(const uint8_t *b, uint32_t b_len) {
     close();
@@ -26,11 +26,11 @@ bool File::open(const uint8_t *b, uint32_t b_len) {
  *
  * \return true if file opened successfully
  */
-bool File::open(const std::string &file, int mode) {
+bool File::open(const std::string &path, int mode) {
     close();
 
     // check for buffer
-    auto it = p2d_io_buf_files.find(file);
+    auto it = p2d_io_buf_files.find(path);
 
     if (!(mode & OpenMode::Write) && it != p2d_io_buf_files.end()) {
         buf = it->second.ptr;
@@ -38,7 +38,7 @@ bool File::open(const std::string &file, int mode) {
         return true;
     }
 
-    fh = Io::FatFs::open_file(file, mode);
+    fh = Io::FatFs::open_file(path, mode);
     return fh != nullptr;
 }
 
@@ -127,5 +127,6 @@ uint32_t File::length() {
  * \param len Length of file data
  */
 void File::addBufferFile(const std::string &path, const uint8_t *ptr, uint32_t len) {
-    p2d_io_buf_files.emplace(path, Io::BufferFile{ptr, len});
+    const Io::FileBuffer fb = Io::FileBuffer{ptr, len};
+    p2d_io_buf_files.emplace(path, fb);
 }

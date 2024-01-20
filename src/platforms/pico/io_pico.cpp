@@ -36,7 +36,8 @@ void Io::init() {
     }
 
     // mount flash fs
-    res = f_mount(&flash_fs, "flash:", 1);
+    //res = f_mount(&flash_fs, "flash:", 1);
+    res = FR_NO_FILESYSTEM;
     if (res != FR_OK) {
         printf("PicoIo: failed to mount flash filesystem! (%i)\r\n", res);
         if (res == FR_NO_FILESYSTEM) {
@@ -87,6 +88,40 @@ bool Io::create(const std::string &path) {
     return fr == FR_OK || fr == FR_EXIST;
 }
 
+// TODO: handle directories
+Io::ListBuffer Io::getBufferedList(const std::string &path) {
+    static char buffer[FLASH_SECTOR_SIZE / IO_MAX_PATH][IO_MAX_PATH];
+    uint32_t maxFilesPerWrite = FLASH_SECTOR_SIZE / IO_MAX_PATH;
+    uint32_t offset = FLASH_TARGET_OFFSET_CACHE;
+    uint32_t length = 0, currentFile = 0;
+    Io::ListBuffer listBuffer;
+
+    std::vector<File::Info> ret;
+    FatFs::list_files(path, [&length, &currentFile, &offset, &maxFilesPerWrite](File::Info &file) {
+        if (!(file.flags & File::Flags::Directory)) {
+            strncpy(buffer[currentFile], file.name.c_str(), IO_MAX_PATH - 1);
+            currentFile++;
+            length++;
+            if (currentFile == maxFilesPerWrite) {
+                io_flash_write_sector(offset, (const uint8_t *) buffer);
+                offset += FLASH_SECTOR_SIZE;
+                currentFile = 0;
+                memset(buffer, 0, sizeof(buffer));
+            }
+        }
+    });
+
+    // flash remaining
+    if (currentFile > 0) {
+        io_flash_write_sector(offset, (const uint8_t *) buffer);
+    }
+
+    listBuffer.data = (uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET_CACHE);
+    listBuffer.length = (int) length;
+
+    return listBuffer;
+}
+
 bool Io::rename(const std::string &old_name, const std::string &new_name) {
     return f_rename(old_name.c_str(), new_name.c_str()) == FR_OK;
 }
@@ -111,10 +146,13 @@ bool Io::format(const Io::Device &device) {
         printf("PicoIo::format: failed to mount filesystem! (%i)\r\n", res);
     }
 
+    printf("PicoIo: mounted flash fs on \"flash:\" (%s)\r\n",
+           io_flash_get_size_string().c_str());
+
     return true;
 }
 
-void *Io::FatFs::open_file(const std::string &file, int mode) {
+void *Io::FatFs::open_file(const std::string &path, int mode) {
     FIL *f = new FIL();
     BYTE ff_mode = 0;
 
@@ -125,7 +163,7 @@ void *Io::FatFs::open_file(const std::string &file, int mode) {
     if (mode == File::OpenMode::Write)
         ff_mode |= FA_CREATE_ALWAYS;
 
-    FRESULT r = f_open(f, file.c_str(), ff_mode);
+    FRESULT r = f_open(f, path.c_str(), ff_mode);
     if (r == FR_OK) {
         open_files.push_back(f);
         return f;

@@ -6,11 +6,12 @@
 
 #include <algorithm>
 #include <map>
+#include <cstring>
 #include "io.h"
 
 using namespace p2d;
 
-std::map<std::string, Io::BufferFile> p2d_io_buf_files;
+std::map<std::string, Io::FileBuffer> p2d_io_buf_files;
 
 /**
  * Check if it is possible to read/write files, for SDL this is always true.
@@ -30,7 +31,7 @@ bool is_storage_available() {
  *
  * \return Vector of files/directories
  */
-std::vector<File::Info> Io::list(const std::string &path, std::function<bool(const File::Info &)> filter) {
+std::vector<File::Info> Io::getList(const std::string &path, std::function<bool(const File::Info &)> filter) {
     std::vector<File::Info> ret;
     FatFs::list_files(path, [&ret, &filter](File::Info &file) {
         if (!filter || filter(file))

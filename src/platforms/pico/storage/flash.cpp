@@ -57,3 +57,12 @@ int32_t p2d::io_flash_write(uint32_t sector, uint32_t offset, const uint8_t *buf
 
     return (int32_t) size_bytes;
 }
+
+void p2d::io_flash_write_sector(uint32_t offset, const uint8_t *buffer) {
+    auto status = save_and_disable_interrupts();
+
+    flash_range_erase(offset, FLASH_SECTOR_SIZE);
+    flash_range_program(offset, buffer, FLASH_SECTOR_SIZE);
+
+    restore_interrupts(status);
+}

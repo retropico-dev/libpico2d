@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <string>
+#include "utility.h"
 
 namespace p2d {
     class File final {
@@ -28,9 +29,17 @@ namespace p2d {
 
         File() = default;
 
-        explicit File(const std::string &filename, int mode = OpenMode::Read) { open(filename, mode); }
+        explicit File(const std::string &path, int mode = OpenMode::Read) {
+            m_path = path;
+            m_name = Utility::baseName(m_path);
+            open(path, mode);
+        }
 
-        File(const uint8_t *buf, uint32_t buf_len) { open(buf, buf_len); }
+        File(const std::string &path, const uint8_t *buf, uint32_t buf_len) {
+            m_path = path;
+            m_name = Utility::baseName(m_path);
+            open(buf, buf_len);
+        }
 
         File(const File &) = delete;
 
@@ -47,6 +56,7 @@ namespace p2d {
         File &operator=(File &&other) noexcept {
             if (this != &other) {
                 close();
+                std::swap(m_path, other.m_path);
                 std::swap(fh, other.fh);
                 std::swap(buf, other.buf);
                 std::swap(buf_len, other.buf_len);
@@ -70,14 +80,19 @@ namespace p2d {
 
         [[nodiscard]] const uint8_t *ptr() const { return buf; }
 
+        [[nodiscard]] std::string getPath() const { return m_path; }
+
+        [[nodiscard]] std::string getName() const { return m_name; }
+
         static void addBufferFile(const std::string &path, const uint8_t *ptr, uint32_t len);
 
     private:
+        std::string m_path;
+        std::string m_name;
         void *fh = nullptr;
         // buffer "files"
         const uint8_t *buf = nullptr;
         uint32_t buf_len{};
-        bool is_cached = false;
     };
 }
 
