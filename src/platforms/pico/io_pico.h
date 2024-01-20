@@ -2,44 +2,48 @@
 // Created by cpasjuste on 01/06/23.
 //
 
-#ifndef MICROBOY_IO_PICO_H
-#define MICROBOY_IO_PICO_H
+#ifndef PICO2D_IO_PICO_H
+#define PICO2D_IO_PICO_H
 
-#include "sd_card.h"
-
-// 12MB available of 16MB (waveshare_rp2040_plus_16mb)
-// 4MB for bootloader/emulators, 1MB for rom data, 11MB for misc data
-#define FLASH_TARGET_OFFSET_ROM_HEADER ((1024 * 1024) * 4)
-#define FLASH_TARGET_OFFSET_ROM_DATA (FLASH_TARGET_OFFSET_ROM_HEADER + FLASH_SECTOR_SIZE)
-#define FLASH_TARGET_OFFSET_USER_DATA (FLASH_TARGET_OFFSET_ROM_DATA + FLASH_BLOCK_SIZE + (1024 * 1024))
+#include "flash.h"
 
 namespace p2d {
     class PicoIo : public Io {
     public:
         PicoIo();
 
-        FileBuffer read(const std::string &path, const Device &target = Flash) override;
+        ~PicoIo();
 
-        FileBuffer readRomFromFlash() override;
+        bool directoryExists(const std::string &path) override;
 
-        bool write(const std::string &path, const FileBuffer &fileBuffer) override;
+        bool create(const std::string &path) override;
 
-        bool writeRomToFlash(const std::string &path, const std::string &name) override;
+        bool rename(const std::string &old_name, const std::string &new_name) override;
 
-        FileBufferList getDir(const std::string &path) override;
+        bool format(const Device &device) override;
 
-        void createDir(const std::string &path) override;
+        bool is_files_open_priv() override;
 
-    private:
-        sd_card_t *p_sd = nullptr;
-        size_t m_flash_offset_user_data = FLASH_TARGET_OFFSET_USER_DATA;
+    protected:
+        void *open_file_priv(const std::string &file, int mode) override;
 
-        bool mount();
+        int32_t read_file_priv(void *fh, uint32_t offset, uint32_t length, char *buffer) override;
 
-        bool unmount();
+        int32_t write_file_priv(void *fh, uint32_t offset, uint32_t length, const char *buffer) override;
 
-        static void writeSector(uint32_t flash_offs, const uint8_t *data);
+        int32_t close_file_priv(void *fh) override;
+
+        uint32_t get_file_length_priv(void *fh) override;
+
+        void list_files_priv(const std::string &path, std::function<void(FileInfo & )> callback) override;
+
+        bool file_exists_priv(const std::string &path) override;
+
+        bool remove_file_priv(const std::string &path) override;
+
+
+        void close_open_files_priv() override;
     };
 }
 
-#endif //MICROBOY_IO_PICO_H
+#endif //PICO2D_IO_PICO_H

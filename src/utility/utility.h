@@ -97,6 +97,8 @@ namespace p2d {
             return getTotalHeap() - getUsedHeap();
         }
 
+        static std::string parseSize(uint64_t size);
+
         static void timerStart();
 
         static uint64_t timerStopPrintMicro();

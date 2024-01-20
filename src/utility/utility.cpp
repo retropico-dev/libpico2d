@@ -28,6 +28,26 @@ std::string Utility::baseName(const std::string &path) {
     return name;
 }
 
+std::string Utility::parseSize(uint64_t size) {
+    char output[32];
+    const char *suffix[] = {"B", "KB", "MB", "GB", "TB"};
+    char length = sizeof(suffix) / sizeof(suffix[0]);
+    auto dblBytes = (double) size;
+    int i = 0;
+
+    if (size <= 0) {
+        return "0 B";
+    } else {
+        if (size > 1024) {
+            for (i = 0; (size / 1024) > 0 && i < length - 1; i++, size /= 1024)
+                dblBytes = (double) size / 1024.0;
+        }
+
+        snprintf(output, 31, "~%i %s", (int) dblBytes, suffix[i]);
+        return output;
+    }
+}
+
 void Utility::timerStart() {
     m_timing_clock.restart();
 }

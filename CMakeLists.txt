@@ -59,7 +59,7 @@ set(PLATFORM_INCLUDES
         ${CMAKE_CURRENT_SOURCE_DIR}/external/Adafruit-GFX-Library
 )
 
-set(PLATFORM_FLAGS "-DNO_PICO_LED -DARDUINO=123 -ffast-math")
+set(PLATFORM_FLAGS "-DNO_PICO_LED -DARDUINO=123 -ffast-math -ffunction-sections -fdata-sections")
 
 # tweeny
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/tweeny tweeny)
@@ -83,11 +83,17 @@ if (PLATFORM_LINUX)
     list(APPEND PLATFORM_FLAGS -DLINUX)
     list(APPEND PLATFORM_LIBS ${SDL2_LIBRARIES})
 else ()
-    file(GLOB TEMP ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/*.c*)
+    file(GLOB TEMP
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/*.c*
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/storage/*.c*
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/storage/fatfs/*.c*
+    )
     list(APPEND PLATFORM_SOURCES ${TEMP})
     list(APPEND PLATFORM_INCLUDES
             ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico
             ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/misc
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/storage
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/storage/fatfs
     )
     list(APPEND PLATFORM_FLAGS
             PARAM_ASSERTIONS_DISABLE_ALL=1
@@ -113,10 +119,6 @@ else ()
             hardware_dma
             hardware_flash
     )
-
-    # spi sdcard driver
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/no-OS-FatFS-SD-SPI-RPi-Pico/FatFs_SPI build)
-    list(APPEND PLATFORM_LIBS FatFs_SPI)
 
     # display driver
     if (PICO_DISPLAY_ST7789_PIO)
@@ -196,6 +198,9 @@ if (NOT PLATFORM_LINUX)
         pico_generate_pio_header(pico2d-skeleton
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/st7789_lcd.pio)
     endif ()
+    # sdcard
+    pico_generate_pio_header(pico2d-skeleton
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/storage/spi.pio)
 endif ()
 
 ####################

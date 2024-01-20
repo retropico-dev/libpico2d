@@ -11,8 +11,8 @@
 
 using namespace p2d;
 
-Io::FileBuffer LinuxIo::read(const std::string &path, const Target &target) {
-    Io::FileBuffer fileBuffer;
+Io::File LinuxIo::read(const std::string &path, const Target &target) {
+    Io::File fileBuffer;
 
     // remove "/"
     std::string newPath = path;
@@ -44,7 +44,7 @@ Io::FileBuffer LinuxIo::read(const std::string &path, const Target &target) {
     return fileBuffer;
 }
 
-bool LinuxIo::write(const std::string &path, const Io::FileBuffer &fileBuffer) {
+bool LinuxIo::write(const std::string &path, const Io::File &fileBuffer) {
     // remove "/"
     std::string newPath = path;
     if (newPath[0] == '/') newPath.erase(0, 1);
@@ -134,8 +134,8 @@ bool LinuxIo::writeRomToFlash(const std::string &path, const std::string &name) 
     return true;
 }
 
-Io::FileBuffer LinuxIo::readRomFromFlash() {
-    FileBuffer fb;
+Io::File LinuxIo::readRomFromFlash() {
+    File fb;
     FILE *fp = fopen("/tmp/microboy.flash", "r");
     if (fp) {
         std::string str(256, '\0');

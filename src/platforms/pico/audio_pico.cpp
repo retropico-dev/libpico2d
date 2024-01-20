@@ -3,6 +3,7 @@
 //
 
 #include <hardware/pio.h>
+#include <hardware/dma.h>
 #include "platform.h"
 #include "pinout.h"
 

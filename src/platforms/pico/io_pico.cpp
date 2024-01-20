@@ -1,291 +1,65 @@
-//
 // Created by cpasjuste on 01/06/23.
 //
 
 #include <cstring>
 #include "platform.h"
 #include "io_pico.h"
-#include "f_util.h"
-#include "hw_config.h"
+#include "sdcard.h"
+#include "ff.h"
+#include "diskio.h"
 
 using namespace p2d;
 
+static FATFS sd_fs;
+static FATFS flash_fs;
+static bool sd_initialised = false;
+static std::vector<void *> open_files;
+
 PicoIo::PicoIo() : Io() {
-    p_sd = sd_get_by_num(0);
+    // init sdcard
+    auto res = f_mount(&sd_fs, "sd:", 1);
+    if (res != FR_OK) {
+        printf("PicoIo: failed to mount sdcard filesystem! (%i)\r\n", res);
+#ifdef FORCE_FORMAT_SD
+        if (res == FR_NO_FILESYSTEM) {
+            printf("PicoIo: no filesystem found on sdcard, formatting...\r\n");
+            format(Device::Sd);
+        }
+#endif
+    } else {
+        printf("PicoIo: mounted sdcard fs on \"sd:\" (%s)\r\n",
+               io_sdcard_get_size_string().c_str());
+    }
+
+    // mount flash fs
+    res = f_mount(&flash_fs, "flash:", 1);
+    if (res != FR_OK) {
+        printf("PicoIo: failed to mount flash filesystem! (%i)\r\n", res);
+        if (res == FR_NO_FILESYSTEM) {
+            printf("PicoIo: no filesystem found on flash, formatting...\r\n");
+            format(Device::Flash);
+        }
+    } else {
+        printf("PicoIo: mounted flash fs on \"flash:\" (%s)\r\n",
+               io_flash_get_size_string().c_str());
+    }
 }
 
-// TODO: target == Ram
-Io::FileBuffer PicoIo::read(const std::string &path, const Device &target) {
-    uint8_t buffer[FLASH_SECTOR_SIZE];
-    Io::FileBuffer fileBuffer;
-    uint32_t offset = 0;
-    FSIZE_t size;
+
+bool PicoIo::directoryExists(const std::string &path) {
+    FILINFO info;
+    return f_stat(path.c_str(), &info) == FR_OK && (info.fattrib & AM_DIR);
+}
+
+bool PicoIo::create(const std::string &path) {
     FRESULT fr;
-    UINT br;
-    FIL fp;
-
-    // mount sdcard
-    bool res = mount();
-    if (!res) {
-        return {};
-    }
-
-    // open file for reading
-    fr = f_open(&fp, path.c_str(), FA_READ);
-    if (FR_OK != fr && FR_EXIST != fr) {
-        printf("PicoIo::read: f_open(%s) error: %s (%d)\r\n", path.c_str(), FRESULT_str(fr), fr);
-        unmount();
-        return fileBuffer;
-    }
-
-    // get file size
-    size = f_size(&fp);
-
-    // set target flash offset
-    if (target == Device::Flash) {
-        if (m_flash_offset_user_data + size > PICO_FLASH_SIZE_BYTES) {
-            printf("PicoIo::read: error: flash is full... (size: 0x%08llX, offset: 0x%08llX)\r\n",
-                   size, m_flash_offset_user_data + size);
-            f_close(&fp);
-            unmount();
-            return {};
-        }
-        offset = m_flash_offset_user_data;
-        m_flash_offset_user_data += ((size + FLASH_SECTOR_SIZE - 1) / size) * size;
-    }
-
-    stdio_flush();
-    printf("\r\nPicoIo::read: %s, writing file to flash (size: 0x%08llX, offset: 0x%08lX) ...",
-           path.c_str(), size, offset);
-
-    for (uint32_t i = 0; i < size; i += FLASH_SECTOR_SIZE) {
-        //printf(".");
-        //stdio_flush();
-        fr = f_read(&fp, buffer, FLASH_SECTOR_SIZE, &br);
-        if (FR_OK != fr) {
-            printf("\r\nPicoIo::read: f_read error: %s (%d)\r\n", FRESULT_str(fr), fr);
-            break;
-        }
-
-        writeSector(offset + i, buffer);
-    }
-
-    // sync
-    f_sync(&fp);
-
-    // close file
-    f_close(&fp);
-
-    // unmount sdcard
-    unmount();
-
-    // set return data
-    fileBuffer.data = (uint8_t *) (XIP_BASE + offset);
-    fileBuffer.size = size;
-
-    printf(" done\r\n");
-    stdio_flush();
-
-    return fileBuffer;
-}
-
-Io::FileBuffer PicoIo::readRomFromFlash() {
-    Io::FileBuffer fb{
-            .data = (uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET_ROM_DATA),
-            .size = 1024 * 1024
-    };
-    memcpy(fb.name, (uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET_ROM_HEADER), IO_MAX_PATH);
-    return fb;
-}
-
-bool PicoIo::writeRomToFlash(const std::string &path, const std::string &name) {
-    uint32_t offset = FLASH_TARGET_OFFSET_ROM_DATA;
-    uint8_t buffer[FLASH_SECTOR_SIZE];
-    FSIZE_t size;
-    FRESULT fr;
-    UINT br;
-    FIL fp;
-
-    // mount sdcard
-    bool res = mount();
-    if (!res) {
-        return false;
-    }
-
-    // open file for reading
-    fr = f_open(&fp, path.c_str(), FA_READ);
-    if (FR_OK != fr && FR_EXIST != fr) {
-        printf("PicoIo::writeRomToFlash: f_open(%s) error: %s (%d)\r\n", path.c_str(), FRESULT_str(fr), fr);
-        unmount();
-        return false;
-    }
-
-    // get file size
-    size = f_size(&fp);
-    if (size < FLASH_SECTOR_SIZE) {
-        printf("PicoIo::writeRomToFlash: size error: %llu\r\n", size);
-        f_close(&fp);
-        unmount();
-        return false;
-    }
-
-    stdio_flush();
-    printf("\r\nPicoIo::writeRomToFlash: %s, writing file to flash (size: 0x%08llX (%llu), offset: 0x%08lX) ...",
-           path.c_str(), size, size, offset);
-    stdio_flush();
-
-    // write header (rom name)
-    memset(buffer, 0, FLASH_SECTOR_SIZE);
-    memcpy(buffer, name.c_str(), IO_MAX_PATH);
-    writeSector(FLASH_TARGET_OFFSET_ROM_HEADER, buffer);
-
-    // write rom data
-    for (uint32_t i = 0; i < size; i += FLASH_SECTOR_SIZE) {
-        //printf(".");
-        //stdio_flush();
-        fr = f_read(&fp, buffer, FLASH_SECTOR_SIZE, &br);
-        if (FR_OK != fr) {
-            printf("\r\nPicoIo::writeRomToFlash: f_read error: %s (%d)\r\n", FRESULT_str(fr), fr);
-            break;
-        }
-        writeSector(offset + i, buffer);
-    }
-
-    // sync
-    f_sync(&fp);
-
-    // close file
-    f_close(&fp);
-
-    // unmount sdcard
-    unmount();
-
-    printf(" done\r\n");
-    stdio_flush();
-
-    return true;
-}
-
-bool PicoIo::write(const std::string &path, const Io::FileBuffer &fileBuffer) {
-    FRESULT fr;
-    UINT br;
-    FIL fp;
-
-    // mount sdcard
-    bool res = mount();
-    if (!res) {
-        return {};
-    }
-
-    // open file for reading
-    fr = f_open(&fp, path.c_str(), FA_WRITE | FA_CREATE_ALWAYS);
-    if (fr != FR_OK) {
-        printf("PicoIo::write: f_open(%s) error: %s (%d)\n", path.c_str(), FRESULT_str(fr), fr);
-        unmount();
-        return false;
-    }
-
-    stdio_flush();
-    printf("\r\nPicoIo::write: %s, writing file to sdcard (size: %zu) ", path.c_str(), fileBuffer.size);
-
-    fr = f_write(&fp, fileBuffer.data, fileBuffer.size, &br);
-    if (FR_OK != fr) {
-        printf("\r\nPicoIo::write: f_write error: %s (%d)\n", FRESULT_str(fr), fr);
-        res = false;
-    }
-
-    // sync
-    f_sync(&fp);
-
-    // close file
-    f_close(&fp);
-
-    // unmount sdcard
-    unmount();
-
-    printf(" done\r\n");
-    stdio_flush();
-
-    return res;
-}
-
-// load array of filenames to flash for memory reduction
-Io::FileBufferList PicoIo::getDir(const std::string &path) {
-    // static getDir filename allocation
-    static char m_files_buffer[FLASH_SECTOR_SIZE / IO_MAX_PATH][IO_MAX_PATH];
-    Io::FileBufferList fileListBuffer;
-    uint32_t offsetBase = m_flash_offset_user_data;
-    uint32_t fileCountTotal = 0;
-    uint32_t fileCountCurrent = 0;
-    FILINFO fno;
-    FRESULT fr;
-    DIR dir;
-
-    // mount sdcard
-    bool res = mount();
-    if (!res) {
-        return fileListBuffer;
-    }
-
-    fr = f_opendir(&dir, path.c_str());
-    if (fr == FR_OK) {
-        // 32 x 128 chars max
-        uint32_t maxFiles = FLASH_SECTOR_SIZE / IO_MAX_PATH;
-        memset(m_files_buffer, 0, sizeof(m_files_buffer));
-
-        for (;;) {
-            if (fileCountTotal >= IO_MAX_FILES) break;
-
-            fr = f_readdir(&dir, &fno);
-            if (fr != FR_OK || fno.fname[0] == 0) break;
-
-            if (!(fno.fattrib & AM_DIR)) {
-                strncpy(m_files_buffer[fileCountCurrent], fno.fname, IO_MAX_PATH - 1);
-                fileCountTotal++;
-                fileCountCurrent++;
-                if (fileCountCurrent == maxFiles) { // FLASH_SECTOR_SIZE
-                    writeSector(m_flash_offset_user_data, (uint8_t *) m_files_buffer);
-                    m_flash_offset_user_data += FLASH_SECTOR_SIZE;
-                    fileCountCurrent = 0;
-                    memset(m_files_buffer, 0, sizeof(m_files_buffer));
-                }
-            }
-        }
-
-        if (fileCountCurrent > 0) {
-            writeSector(m_flash_offset_user_data, (uint8_t *) m_files_buffer);
-            m_flash_offset_user_data += FLASH_SECTOR_SIZE;
-        }
-
-        f_closedir(&dir);
-    }
-
-    //printf("PicoIo::getDir: m_flash_offset_misc: %i\r\n", m_flash_offset_misc);
-
-    // unmount sdcard
-    unmount();
-
-    fileListBuffer.data = (uint8_t *) (XIP_BASE + offsetBase);
-    fileListBuffer.count = (int) fileCountTotal;
-
-    return fileListBuffer;
-}
-
-void PicoIo::createDir(const std::string &path) {
     const char *p;
     char *temp;
-    FRESULT fr;
 
     // add "/"
     std::string newPath = path;
     if (newPath[newPath.size() - 1] != '/') {
         newPath = newPath + "/";
-    }
-
-    // mount sdcard
-    bool res = mount();
-    if (!res) {
-        return;
     }
 
     temp = static_cast<char *>(calloc(1, strlen(newPath.c_str()) + 1));
@@ -307,36 +81,230 @@ void PicoIo::createDir(const std::string &path) {
 
     free(temp);
 
-    // unmount sdcard
-    unmount();
+    return fr == FR_OK || fr == FR_EXIST;
 }
 
-bool PicoIo::mount() {
-    FRESULT fr = f_mount(&p_sd->fatfs, p_sd->pcName, 1);
-    if (FR_OK != fr) {
-        printf("PicoIo::mount: mount error: %s (%d)\r\n", FRESULT_str(fr), fr);
+bool PicoIo::rename(const std::string &old_name, const std::string &new_name) {
+    return f_rename(old_name.c_str(), new_name.c_str()) == FR_OK;
+}
+
+bool PicoIo::format(const Io::Device &device) {
+    FRESULT res;
+    MKFS_PARM opts{.fmt =  FM_ANY | FM_SFD};
+    std::string path = device == Device::Flash ? "flash:" : "sd:";
+    uint32_t sector_size = device == Device::Flash ? FLASH_SECTOR_SIZE : FF_MIN_SS;
+    auto fs = device == Device::Flash ? &flash_fs : &sd_fs;
+
+    printf("PicoIo::format: formatting drive \"%s\"...\r\n", path.c_str());
+
+    res = f_mkfs(path.c_str(), &opts, fs->win, sector_size);
+    if (res != FR_OK) {
+        printf("PicoIo::format: format failed! (%i)\r\n", res);
         return false;
+    }
+
+    res = f_mount(fs, path.c_str(), 1);
+    if (res != FR_OK) {
+        printf("PicoIo::format: failed to mount filesystem! (%i)\r\n", res);
     }
 
     return true;
 }
 
-bool PicoIo::unmount() {
-    FRESULT fr = f_unmount(p_sd->pcName);
-    if (FR_OK != fr) {
-        printf("PicoIo::unmount: unmount error: %s (%d)\r\n", FRESULT_str(fr), fr);
-        return false;
+void *PicoIo::open_file_priv(const std::string &file, int mode) {
+    FIL *f = new FIL();
+    BYTE ff_mode = 0;
+
+    if (mode & OpenMode::Read)
+        ff_mode |= FA_READ;
+    if (mode & OpenMode::Write)
+        ff_mode |= FA_WRITE;
+    if (mode == OpenMode::Write)
+        ff_mode |= FA_CREATE_ALWAYS;
+
+    FRESULT r = f_open(f, file.c_str(), ff_mode);
+    if (r == FR_OK) {
+        open_files.push_back(f);
+        return f;
     }
 
-    return true;
+    delete f;
+    return nullptr;
 }
 
-void PicoIo::writeSector(uint32_t flash_offs, const uint8_t *data) {
-    // disable interrupts...
-    uint32_t ints = save_and_disable_interrupts();
-    // flash
-    flash_range_erase(flash_offs, FLASH_SECTOR_SIZE);
-    flash_range_program(flash_offs, data, FLASH_SECTOR_SIZE);
-    // restore interrupts...
-    restore_interrupts(ints);
+int32_t PicoIo::read_file_priv(void *fh, uint32_t offset, uint32_t length, char *buffer) {
+    FRESULT r = FR_OK;
+    FIL *f = (FIL *) fh;
+
+    if (offset != f_tell(f))
+        r = f_lseek(f, offset);
+
+    if (r == FR_OK) {
+        unsigned int bytes_read;
+        r = f_read(f, buffer, length, &bytes_read);
+        if (r == FR_OK) {
+            return (int32_t) bytes_read;
+        }
+    }
+
+    return -1;
+}
+
+int32_t PicoIo::write_file_priv(void *fh, uint32_t offset, uint32_t length, const char *buffer) {
+    FRESULT r = FR_OK;
+    FIL *f = (FIL *) fh;
+
+    if (offset != f_tell(f))
+        r = f_lseek(f, offset);
+
+    if (r == FR_OK) {
+        unsigned int bytes_written;
+        r = f_write(f, buffer, length, &bytes_written);
+        if (r == FR_OK) {
+            return (int32_t) bytes_written;
+        }
+    }
+
+    return -1;
+}
+
+int32_t PicoIo::close_file_priv(void *fh) {
+    FRESULT r;
+
+    r = f_close((FIL *) fh);
+
+    for (auto it = open_files.begin(); it != open_files.end(); ++it) {
+        if (*it == fh) {
+            open_files.erase(it);
+            break;
+        }
+    }
+
+    delete (FIL *) fh;
+    return r == FR_OK ? 0 : -1;
+}
+
+uint32_t PicoIo::get_file_length_priv(void *fh) {
+    return f_size((FIL *) fh);
+}
+
+void PicoIo::list_files_priv(const std::string &path, std::function<void(FileInfo & )> callback) {
+    DIR dir;
+
+    if (f_opendir(&dir, path.c_str()) != FR_OK)
+        return;
+
+    FILINFO ent;
+
+    while (f_readdir(&dir, &ent) == FR_OK && ent.fname[0]) {
+        FileInfo info{
+                .name = ent.fname,
+                .flags = 0,
+                .size = ent.fsize
+        };
+
+        if (ent.fattrib & AM_DIR)
+            info.flags |= FileFlags::Directory;
+
+        callback(info);
+    }
+
+    f_closedir(&dir);
+}
+
+bool PicoIo::file_exists_priv(const std::string &path) {
+    FILINFO info;
+    return f_stat(path.c_str(), &info) == FR_OK && !(info.fattrib & AM_DIR);
+}
+
+bool PicoIo::remove_file_priv(const std::string &path) {
+    return f_unlink(path.c_str()) == FR_OK;
+}
+
+bool PicoIo::is_files_open_priv() {
+    return open_files.size() > 0;
+}
+
+void PicoIo::close_open_files_priv() {
+    while (!open_files.empty()) close_file_priv(open_files.back());
+}
+
+PicoIo::~PicoIo() {
+#warning "TODO: ~PicoIo: unmount stuff"
+}
+
+
+// fatfs io funcs
+DSTATUS disk_initialize(BYTE drv) {
+    //printf("disk_initialize: %i\r\n", drv);
+    if (drv == Io::Device::Sd) {
+        if (sd_initialised) return RES_OK;
+        sd_initialised = io_sdcard_init();
+        return sd_initialised ? RES_OK : STA_NOINIT;
+    }
+
+    // flash always available...
+    io_flash_init();
+    return RES_OK;
+}
+
+DSTATUS disk_status(BYTE drv) {
+    //printf("disk_status: %i\r\n", drv);
+    if (drv == Io::Device::Sd) {
+        return sd_initialised ? RES_OK : STA_NOINIT;
+    }
+
+    // flash always available...
+    return RES_OK;
+}
+
+DRESULT disk_read(BYTE drv, BYTE *buff, LBA_t sector, UINT count) {
+    //printf("disk_read: %i\r\n", drv);
+    if (drv == Io::Device::Sd) {
+        return io_sdcard_read(sector, 0, buff, FF_MIN_SS * count)
+               == int32_t(FF_MIN_SS * count) ? RES_OK : RES_ERROR;
+    }
+
+    return io_flash_read(sector, 0, buff, FLASH_SECTOR_SIZE * count)
+           == int32_t(FLASH_SECTOR_SIZE * count) ? RES_OK : RES_ERROR;
+}
+
+DRESULT disk_write(BYTE drv, const BYTE *buff, LBA_t sector, UINT count) {
+    //printf("disk_write: %i\r\n", drv);
+    if (drv == Io::Device::Sd) {
+        return io_sdcard_write(sector, 0, buff, FF_MIN_SS * count)
+               == int32_t(FF_MIN_SS * count) ? RES_OK : RES_ERROR;
+    }
+
+    return io_flash_write(sector, 0, buff, FLASH_SECTOR_SIZE * count)
+           == int32_t(FLASH_SECTOR_SIZE * count) ? RES_OK : RES_ERROR;
+}
+
+DRESULT disk_ioctl(BYTE drv, BYTE cmd, void *buff) {
+    //printf("disk_ioctl: drv: %i, cmd: %i\r\n", drv, cmd);
+    uint16_t block_size;
+    uint32_t num_blocks;
+
+    switch (cmd) {
+        case CTRL_SYNC:
+            return RES_OK;
+        case GET_SECTOR_COUNT:
+            if (drv == Io::Device::Sd) {
+                io_sdcard_get_size(block_size, num_blocks);
+            } else {
+                io_flash_get_size(block_size, num_blocks);
+            }
+            *(LBA_t *) buff = num_blocks;
+            return RES_OK;
+        case GET_SECTOR_SIZE:
+            *(WORD *) buff = drv == Io::Device::Sd ? FF_MIN_SS : FLASH_SECTOR_SIZE;
+            return RES_OK;
+        case GET_BLOCK_SIZE:
+            *(DWORD *) buff = 1;
+            return RES_OK;
+        default:
+            break;
+    }
+
+    return RES_PARERR;
 }
