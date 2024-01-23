@@ -34,7 +34,9 @@ namespace p2d {
 #else
             uint8_t *data = nullptr;
 #endif
-            uint16_t length = 0;
+            uint32_t data_size = 0;
+
+            uint16_t count = 0;
 
             [[nodiscard]] char *at(int idx) const {
 #ifdef LINUX
@@ -47,15 +49,14 @@ namespace p2d {
 
         static void init();
 
-        static void fini();
+        static void destroy();
 
-#warning "TODO: is_device_available"
-        //bool is_device_available(const Device &device);
+        static bool isAvailable(const Device &device);
 
         static std::vector<File::Info> getList(
                 const std::string &path, std::function<bool(const File::Info &)> filter = nullptr);
 
-        static ListBuffer getBufferedList(const std::string &path);
+        static ListBuffer getBufferedList(const std::string &path, uint32_t flashOffset);
 
         static bool copy(const File &src, const File &dst);
 

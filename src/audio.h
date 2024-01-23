@@ -40,8 +40,8 @@ namespace p2d {
         uint16_t m_rate = 44100;
         uint16_t m_samples = 735;
         uint8_t m_channels = 2;
-        uint8_t m_volume = 40;
-        uint8_t m_volume_max = 40; // max98357a + 8ohms 500mW speaker, don't push too much...
+        uint8_t m_volume = 30;
+        uint8_t m_volume_max = 30; // max98357a + 8ohms 500mW speaker, don't push too much...
     };
 }
 

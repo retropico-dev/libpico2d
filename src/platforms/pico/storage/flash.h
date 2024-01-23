@@ -10,7 +10,7 @@
 #include <hardware/flash.h>
 
 // 16MB flash: 6MB for bootloader/apps/cache, 10MB for fatfs "user" data/cache
-#define FLASH_TARGET_OFFSET_CACHE ((1024 * 1024) * 5)   // 1MB flash cache
+#define FLASH_TARGET_OFFSET_CACHE ((1024 * 1024) * 5)   // 1MB flash cache (raw)
 #define FLASH_TARGET_OFFSET_FATFS ((1024 * 1024) * 6)   // 10MB fatfs flash ("flash:")
 
 namespace p2d {
@@ -25,11 +25,11 @@ namespace p2d {
     int32_t io_flash_read(uint32_t sector, uint32_t offset, void *buffer, uint32_t size_bytes);
 
     // read anywhere in flash
-    int32_t io_flash_read_sector(uint32_t offset, const uint8_t *buffer);
+    int32_t io_flash_read_sector(uint32_t offset, void *buffer);
 
     int32_t io_flash_write(uint32_t sector, uint32_t offset, const uint8_t *buffer, uint32_t size_bytes);
 
-    // write anywhere in flash
+    // write a sector (4096 bytes) anywhere in flash
     void io_flash_write_sector(uint32_t offset, const uint8_t *buffer);
 
 #endif //PICO2D_SKELETON_FLASH_H

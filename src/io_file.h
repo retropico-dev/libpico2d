@@ -74,11 +74,11 @@ namespace p2d {
 
         void close();
 
-        [[nodiscard]] uint32_t length() const;
-
         [[nodiscard]] bool isOpen() const { return buf != nullptr || fh != nullptr; }
 
-        [[nodiscard]] const uint8_t *ptr() const { return buf; }
+        [[nodiscard]] uint32_t getLength() const;
+
+        [[nodiscard]] const uint8_t *getPtr() const { return buf; };
 
         [[nodiscard]] std::string getPath() const { return m_path; }
 

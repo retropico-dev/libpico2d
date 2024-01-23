@@ -6,23 +6,11 @@
 
 #include <algorithm>
 #include <map>
-#include <cstring>
 #include "io.h"
 
 using namespace p2d;
 
 std::map<std::string, Io::FileBuffer> p2d_io_buf_files;
-
-/**
- * Check if it is possible to read/write files, for SDL this is always true.
- *
- * \return true if an SD card is inserted and usable, false otherwise
- */
-/*
-bool is_storage_available() {
-   return api.is_storage_available();
-}
-*/
 
 /**
  * Lists files on the SD card (device), the game directory (SDL) or in memory.
@@ -114,8 +102,24 @@ bool Io::copy(const File &src, const File &dst) {
     return true;
 }
 
+#ifdef PICO_BUILD
+
+extern void p2d_display_pause();
+
+extern void p2d_display_resume();
+
+#endif
+
 bool Io::copy(const std::string &src, const std::string &dst) {
+#ifdef PICO_BUILD
+    bool core1_pause_needed = Utility::startWith(dst, "flash:");
+    if (core1_pause_needed) p2d_display_pause();
+#endif
     const File srcFile = File{src, File::OpenMode::Read};
     const File dstFile = File{dst, File::OpenMode::Write};
-    return copy(srcFile, dstFile);
+    auto res = copy(srcFile, dstFile);
+#ifdef PICO_BUILD
+    if (core1_pause_needed) p2d_display_resume();
+#endif
+    return res;
 }

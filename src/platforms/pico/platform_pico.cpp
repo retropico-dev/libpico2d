@@ -20,15 +20,15 @@ PicoPlatform::PicoPlatform(bool overclock) : Platform() {
         set_sys_clock_khz(300000, true);
         sleep_ms(2);
     } else {
-        vreg_set_voltage(VREG_VOLTAGE_DEFAULT);
+        vreg_set_voltage(VREG_VOLTAGE_1_15);
         sleep_ms(2);
         set_sys_clock_khz(280000, true);
         sleep_ms(2);
     }
 
+#ifndef NDEBUG
     // initialise USB serial connection for debugging
     stdio_init_all();
-#ifndef NDEBUG
 #ifndef LIB_PICO_STDIO_UART
     // wait for usb serial
     while (!stdio_usb_connected()) { sleep_ms(100); }

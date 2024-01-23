@@ -16,17 +16,12 @@ static Surface **s_surfaces;
 static Utility::Vec2i s_display_size;
 static Utility::Vec4i s_render_bounds;
 static uint8_t s_bit_shift;
+static bool s_flip = false;
+static uint8_t s_buffer_index;
 
 static void in_ram(draw)(Surface *surface);
 
 _Noreturn static void in_ram(core1_main)();
-
-union core_cmd {
-    struct {
-        uint8_t index = 0;
-    };
-    uint32_t full;
-};
 
 PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i &renderSize,
                          const Utility::Vec4i &renderBounds, const Buffering &buffering,
@@ -108,8 +103,12 @@ void in_ram(PicoDisplay::clear)() {
 
 void in_ram(PicoDisplay::flip)() {
     if (m_buffering == Buffering::Double) {
-        union core_cmd cmd{.index = m_bufferIndex};
-        multicore_fifo_push_blocking(cmd.full);
+        // wait for previous buffer flip
+        while (s_flip) tight_loop_contents();
+        // send "flip cmd" (s_flip) to core1
+        // (can't use fifo when using flash write (multicore_lockout_victim_init)...)
+        s_buffer_index = m_bufferIndex;
+        s_flip = true;
         // flip buffer
         m_bufferIndex = !m_bufferIndex;
     } else if (m_buffering == Buffering::Single) {
@@ -118,13 +117,39 @@ void in_ram(PicoDisplay::flip)() {
     }
 }
 
-_Noreturn static void in_ram(core1_main)() {
-    union core_cmd cmd{};
+// crappy hack to pause core1 while writing to flash,
+// I was not able to use "multicore_lockout_victim_init" without random crashes
+static bool core1_stop = false;
+static bool core1_stopped = true;
 
-    while (true) {
-        cmd.full = multicore_fifo_pop_blocking();
-        draw(s_surfaces[cmd.index]);
+void in_ram(p2d_display_pause)() {
+    //printf("p2d_display_pause\r\n");
+    if (!core1_stopped) {
+        core1_stop = true;
+        while (!core1_stopped) tight_loop_contents();
     }
+}
+
+void in_ram(p2d_display_resume)() {
+    //printf("p2d_display_resume\r\n");
+    if (core1_stop) {
+        multicore_reset_core1();
+        multicore_launch_core1(core1_main);
+    }
+}
+
+_Noreturn static void in_ram(core1_main)() {
+    //multicore_lockout_victim_init();
+    core1_stop = false;
+    core1_stopped = false;
+
+    while (!core1_stop) {
+        while (!s_flip) tight_loop_contents();
+        draw(s_surfaces[s_buffer_index]);
+        s_flip = false;
+    }
+
+    core1_stopped = true;
 }
 
 static void in_ram(draw)(Surface *surface) {

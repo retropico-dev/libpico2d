@@ -12,7 +12,6 @@
 #include <hardware/gpio.h>
 #include <hardware/sync.h>
 #include <hardware/flash.h>
-#include <hardware/sync.h>
 
 #include "pico_display.h"
 #include "pico_display_direct.h"

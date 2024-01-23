@@ -40,8 +40,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 # TODO: why ?
 #set(CMAKE_FLAGS_RELEASE_FIX "-fno-move-loop-invariants -fno-devirtualize -fno-devirtualize-speculatively")
-set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -O3 ${CMAKE_FLAGS_RELEASE_FIX}" CACHE STRING "" FORCE)
-set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3 ${CMAKE_FLAGS_RELEASE_FIX}" CACHE STRING "" FORCE)
+#set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -O3 ${CMAKE_FLAGS_RELEASE_FIX}" CACHE STRING "" FORCE)
+#set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3 ${CMAKE_FLAGS_RELEASE_FIX}" CACHE STRING "" FORCE)
 
 # set source files
 file(GLOB PLATFORM_SOURCES
@@ -198,9 +198,19 @@ if (NOT PLATFORM_LINUX)
         pico_generate_pio_header(pico2d-skeleton
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/st7789_lcd.pio)
     endif ()
+
     # sdcard
     pico_generate_pio_header(pico2d-skeleton
             ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/storage/spi.pio)
+
+    # debug
+    if (PICO_STDIO_UART)
+        pico_enable_stdio_usb(pico2d-skeleton 0)
+        pico_enable_stdio_uart(pico2d-skeleton 1)
+    else ()
+        pico_enable_stdio_usb(pico2d-skeleton 1)
+        pico_enable_stdio_uart(pico2d-skeleton 0)
+    endif ()
 endif ()
 
 ####################

@@ -12,7 +12,7 @@
 #include "io.h"
 #include "clock.h"
 #include "utility"
-#include "rectangle.h"
+#include "widget.h"
 
 #ifdef PICO_PSRAM
 

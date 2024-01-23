@@ -5,10 +5,23 @@
 #include <cstring>
 #include <map>
 #include "io.h"
+#include "ff.h"
+#include "flash.h"
+#include "io_file.h"
 
 using namespace p2d;
 
 extern std::map<std::string, Io::FileBuffer> p2d_io_buf_files;
+
+#ifdef PICO_BUILD
+
+static LBA_t clst2sect(FATFS *fs, DWORD clst) {
+    clst -= 2;
+    if (clst >= fs->n_fatent - 2) return 0;
+    return fs->database + (LBA_t) fs->csize * clst;
+}
+
+#endif
 
 bool File::open(const uint8_t *b, uint32_t b_len) {
     close();
@@ -26,6 +39,7 @@ bool File::open(const uint8_t *b, uint32_t b_len) {
  *
  * \return true if file opened successfully
  */
+
 bool File::open(const std::string &path, int mode) {
     close();
 
@@ -39,6 +53,15 @@ bool File::open(const std::string &path, int mode) {
     }
 
     fh = Io::FatFs::open_file(path, mode);
+
+    // allow accessing raw flash file at correct offset when opened in read mode
+    if (!(mode & OpenMode::Write) && Utility::startWith(path, "flash:")) {
+        FIL *fp = (FIL *) fh;
+        uint32_t sector = clst2sect(fp->obj.fs, fp->obj.sclust);
+        buf = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET_FATFS + (sector * FLASH_SECTOR_SIZE));
+        buf_len = fp->obj.objsize;
+    }
+
     return fh != nullptr;
 }
 
@@ -92,9 +115,8 @@ void File::close() {
  *
  * \return Length of the file in bytes.
  */
-uint32_t File::length() const {
+uint32_t File::getLength() const {
     if (buf) return buf_len;
-
     return Io::FatFs::get_file_length(fh);
 }
 

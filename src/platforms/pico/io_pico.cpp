@@ -21,6 +21,7 @@ void Io::init() {
     io_initialised = true;
 
     // init sdcard
+    printf("PicoIo: mounting sdcard fs...\r\n");
     auto res = f_mount(&sd_fs, "sd:", 1);
     if (res != FR_OK) {
         printf("PicoIo: failed to mount sdcard filesystem! (%i)\r\n", res);
@@ -36,8 +37,8 @@ void Io::init() {
     }
 
     // mount flash fs
-    //res = f_mount(&flash_fs, "flash:", 1);
-    res = FR_NO_FILESYSTEM;
+    printf("PicoIo: mounting flash fs...\r\n");
+    res = f_mount(&flash_fs, "flash:", 1);
     if (res != FR_OK) {
         printf("PicoIo: failed to mount flash filesystem! (%i)\r\n", res);
         if (res == FR_NO_FILESYSTEM) {
@@ -89,19 +90,19 @@ bool Io::create(const std::string &path) {
 }
 
 // TODO: handle directories
-Io::ListBuffer Io::getBufferedList(const std::string &path) {
-    static char buffer[FLASH_SECTOR_SIZE / IO_MAX_PATH][IO_MAX_PATH];
+Io::ListBuffer in_ram(Io::getBufferedList)(const std::string &path, uint32_t flashOffset) {
+    char buffer[FLASH_SECTOR_SIZE / IO_MAX_PATH][IO_MAX_PATH];
     uint32_t maxFilesPerWrite = FLASH_SECTOR_SIZE / IO_MAX_PATH;
-    uint32_t offset = FLASH_TARGET_OFFSET_CACHE;
-    uint32_t length = 0, currentFile = 0;
+    uint32_t offset = flashOffset;
+    uint32_t count = 0, currentFile = 0;
     Io::ListBuffer listBuffer;
 
     std::vector<File::Info> ret;
-    FatFs::list_files(path, [&length, &currentFile, &offset, &maxFilesPerWrite](File::Info &file) {
+    FatFs::list_files(path, [&count, &currentFile, &offset, &maxFilesPerWrite, &buffer](File::Info &file) {
         if (!(file.flags & File::Flags::Directory)) {
             strncpy(buffer[currentFile], file.name.c_str(), IO_MAX_PATH - 1);
             currentFile++;
-            length++;
+            count++;
             if (currentFile == maxFilesPerWrite) {
                 io_flash_write_sector(offset, (const uint8_t *) buffer);
                 offset += FLASH_SECTOR_SIZE;
@@ -116,8 +117,9 @@ Io::ListBuffer Io::getBufferedList(const std::string &path) {
         io_flash_write_sector(offset, (const uint8_t *) buffer);
     }
 
-    listBuffer.data = (uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET_CACHE);
-    listBuffer.length = (int) length;
+    listBuffer.data = (uint8_t *) (XIP_BASE + flashOffset);
+    listBuffer.data_size = count * IO_MAX_PATH;
+    listBuffer.count = (int) count;
 
     return listBuffer;
 }
@@ -262,6 +264,11 @@ bool Io::FatFs::remove_file(const std::string &path) {
     return f_unlink(path.c_str()) == FR_OK;
 }
 
+bool Io::isAvailable(const Io::Device &device) {
+    if (device == Device::Flash) return true;
+    return sd_initialised;
+}
+
 bool Io::FatFs::is_files_open() {
     return open_files.size() > 0;
 }
@@ -270,7 +277,7 @@ void Io::FatFs::close_open_files() {
     while (!open_files.empty()) close_file(open_files.back());
 }
 
-void Io::fini() {
+void Io::destroy() {
 #warning "TODO: ~PicoIo: unmount stuff"
 }
 
@@ -310,7 +317,10 @@ DRESULT disk_read(BYTE drv, BYTE *buff, LBA_t sector, UINT count) {
 }
 
 DRESULT disk_write(BYTE drv, const BYTE *buff, LBA_t sector, UINT count) {
-    //printf("disk_write: %i\r\n", drv);
+#if 0
+    printf("disk_write: %i, address: 0x%08lx\r\n", drv,
+           XIP_BASE + FLASH_TARGET_OFFSET_FATFS + ( sector * FLASH_SECTOR_SIZE));
+#endif
     if (drv == Io::Device::Sd) {
         return io_sdcard_write(sector, 0, buff, FF_MIN_SS * count)
                == int32_t(FF_MIN_SS * count) ? RES_OK : RES_ERROR;

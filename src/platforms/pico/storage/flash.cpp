@@ -4,6 +4,7 @@
 
 #include <cstring>
 #include <pico/binary_info.h>
+#include <pico/multicore.h>
 #include <hardware/sync.h>
 #include "utility.h"
 #include "flash.h"
@@ -18,8 +19,7 @@ bool p2d::io_flash_init() {
             XIP_BASE + flash_offset,
             flash_size,
             nullptr,
-            BINARY_INFO_BLOCK_DEV_FLAG_READ | BINARY_INFO_BLOCK_DEV_FLAG_WRITE | BINARY_INFO_BLOCK_DEV_FLAG_PT_NONE
-    ))
+            BINARY_INFO_BLOCK_DEV_FLAG_READ | BINARY_INFO_BLOCK_DEV_FLAG_WRITE | BINARY_INFO_BLOCK_DEV_FLAG_PT_NONE))
 
     return true;
 }
@@ -45,24 +45,50 @@ int32_t p2d::io_flash_read(uint32_t sector, uint32_t offset, void *buffer, uint3
 
 int32_t p2d::io_flash_write(uint32_t sector, uint32_t offset, const uint8_t *buffer, uint32_t size_bytes) {
     //printf("io_flash_write: sector: %lu, offset: %lu, size: %lu\r\n", sector, offset, size_bytes);
-
     auto status = save_and_disable_interrupts();
 
-    //if (core1_started) multicore_lockout_start_blocking(); // pause core1
+    /*
+    if(multicore_lockout_victim_is_initialized(1)) {
+        multicore_lockout_start_blocking();
+    }
+    */
+
     if (offset == 0) flash_range_erase(flash_offset + sector * FLASH_SECTOR_SIZE, FLASH_SECTOR_SIZE);
     flash_range_program(flash_offset + sector * FLASH_SECTOR_SIZE + offset, buffer, size_bytes);
-    //if (core1_started) multicore_lockout_end_blocking(); // resume core1
+
+    /*
+    if(multicore_lockout_victim_is_initialized(1)) {
+        multicore_lockout_end_blocking();
+    }
+    */
 
     restore_interrupts(status);
 
     return (int32_t) size_bytes;
 }
 
+int32_t p2d::io_flash_read_sector(uint32_t offset, void *buffer) {
+    memcpy(buffer, (uint8_t *) XIP_BASE + offset, FLASH_SECTOR_SIZE);
+    return (int32_t) FLASH_SECTOR_SIZE;
+}
+
 void p2d::io_flash_write_sector(uint32_t offset, const uint8_t *buffer) {
     auto status = save_and_disable_interrupts();
 
+    /*
+    if(multicore_lockout_victim_is_initialized(1)) {
+        multicore_lockout_start_blocking();
+    }
+    */
+
     flash_range_erase(offset, FLASH_SECTOR_SIZE);
     flash_range_program(offset, buffer, FLASH_SECTOR_SIZE);
+
+    /*
+    if(multicore_lockout_victim_is_initialized(1)) {
+        multicore_lockout_end_blocking();
+    }
+    */
 
     restore_interrupts(status);
 }
