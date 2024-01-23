@@ -6,12 +6,12 @@
 #define PICO2D_PLATFORM_H
 
 #include <cstdio>
+#include "utility"
 #include "display.h"
 #include "input.h"
 #include "audio.h"
 #include "io.h"
 #include "clock.h"
-#include "utility"
 #include "widget.h"
 
 #ifdef PICO_PSRAM
@@ -25,12 +25,7 @@ namespace p2d {
     public:
         explicit Platform(bool overclock = false);
 
-        virtual ~Platform() {
-            printf("~Platform()\n");
-            delete (p_display);
-            delete (p_audio);
-            delete (p_input);
-        };
+        virtual ~Platform();
 
         static Platform *instance();
 
@@ -41,8 +36,6 @@ namespace p2d {
         }
 
         Display *getDisplay() { return p_display; }
-
-        Io *getIo() { return p_io; }
 
         Audio *getAudio() { return p_audio; }
 
@@ -58,7 +51,6 @@ namespace p2d {
 
     protected:
         Display *p_display = nullptr;
-        Io *p_io = nullptr;
         Input *p_input = nullptr;
         Audio *p_audio = nullptr;
     };

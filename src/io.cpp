@@ -5,11 +5,16 @@
 #include <algorithm>
 #include <map>
 #include "platform.h"
-#include "flash.h"
-#include "sdcard.h"
 #include "ff.h"
 #include "diskio.h"
-#include "io_pico.h"
+
+#ifndef FLASH_SECTOR_SIZE
+#define FLASH_SECTOR_SIZE 4096
+#endif
+
+#ifndef XIP_BASE
+#define XIP_BASE 0
+#endif
 
 using namespace p2d;
 
@@ -18,63 +23,70 @@ static FATFS flash_fs;
 static bool io_initialised = false;
 static bool sd_initialised = false;
 static std::vector<void *> open_files;
-std::map<std::string, Io::FileBuffer> p2d_io_buf_files; // TODO: refactor/remove this
+std::map<std::string, Io::FileBuffer> buf_files; // TODO: refactor/remove this
 
 // hacky/crappy core1 "fix"
 extern void p2d_display_pause();
 
 extern void p2d_display_resume();
 
-PicoIo::PicoIo() {
+void Io::init() {
     if (io_initialised) return;
     io_initialised = true;
 
     // init sdcard
-    printf("PicoIo: mounting sdcard fs...\r\n");
+    printf("Io: mounting sdcard fs...\r\n");
     auto res = f_mount(&sd_fs, "sd:", 1);
     if (res != FR_OK) {
-        printf("PicoIo: failed to mount sdcard filesystem! (%i)\r\n", res);
-#ifdef FORCE_FORMAT_SD
+        printf("Io: failed to mount sdcard filesystem! (%i)\r\n", res);
+#if defined(LINUX) || defined(FORCE_FORMAT_SD)
         if (res == FR_NO_FILESYSTEM) {
-            printf("PicoIo: no filesystem found on sdcard, formatting...\r\n");
+            printf("Io: no filesystem found on sdcard, formatting...\r\n");
             format(Device::Sd);
         }
 #endif
     } else {
-        printf("PicoIo: mounted sdcard fs on \"sd:\" (%s)\r\n",
+        printf("Io: mounted sdcard fs on \"sd:\" (%s)\r\n",
                io_sdcard_get_size_string().c_str());
     }
 
     // mount flash fs
-    printf("PicoIo: mounting flash fs...\r\n");
+    printf("Io: mounting flash fs...\r\n");
     res = f_mount(&flash_fs, "flash:", 1);
     if (res != FR_OK) {
-        printf("PicoIo: failed to mount flash filesystem! (%i)\r\n", res);
+        printf("Io: failed to mount flash filesystem! (%i)\r\n", res);
         if (res == FR_NO_FILESYSTEM) {
-            printf("PicoIo: no filesystem found on flash, formatting...\r\n");
-            Io::format(Device::Flash);
+            printf("Io: no filesystem found on flash, formatting...\r\n");
+            format(Device::Flash);
         }
     } else {
-        printf("PicoIo: mounted flash fs on \"flash:\" (%s)\r\n",
+        printf("Io: mounted flash fs on \"flash:\" (%s)\r\n",
                io_flash_get_size_string().c_str());
     }
 }
 
-PicoIo::~PicoIo() {
+void Io::exit() {
+    printf("Io::~Io()\r\n");
+
     if (sd_initialised) {
         if (FatFs::is_files_open()) {
             FatFs::close_open_files();
         }
+
         f_unmount("sd:");
+        io_sdcard_exit();
+
+        f_unmount("flash:");
+        io_flash_exit();
     }
 }
 
-bool PicoIo::isAvailable(const Io::Device &device) {
+bool Io::isAvailable(const Io::Device &device) {
     if (device == Device::Flash) return true;
     return sd_initialised;
 }
 
-bool PicoIo::create(const std::string &path) {
+bool Io::create(const std::string &path) {
     FRESULT fr;
     const char *p;
     char *temp;
@@ -107,56 +119,62 @@ bool PicoIo::create(const std::string &path) {
     return fr == FR_OK || fr == FR_EXIST;
 }
 
-bool PicoIo::rename(const std::string &old_name, const std::string &new_name) {
+bool Io::rename(const std::string &old_name, const std::string &new_name) {
     return f_rename(old_name.c_str(), new_name.c_str()) == FR_OK;
 }
 
-bool PicoIo::remove(const std::string &path) {
-    auto it = p2d_io_buf_files.find(path);
-    if (it != p2d_io_buf_files.end()) {
-        p2d_io_buf_files.erase(it);
+bool Io::remove(const std::string &path) {
+    auto it = buf_files.find(path);
+    if (it != buf_files.end()) {
+        buf_files.erase(it);
         return true;
     }
 
     return FatFs::remove_file(path);
 }
 
-bool PicoIo::directoryExists(const std::string &path) {
+bool Io::directoryExists(const std::string &path) {
     FILINFO info;
     return f_stat(path.c_str(), &info) == FR_OK && (info.fattrib & AM_DIR);
 }
 
-bool PicoIo::fileExists(const std::string &path) {
-    return FatFs::file_exists(path) || p2d_io_buf_files.find(path) != p2d_io_buf_files.end();
+bool Io::fileExists(const std::string &path) {
+    return FatFs::file_exists(path) || buf_files.find(path) != buf_files.end();
 }
 
-bool PicoIo::format(const Io::Device &device) {
+bool Io::format(const Io::Device &device) {
     FRESULT res;
     MKFS_PARM opts{.fmt =  FM_ANY | FM_SFD};
     std::string path = device == Device::Flash ? "flash:" : "sd:";
     uint32_t sector_size = device == Device::Flash ? FLASH_SECTOR_SIZE : FF_MIN_SS;
     auto fs = device == Device::Flash ? &flash_fs : &sd_fs;
 
-    printf("PicoIo::format: formatting drive \"%s\"...\r\n", path.c_str());
+    printf("Io::format: formatting drive \"%s\"...\r\n", path.c_str());
 
     res = f_mkfs(path.c_str(), &opts, fs->win, sector_size);
     if (res != FR_OK) {
-        printf("PicoIo::format: format failed! (%i)\r\n", res);
+        printf("Io::format: format failed! (%i)\r\n", res);
         return false;
     }
 
     res = f_mount(fs, path.c_str(), 1);
     if (res != FR_OK) {
-        printf("PicoIo::format: failed to mount filesystem! (%i)\r\n", res);
+        printf("Io::format: failed to mount filesystem! (%i)\r\n", res);
+        return false;
     }
 
-    printf("PicoIo: mounted flash fs on \"flash:\" (%s)\r\n",
-           io_flash_get_size_string().c_str());
+    if (device == Device::Flash) {
+        printf("Io: mounted flash fs on \"flash:\" (%s)\r\n",
+               io_flash_get_size_string().c_str());
+    } else {
+        printf("Io: mounted sdcard fs on \"sd:\" (%s)\r\n",
+               io_flash_get_size_string().c_str());
+    }
 
     return true;
 }
 
-bool PicoIo::copy(const File &src, const File &dst) {
+bool Io::copy(const File &src, const File &dst) {
     char buf[4096];
     int32_t read;
     int32_t offset = 0;
@@ -176,11 +194,11 @@ bool PicoIo::copy(const File &src, const File &dst) {
         offset += read;
     }
 
-    printf("Io::copy: copied %li bytes\r\n", offset);
+    printf("Io::copy: copied %i bytes\r\n", offset);
     return true;
 }
 
-bool PicoIo::copy(const std::string &src, const std::string &dst) {
+bool Io::copy(const std::string &src, const std::string &dst) {
     bool core1_pause_needed = Utility::startWith(dst, "flash:");
     if (core1_pause_needed) p2d_display_pause();
 
@@ -193,7 +211,7 @@ bool PicoIo::copy(const std::string &src, const std::string &dst) {
     return res;
 }
 
-std::vector<Io::File::Info> PicoIo::getList(
+std::vector<Io::File::Info> Io::getList(
         const std::string &path, std::function<bool(const File::Info &)> const &filter) {
     std::vector<File::Info> ret;
     FatFs::list_files(path, [&ret, &filter](File::Info &file) {
@@ -201,7 +219,7 @@ std::vector<Io::File::Info> PicoIo::getList(
             ret.push_back(file);
     });
 
-    for (auto &buf_file: p2d_io_buf_files) {
+    for (auto &buf_file: buf_files) {
         auto slash_pos = buf_file.first.find_last_of('/');
 
         bool match;
@@ -225,15 +243,14 @@ std::vector<Io::File::Info> PicoIo::getList(
     return ret;
 }
 
-// TODO: handle directories
-Io::ListBuffer in_ram(PicoIo::getBufferedList)(const std::string &path, uint32_t flashOffset) {
+// TODO: handle directories ?
+Io::ListBuffer in_ram(Io::getBufferedList)(const std::string &path, uint32_t flashOffset) {
     char buffer[FLASH_SECTOR_SIZE / IO_MAX_PATH][IO_MAX_PATH];
     uint32_t maxFilesPerWrite = FLASH_SECTOR_SIZE / IO_MAX_PATH;
     uint32_t offset = flashOffset;
     uint32_t count = 0, currentFile = 0;
     Io::ListBuffer listBuffer;
 
-    std::vector<File::Info> ret;
     FatFs::list_files(path, [&count, &currentFile, &offset, &maxFilesPerWrite, &buffer](File::Info &file) {
         if (!(file.flags & File::Flags::Directory)) {
             strncpy(buffer[currentFile], file.name.c_str(), IO_MAX_PATH - 1);
@@ -281,15 +298,15 @@ bool Io::File::open(const std::string &path, int mode) {
     close();
 
     // check for buffer
-    auto it = p2d_io_buf_files.find(path);
+    auto it = buf_files.find(path);
 
-    if (!(mode & OpenMode::Write) && it != p2d_io_buf_files.end()) {
+    if (!(mode & OpenMode::Write) && it != buf_files.end()) {
         buf = it->second.ptr;
         buf_len = it->second.length;
         return true;
     }
 
-    p_fh = PicoIo::FatFs::open_file(path, mode);
+    p_fh = Io::FatFs::open_file(path, mode);
 
     // allow accessing raw flash file at correct offset when opened in read mode
     if (!(mode & OpenMode::Write) && Utility::startWith(path, "flash:")) {
@@ -309,11 +326,11 @@ int32_t Io::File::read(uint32_t offset, uint32_t length, char *buffer) const {
         return (int32_t) len;
     }
 
-    return PicoIo::FatFs::read_file(p_fh, offset, length, buffer);
+    return Io::FatFs::read_file(p_fh, offset, length, buffer);
 }
 
 int32_t Io::File::write(uint32_t offset, uint32_t length, const char *buffer) const {
-    return PicoIo::FatFs::write_file(p_fh, offset, length, buffer);
+    return Io::FatFs::write_file(p_fh, offset, length, buffer);
 }
 
 void Io::File::close() {
@@ -321,25 +338,25 @@ void Io::File::close() {
 
     if (!p_fh) return;
 
-    PicoIo::FatFs::close_file(p_fh);
+    Io::FatFs::close_file(p_fh);
     p_fh = nullptr;
 }
 
 uint32_t Io::File::getLength() const {
     if (buf) return buf_len;
-    return PicoIo::FatFs::get_file_length(p_fh);
+    return Io::FatFs::get_file_length(p_fh);
 }
 
 void Io::File::addBufferFile(const std::string &path, const uint8_t *ptr, uint32_t len) {
     const Io::FileBuffer fb = Io::FileBuffer{ptr, len};
-    p2d_io_buf_files.emplace(path, fb);
+    buf_files.emplace(path, fb);
 }
 
 ///
 /// FatFs high level io functions
 ///
 
-void *PicoIo::FatFs::open_file(const std::string &path, int mode) {
+void *Io::FatFs::open_file(const std::string &path, int mode) {
     FIL *f = new FIL();
     BYTE ff_mode = 0;
 
@@ -360,7 +377,7 @@ void *PicoIo::FatFs::open_file(const std::string &path, int mode) {
     return nullptr;
 }
 
-int32_t PicoIo::FatFs::read_file(void *fh, uint32_t offset, uint32_t length, char *buffer) {
+int32_t Io::FatFs::read_file(void *fh, uint32_t offset, uint32_t length, char *buffer) {
     FRESULT r = FR_OK;
     FIL *f = (FIL *) fh;
 
@@ -378,7 +395,7 @@ int32_t PicoIo::FatFs::read_file(void *fh, uint32_t offset, uint32_t length, cha
     return -1;
 }
 
-int32_t PicoIo::FatFs::write_file(void *fh, uint32_t offset, uint32_t length, const char *buffer) {
+int32_t Io::FatFs::write_file(void *fh, uint32_t offset, uint32_t length, const char *buffer) {
     FRESULT r = FR_OK;
     FIL *f = (FIL *) fh;
 
@@ -396,7 +413,7 @@ int32_t PicoIo::FatFs::write_file(void *fh, uint32_t offset, uint32_t length, co
     return -1;
 }
 
-int32_t PicoIo::FatFs::close_file(void *fh) {
+int32_t Io::FatFs::close_file(void *fh) {
     FRESULT r;
 
     r = f_close((FIL *) fh);
@@ -412,11 +429,11 @@ int32_t PicoIo::FatFs::close_file(void *fh) {
     return r == FR_OK ? 0 : -1;
 }
 
-uint32_t PicoIo::FatFs::get_file_length(void *fh) {
+uint32_t Io::FatFs::get_file_length(void *fh) {
     return f_size((FIL *) fh);
 }
 
-void PicoIo::FatFs::list_files(const std::string &path, std::function<void(File::Info & )> callback) {
+void Io::FatFs::list_files(const std::string &path, std::function<void(File::Info &)> callback) {
     DIR dir;
 
     if (f_opendir(&dir, path.c_str()) != FR_OK)
@@ -440,20 +457,20 @@ void PicoIo::FatFs::list_files(const std::string &path, std::function<void(File:
     f_closedir(&dir);
 }
 
-bool PicoIo::FatFs::file_exists(const std::string &path) {
+bool Io::FatFs::file_exists(const std::string &path) {
     FILINFO info;
     return f_stat(path.c_str(), &info) == FR_OK && !(info.fattrib & AM_DIR);
 }
 
-bool PicoIo::FatFs::remove_file(const std::string &path) {
+bool Io::FatFs::remove_file(const std::string &path) {
     return f_unlink(path.c_str()) == FR_OK;
 }
 
-bool PicoIo::FatFs::is_files_open() {
+bool Io::FatFs::is_files_open() {
     return open_files.size() > 0;
 }
 
-void PicoIo::FatFs::close_open_files() {
+void Io::FatFs::close_open_files() {
     while (!open_files.empty()) close_file(open_files.back());
 }
 

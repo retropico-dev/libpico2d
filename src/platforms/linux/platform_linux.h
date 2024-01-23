@@ -9,7 +9,6 @@
 #include "display_linux.h"
 #include "input_linux.h"
 #include "audio_linux.h"
-#include "io_linux.h"
 #include "pico.h"
 
 namespace p2d {

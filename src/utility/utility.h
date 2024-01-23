@@ -72,6 +72,10 @@ namespace p2d {
             }
         };
 
+        static std::string replace(const std::string &str, const std::string &from, const std::string &to);
+
+        static std::string remove(const std::string &str, const std::string &sub);
+
         static std::string removeExt(const std::string &str);
 
         static std::string baseName(const std::string &path);

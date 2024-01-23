@@ -9,6 +9,12 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include "flash.h"
+#include "sdcard.h"
+
+// 16MB flash: 6MB for bootloader/apps/cache, 10MB for fatfs "user" data/cache
+#define FLASH_TARGET_OFFSET_CACHE ((1024 * 1024) * 5)   // 1MB flash cache (raw)
+#define FLASH_TARGET_OFFSET_FATFS ((1024 * 1024) * 6)   // 10MB fatfs flash ("flash:")
 
 #define IO_MAX_FILES 2048
 #define IO_MAX_PATH 128
@@ -28,21 +34,12 @@ namespace p2d {
         };
 
         struct ListBuffer {
-#ifdef LINUX
-            std::vector<std::string> data;
-#else
             uint8_t *data = nullptr;
-#endif
             uint32_t data_size = 0;
-
             uint16_t count = 0;
 
             [[nodiscard]] char *at(int idx) const {
-#ifdef LINUX
-                return const_cast<char *>(data.at(idx).c_str());
-#else
                 return (char *) &data[idx * IO_MAX_PATH];
-#endif
             }
         };
 
@@ -126,36 +123,55 @@ namespace p2d {
             uint32_t buf_len{};
         };
 
-        Io() = default;
+        static void init();
 
-        ~Io() = default;
+        static void exit();
 
-        virtual bool isAvailable(const Device &device) { return false; }
+        static bool isAvailable(const Device &device);
 
-        virtual bool create(const std::string &path) { return false; }
+        static bool create(const std::string &path);
 
-        virtual bool remove(const std::string &path) { return false; }
+        static bool remove(const std::string &path);
 
-        virtual bool rename(const std::string &old_name, const std::string &new_name) { return false; }
+        static bool rename(const std::string &old_name, const std::string &new_name);
 
-        virtual bool fileExists(const std::string &path) { return false; }
+        static bool fileExists(const std::string &path);
 
-        virtual bool directoryExists(const std::string &path) { return false; }
+        static bool directoryExists(const std::string &path);
 
-        virtual bool copy(const File &src, const File &dst) { return false; }
+        static bool copy(const File &src, const File &dst);
 
-        virtual bool copy(const std::string &src, const std::string &dst) { return false; }
+        static bool copy(const std::string &src, const std::string &dst);
 
-        virtual std::vector<File::Info> getList(
-                const std::string &path, std::function<bool(const File::Info &)> const &filter = nullptr) {
-            return {};
-        }
+        static std::vector<File::Info> getList(
+                const std::string &path, std::function<bool(const File::Info &)> const &filter = nullptr);
 
-        virtual ListBuffer getBufferedList(const std::string &path, uint32_t flashOffset) {
-            return {};
-        }
+        static ListBuffer getBufferedList(const std::string &path, uint32_t flashOffset);
 
-        virtual bool format(const Device &device) { return false; }
+        static bool format(const Device &device);
+
+        class FatFs {
+        public:
+            static void *open_file(const std::string &path, int mode);
+
+            static int32_t read_file(void *fh, uint32_t offset, uint32_t length, char *buffer);
+
+            static int32_t write_file(void *fh, uint32_t offset, uint32_t length, const char *buffer);
+
+            static int32_t close_file(void *fh);
+
+            static uint32_t get_file_length(void *fh);
+
+            static void list_files(const std::string &path, std::function<void(File::Info &)> callback);
+
+            static bool file_exists(const std::string &path);
+
+            static bool remove_file(const std::string &path);
+
+            static bool is_files_open();
+
+            static void close_open_files();
+        };
     };
 }
 

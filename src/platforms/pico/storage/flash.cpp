@@ -7,6 +7,7 @@
 #include <pico/multicore.h>
 #include <hardware/sync.h>
 #include "utility.h"
+#include "io.h"
 #include "flash.h"
 
 static const uint32_t flash_offset = FLASH_TARGET_OFFSET_FATFS;
@@ -92,3 +93,5 @@ void p2d::io_flash_write_sector(uint32_t offset, const uint8_t *buffer) {
 
     restore_interrupts(status);
 }
+
+void p2d::io_flash_exit() {}

@@ -7,7 +7,6 @@
 
 #include <cstdio>
 #include <string>
-#include <hardware/flash.h>
 
 namespace p2d {
     bool io_flash_init();
@@ -29,6 +28,6 @@ namespace p2d {
     void io_flash_write_sector(uint32_t offset, const uint8_t *buffer);
 
     void io_flash_exit();
-}
 
 #endif //PICO2D_SKELETON_FLASH_H
+}

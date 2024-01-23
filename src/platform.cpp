@@ -34,3 +34,11 @@ bool Platform::loop(bool forceDraw) {
 
     return true;
 }
+
+Platform::~Platform() {
+    printf("~Platform()\n");
+    delete (p_display);
+    delete (p_audio);
+    delete (p_input);
+    Io::exit();
+}

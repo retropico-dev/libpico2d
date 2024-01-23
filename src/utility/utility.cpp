@@ -9,6 +9,23 @@ using namespace p2d;
 
 static Clock m_timing_clock;
 
+std::string Utility::replace(const std::string &str, const std::string &from, const std::string &to) {
+    std::string ret = str;
+    size_t start_pos = str.find(from);
+    if (start_pos == std::string::npos) return str;
+    ret.replace(start_pos, from.length(), to);
+    return ret;
+}
+
+std::string Utility::remove(const std::string &str, const std::string &sub) {
+    std::string ret = str;
+    size_t pos;
+    while ((pos = ret.find(sub)) != std::string::npos) {
+        ret.erase(pos, sub.length());
+    }
+    return ret;
+}
+
 std::string Utility::removeExt(const std::string &str) {
     size_t pos = str.find_last_of('.');
     if (pos != std::string::npos) {

@@ -49,6 +49,7 @@ file(GLOB PLATFORM_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/*.c*
         ${CMAKE_CURRENT_SOURCE_DIR}/src/utility/*.c*
         ${CMAKE_CURRENT_SOURCE_DIR}/src/compat/*.c*
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/fatfs/*.c*
         ${CMAKE_CURRENT_SOURCE_DIR}/external/Adafruit-GFX-Library/Adafruit_GFX.cpp
 )
 set(PLATFORM_INCLUDES
@@ -56,6 +57,7 @@ set(PLATFORM_INCLUDES
         ${CMAKE_CURRENT_SOURCE_DIR}/src/widgets
         ${CMAKE_CURRENT_SOURCE_DIR}/src/utility
         ${CMAKE_CURRENT_SOURCE_DIR}/src/compat
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/fatfs
         ${CMAKE_CURRENT_SOURCE_DIR}/external/Adafruit-GFX-Library
 )
 
@@ -76,14 +78,12 @@ if (PICO_BOARD)
     file(GLOB TEMP
             ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/*.c*
             ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/storage/*.c*
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/storage/fatfs/*.c*
     )
     list(APPEND PLATFORM_SOURCES ${TEMP})
     list(APPEND PLATFORM_INCLUDES
             ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico
             ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/misc
             ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/storage
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/storage/fatfs
     )
     list(APPEND PLATFORM_FLAGS
             PARAM_ASSERTIONS_DISABLE_ALL=1
@@ -176,9 +176,15 @@ if (PICO_BOARD)
                 "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/platforms/pico/misc/memmap_16mb.ld")
     endfunction()
 else ()
-    file(GLOB_RECURSE TEMP ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/linux/*.c*)
+    file(GLOB_RECURSE TEMP
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/linux/*.c*
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/linux/storage/*.c*
+    )
     list(APPEND PLATFORM_SOURCES ${TEMP})
-    list(APPEND PLATFORM_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/linux)
+    list(APPEND PLATFORM_INCLUDES
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/linux
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/linux/storage
+    )
     # SDL2
     include(FindPkgConfig)
     pkg_search_module(SDL2 REQUIRED sdl2)

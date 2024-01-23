@@ -53,4 +53,8 @@ uint32_t multicore_fifo_pop_blocking() { return 0; }
 
 void multicore_fifo_push_blocking(uint32_t data) {}
 
+void p2d_display_pause() {}
+
+void p2d_display_resume() {}
+
 #endif

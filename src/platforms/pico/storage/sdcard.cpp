@@ -459,3 +459,5 @@ int32_t p2d::io_sdcard_write(uint32_t sector, uint32_t offset, const uint8_t *bu
 
     return written;
 }
+
+void p2d::io_sdcard_exit() {}
