@@ -26,10 +26,10 @@ PicoPlatform::PicoPlatform(bool overclock) : Platform() {
         sleep_ms(2);
     }
 
-#ifndef NDEBUG
+#if defined(PICO_DEBUG_UART) || defined(PICO_DEBUG_USB)
     // initialise USB serial connection for debugging
     stdio_init_all();
-#ifndef LIB_PICO_STDIO_UART
+#ifdef PICO_DEBUG_USB
     // wait for usb serial
     while (!stdio_usb_connected()) { sleep_ms(100); }
 #endif

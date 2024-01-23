@@ -2,17 +2,17 @@ cmake_minimum_required(VERSION 3.5)
 #set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "ON")
 
 # main options
-option(PLATFORM_LINUX "Linux target platform" OFF)
 option(BUILD_EXAMPLE "Build example project" OFF)
 # pico options
-option(PICO_STDIO_UART "Pico UART debug" ON)
+option(PICO_DEBUG_UART "Pico uart debug" OFF)
+option(PICO_DEBUG_USB "Pico usb debug" OFF)
 option(PICO_DISPLAY_ST7789_PIO "Pico ST7789 display driver (pio)" ON)
 
 # tested at ~4Mb/sec, too slow for framebuffer usage
 #option(PICO_SPI_PSRAM "Pico psram spi driver (pio)" OFF)
 
 # libpico2d default board is adafruit feather rp2040
-if (NOT PLATFORM_LINUX)
+if (DEFINED ENV{PICO_SDK_PATH})
     if (NOT PICO_BOARD)
         #set(PICO_BOARD "adafruit_feather_rp2040" CACHE STRING "" FORCE) # v1.0 rev board
         set(PICO_BOARD "waveshare_rp2040_plus_16mb" CACHE STRING "" FORCE) # v1.1 rev board
@@ -27,12 +27,12 @@ endif ()
 
 project(pico2d-skeleton)
 
-if (PLATFORM_LINUX)
-    # i want all executable located at root of build directory
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} CACHE STRING "" FORCE)
-else ()
+if (PICO_BOARD)
     # initialize the Raspberry Pi Pico SDK
     pico_sdk_init()
+else ()
+    # i want all executable located at root of build directory
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} CACHE STRING "" FORCE)
 endif ()
 
 set(CMAKE_C_STANDARD 11)
@@ -72,17 +72,7 @@ function(target_add_resources target)
     target_link_libraries(${target} pico2d-skeleton ${target}-resources)
 endfunction()
 
-if (PLATFORM_LINUX)
-    file(GLOB_RECURSE TEMP ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/linux/*.c*)
-    list(APPEND PLATFORM_SOURCES ${TEMP})
-    list(APPEND PLATFORM_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/linux)
-    # SDL2
-    include(FindPkgConfig)
-    pkg_search_module(SDL2 REQUIRED sdl2)
-    list(APPEND PLATFORM_INCLUDES ${SDL2_INCLUDE_DIRS})
-    list(APPEND PLATFORM_FLAGS -DLINUX)
-    list(APPEND PLATFORM_LIBS ${SDL2_LIBRARIES})
-else ()
+if (PICO_BOARD)
     file(GLOB TEMP
             ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/*.c*
             ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/storage/*.c*
@@ -138,15 +128,15 @@ else ()
                 #-DPSRAM_SPINLOCK=1
                 -DPSRAM_ASYNC=1
                 -DPSRAM_PIN_MOSI=12
-                -DPSRAM_PIN_MISO=15
                 -DPSRAM_PIN_CS=13
                 -DPSRAM_PIN_SCK=14
+                -DPSRAM_PIN_MISO=15
                 -DPICO_PSRAM=1
         )
         list(APPEND PLATFORM_LIBS rp2040-psram)
     endif ()
 
-    # microboy board revision define
+    # microboy board revision pinout definition
     if (PICO_BOARD STREQUAL "adafruit_feather_rp2040")
         list(APPEND PLATFORM_FLAGS -DMICROBOY_10)
     else ()
@@ -154,8 +144,10 @@ else ()
     endif ()
 
     # picoprobe debug
-    if (PICO_STDIO_UART)
-        list(APPEND PLATFORM_FLAGS -DPICO_STDIO_UART)
+    if (PICO_DEBUG_UART)
+        list(APPEND PLATFORM_FLAGS -DPICO_DEBUG_UART)
+    elseif (PICO_DEBUG_USB)
+        list(APPEND PLATFORM_FLAGS -DPICO_DEBUG_USB)
     endif ()
 
     # custom linker script
@@ -183,6 +175,16 @@ else ()
         set_linker_script(${TARGET}
                 "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/platforms/pico/misc/memmap_16mb.ld")
     endfunction()
+else ()
+    file(GLOB_RECURSE TEMP ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/linux/*.c*)
+    list(APPEND PLATFORM_SOURCES ${TEMP})
+    list(APPEND PLATFORM_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/linux)
+    # SDL2
+    include(FindPkgConfig)
+    pkg_search_module(SDL2 REQUIRED sdl2)
+    list(APPEND PLATFORM_INCLUDES ${SDL2_INCLUDE_DIRS})
+    list(APPEND PLATFORM_FLAGS -DLINUX)
+    list(APPEND PLATFORM_LIBS ${SDL2_LIBRARIES})
 endif ()
 
 ####################
@@ -192,7 +194,8 @@ add_library(pico2d-skeleton ${PLATFORM_SOURCES})
 target_include_directories(pico2d-skeleton PUBLIC ${PLATFORM_INCLUDES})
 target_compile_definitions(pico2d-skeleton PUBLIC ${PLATFORM_FLAGS})
 target_link_libraries(pico2d-skeleton PUBLIC ${PLATFORM_LIBS} tweeny)
-if (NOT PLATFORM_LINUX)
+
+if (PICO_BOARD)
     # ST7789 pio
     if (PICO_DISPLAY_ST7789_PIO)
         pico_generate_pio_header(pico2d-skeleton
@@ -204,11 +207,14 @@ if (NOT PLATFORM_LINUX)
             ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/storage/spi.pio)
 
     # debug
-    if (PICO_STDIO_UART)
+    if (PICO_DEBUG_UART)
         pico_enable_stdio_usb(pico2d-skeleton 0)
         pico_enable_stdio_uart(pico2d-skeleton 1)
-    else ()
+    elseif (PICO_DEBUG_USB)
         pico_enable_stdio_usb(pico2d-skeleton 1)
+        pico_enable_stdio_uart(pico2d-skeleton 0)
+    else ()
+        pico_enable_stdio_usb(pico2d-skeleton 0)
         pico_enable_stdio_uart(pico2d-skeleton 0)
     endif ()
 endif ()

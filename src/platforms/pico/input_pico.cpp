@@ -38,7 +38,7 @@ uint16_t PicoInput::getButtons() {
         if (map.pin != -1) m_buttons |= gpio_get(map.pin) ? 0 : map.button;
     }
 
-#ifndef NDEBUG
+#if defined(PICO_DEBUG_UART) || defined(PICO_DEBUG_USB)
     int c = getchar_timeout_us(0);
     switch (c) {
         case 49: // NUMPAD 1

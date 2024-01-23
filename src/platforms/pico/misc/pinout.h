@@ -26,7 +26,7 @@
 #define AUDIO_PIN_LRC   28  // LRC (CLOCK + 1)      A2
 
 // BUTTONS PINS
-#if !defined(NDEBUG) && defined(PICO_STDIO_UART)
+#if !defined(NDEBUG) && defined(PICO_DEBUG_UART)
 #define BTN_PIN_A       (-1)    //                  25
 #define BTN_PIN_B       (-1)    //                  24
 #define BTN_PIN_START   (-1)    //                  RX

@@ -45,7 +45,7 @@ PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i
     if (m_buffering == Buffering::Double) {
         p_surfaces[1] = new Surface(PicoDisplay::getSize());
         // launch core1
-#if !defined(NDEBUG) && defined(PICO_STDIO_UART)
+#if defined(PICO_DEBUG_UART)
         multicore_reset_core1(); // seems to be needed for "picoprobe" debugging
 #endif
         multicore_launch_core1(core1_main);
