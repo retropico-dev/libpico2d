@@ -16,12 +16,26 @@ static Surface **s_surfaces;
 static Utility::Vec2i s_display_size;
 static Utility::Vec4i s_render_bounds;
 static uint8_t s_bit_shift;
-static bool s_flip = false;
-static uint8_t s_buffer_index;
+
+// core1 stuff
+#define CORE1_CMD_FLIP 0
+#define CORE1_CMD_EXIT 1
+
+union core_cmd {
+    struct {
+        uint8_t cmd;
+        uint8_t fb;
+    };
+    uint32_t full;
+};
+
+static core_cmd cmd_flip{.cmd = CORE1_CMD_FLIP};
+static core_cmd cmd_exit{.cmd = CORE1_CMD_EXIT};
+static int core1_busy = 0;
+
+static void in_ram(core1_main)();
 
 static void in_ram(draw)(Surface *surface);
-
-_Noreturn static void in_ram(core1_main)();
 
 PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i &renderSize,
                          const Utility::Vec4i &renderBounds, const Buffering &buffering,
@@ -103,13 +117,17 @@ void in_ram(PicoDisplay::clear)() {
 
 void in_ram(PicoDisplay::flip)() {
     if (m_buffering == Buffering::Double) {
-        // wait for previous buffer flip
-        while (s_flip) tight_loop_contents();
-        // send "flip cmd" (s_flip) to core1
-        // (can't use fifo when using flash write (multicore_lockout_victim_init)...)
-        s_buffer_index = m_bufferIndex;
-        s_flip = true;
-        // flip buffer
+        // wait for previous buffer flip if needed
+        while (__atomic_load_n(&core1_busy, __ATOMIC_SEQ_CST)) {
+            tight_loop_contents();
+        }
+
+        // send core1 flip "cmd"
+        cmd_flip.fb = m_bufferIndex;
+        __atomic_store_n(&core1_busy, 1, __ATOMIC_SEQ_CST);
+        multicore_fifo_push_blocking(cmd_flip.full);
+
+        // flip buffers
         m_bufferIndex = !m_bufferIndex;
     } else if (m_buffering == Buffering::Single) {
         // slow...
@@ -123,32 +141,43 @@ static bool core1_stop = false;
 static bool core1_stopped = true;
 
 void in_ram(p2d_display_pause)() {
-    //printf("p2d_display_pause\r\n");
+    printf("p2d_display_pause\r\n");
     if (!core1_stopped) {
         core1_stop = true;
+        multicore_fifo_push_blocking(cmd_exit.full);
         while (!core1_stopped) tight_loop_contents();
     }
 }
 
 void in_ram(p2d_display_resume)() {
-    //printf("p2d_display_resume\r\n");
+    printf("p2d_display_resume\r\n");
     if (core1_stop) {
         multicore_reset_core1();
         multicore_launch_core1(core1_main);
     }
 }
 
-_Noreturn static void in_ram(core1_main)() {
+static void in_ram(core1_main)() {
+    core_cmd cmd{};
+
     //multicore_lockout_victim_init();
     core1_stop = false;
     core1_stopped = false;
 
     while (!core1_stop) {
+        cmd.full = multicore_fifo_pop_blocking();
+        if (cmd.cmd == CORE1_CMD_FLIP) {
+            draw(s_surfaces[cmd.fb]);
+            __atomic_store_n(&core1_busy, 0, __ATOMIC_SEQ_CST);
+        }
+#if 0
         while (!s_flip) tight_loop_contents();
         draw(s_surfaces[s_buffer_index]);
         s_flip = false;
+#endif
     }
 
+    __atomic_store_n(&core1_busy, 0, __ATOMIC_SEQ_CST);
     core1_stopped = true;
 }
 
