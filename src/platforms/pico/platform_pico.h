@@ -15,6 +15,7 @@
 
 #include "pico_display.h"
 #include "pico_display_direct.h"
+#include "io_pico.h"
 #include "input_pico.h"
 #include "audio_pico.h"
 

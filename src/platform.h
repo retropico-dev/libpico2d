@@ -42,6 +42,8 @@ namespace p2d {
 
         Display *getDisplay() { return p_display; }
 
+        Io *getIo() { return p_io; }
+
         Audio *getAudio() { return p_audio; }
 
         Input *getInput() { return p_input; }
@@ -56,6 +58,7 @@ namespace p2d {
 
     protected:
         Display *p_display = nullptr;
+        Io *p_io = nullptr;
         Input *p_input = nullptr;
         Audio *p_audio = nullptr;
     };
