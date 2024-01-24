@@ -119,6 +119,7 @@ void in_ram(PicoDisplay::flip)() {
     if (m_buffering == Buffering::Double) {
         // wait for previous buffer flip if needed
         while (__atomic_load_n(&core1_busy, __ATOMIC_SEQ_CST)) {
+            //printf("PicoDisplay::flip: waiting for rendering done...\r\n");
             tight_loop_contents();
         }
 
@@ -141,20 +142,26 @@ static bool core1_stop = false;
 static bool core1_stopped = true;
 
 void in_ram(p2d_display_pause)() {
-    printf("p2d_display_pause\r\n");
+    //printf("p2d_display_pause\r\n");
+
     if (!core1_stopped) {
         core1_stop = true;
         multicore_fifo_push_blocking(cmd_exit.full);
         while (!core1_stopped) tight_loop_contents();
     }
+
+    //printf("p2d_display_pause: true\r\n");
 }
 
 void in_ram(p2d_display_resume)() {
-    printf("p2d_display_resume\r\n");
+    //printf("p2d_display_resume\r\n");
+
     if (core1_stop) {
         multicore_reset_core1();
         multicore_launch_core1(core1_main);
     }
+
+    //printf("p2d_display_resume: true\r\n");
 }
 
 static void in_ram(core1_main)() {
@@ -168,8 +175,9 @@ static void in_ram(core1_main)() {
         cmd.full = multicore_fifo_pop_blocking();
         if (cmd.cmd == CORE1_CMD_FLIP) {
             draw(s_surfaces[cmd.fb]);
-            __atomic_store_n(&core1_busy, 0, __ATOMIC_SEQ_CST);
         }
+
+        __atomic_store_n(&core1_busy, 0, __ATOMIC_SEQ_CST);
 #if 0
         while (!s_flip) tight_loop_contents();
         draw(s_surfaces[s_buffer_index]);
@@ -177,7 +185,6 @@ static void in_ram(core1_main)() {
 #endif
     }
 
-    __atomic_store_n(&core1_busy, 0, __ATOMIC_SEQ_CST);
     core1_stopped = true;
 }
 
