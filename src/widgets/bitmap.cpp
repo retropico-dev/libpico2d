@@ -15,8 +15,8 @@ Bitmap::Bitmap(const Surface *surface, const Utility::Vec2i &pos) : Widget() {
            m_surface->getSize().x, m_surface->getSize().y, m_surface->getPixelsSize());
 }
 
-Bitmap::Bitmap(const RomFs::Binary &binary, const Utility::Vec2i &pos) {
-    m_surface = new Surface(binary);
+Bitmap::Bitmap(const Io::File &file, const Utility::Vec2i &pos) {
+    m_surface = new Surface(file);
     Widget::setPosition(pos);
     Widget::setSize(m_surface->getSize());
     printf("Bitmap(bmp): %ix%i, bytes: %u\r\n",

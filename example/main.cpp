@@ -45,14 +45,14 @@ int main() {
     auto center = Utility::Vec2i((int16_t) (bounds.x / 2), (int16_t) (bounds.y / 2));
 
     // load bitmap resources
-    auto girl = new Bitmap(RomFs::get("data/girl_120x120.bmp"));
+    auto girl = new Bitmap(Io::File{"res:/data/girl_120x120.bmp"});
     //girl->setOrigin(Widget::Origin::Center);
     platform->add(girl);
     platform->add(girl);
     platform->add(girl);
     platform->add(girl);
 
-    auto star = new Bitmap(RomFs::get("data/star.bmp"), center);
+    auto star = new Bitmap(Io::File{"res:/data/star.bmp"}, center);
     star->setOrigin(Widget::Origin::Center);
     platform->add(star);
 

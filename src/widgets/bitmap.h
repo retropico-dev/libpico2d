@@ -6,14 +6,13 @@
 #define U_MICROBOY_BITMAP_H
 
 #include "widget.h"
-#include "romfs.h"
 
 namespace p2d {
     class Bitmap : public Widget {
     public:
         explicit Bitmap(const Surface *surface, const Utility::Vec2i &pos = {});
 
-        explicit Bitmap(const RomFs::Binary &binary, const Utility::Vec2i &pos = {});
+        explicit Bitmap(const Io::File &file, const Utility::Vec2i &pos = {});
 
         ~Bitmap();
 
