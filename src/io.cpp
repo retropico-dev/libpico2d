@@ -276,13 +276,12 @@ Io::ListBuffer in_ram(Io::getBufferedList)(const std::string &path, uint32_t fla
     FatFs::list_files(path, [&count, &currentFile, &offset, &maxFilesPerWrite, &buffer](File::Info &file) {
         if (!(file.flags & File::Flags::Directory)) {
             strncpy(buffer[currentFile], file.name.c_str(), IO_MAX_PATH - 1);
-            currentFile++;
             count++;
+            currentFile++;
             if (currentFile == maxFilesPerWrite) {
                 io_flash_write_sector(offset, (const uint8_t *) buffer);
                 offset += FLASH_SECTOR_SIZE;
                 currentFile = 0;
-                memset(buffer, 0, sizeof(buffer));
             }
         }
     });
@@ -290,10 +289,11 @@ Io::ListBuffer in_ram(Io::getBufferedList)(const std::string &path, uint32_t fla
     // flash remaining
     if (currentFile > 0) {
         io_flash_write_sector(offset, (const uint8_t *) buffer);
+        offset += FLASH_SECTOR_SIZE;
     }
 
+    listBuffer.data_size = offset - flashOffset;
     listBuffer.data = (uint8_t *) (XIP_BASE + flashOffset);
-    listBuffer.data_size = count * IO_MAX_PATH;
     listBuffer.count = (int) count;
 
     p2d_display_resume();

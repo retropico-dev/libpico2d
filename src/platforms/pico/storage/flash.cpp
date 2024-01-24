@@ -44,7 +44,12 @@ int32_t p2d::io_flash_read(uint32_t sector, uint32_t offset, void *buffer, uint3
     return (int32_t) size_bytes;
 }
 
-int32_t p2d::io_flash_write(uint32_t sector, uint32_t offset, const uint8_t *buffer, uint32_t size_bytes) {
+int32_t p2d::io_flash_read_sector(uint32_t offset, void *buffer) {
+    memcpy(buffer, (uint8_t *) XIP_BASE + offset, FLASH_SECTOR_SIZE);
+    return (int32_t) FLASH_SECTOR_SIZE;
+}
+
+int32_t __not_in_flash_func(p2d::io_flash_write)(uint32_t sector, uint32_t offset, const uint8_t *buffer, uint32_t size_bytes) {
     //printf("io_flash_write: sector: %lu, offset: %lu, size: %lu\r\n", sector, offset, size_bytes);
     auto status = save_and_disable_interrupts();
 
@@ -68,12 +73,7 @@ int32_t p2d::io_flash_write(uint32_t sector, uint32_t offset, const uint8_t *buf
     return (int32_t) size_bytes;
 }
 
-int32_t p2d::io_flash_read_sector(uint32_t offset, void *buffer) {
-    memcpy(buffer, (uint8_t *) XIP_BASE + offset, FLASH_SECTOR_SIZE);
-    return (int32_t) FLASH_SECTOR_SIZE;
-}
-
-void p2d::io_flash_write_sector(uint32_t offset, const uint8_t *buffer) {
+void __not_in_flash_func(p2d::io_flash_write_sector)(uint32_t offset, const uint8_t *buffer) {
     auto status = save_and_disable_interrupts();
 
     /*
