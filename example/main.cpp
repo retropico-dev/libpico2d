@@ -48,9 +48,9 @@ int main() {
     auto girl = new Bitmap(Io::File{"res:/data/girl_120x120.bmp"});
     //girl->setOrigin(Widget::Origin::Center);
     platform->add(girl);
-    platform->add(girl);
-    platform->add(girl);
-    platform->add(girl);
+    //platform->add(girl);
+    //platform->add(girl);
+    //platform->add(girl);
 
     auto star = new Bitmap(Io::File{"res:/data/star.bmp"}, center);
     star->setOrigin(Widget::Origin::Center);
@@ -62,16 +62,16 @@ int main() {
     platform->add(text);
 
     /*
-    auto tween = tweeny::from(bitmap->getPosition().x)
+    auto tween = tweeny::from(girl->getPosition().x)
             .to(platform->getDisplay()->getSize().x)
             .during(5 * 1000);
 
-    deltaClock.restart();
+    clock.restart();
     */
 
     while (platform->loop(true)) {
-        //int16_t x = tween.step((int32_t) deltaClock.restart().asMilliseconds(), true);
-        //bitmap->setPosition(x, bitmap->getPosition().y);
+        //int16_t x = tween.step((int32_t) clock.restart().asMilliseconds(), true);
+        //girl->setPosition(x, girl->getPosition().y);
 
         // fps
         if (clock.getElapsedTime().asSeconds() >= 1) {
