@@ -9,7 +9,7 @@ option(PICO_DEBUG_USB "Pico usb debug" OFF)
 option(PICO_DISPLAY_ST7789_PIO "Pico ST7789 display driver (pio)" ON)
 
 # tested at ~4Mb/sec, too slow for framebuffer usage
-#option(PICO_SPI_PSRAM "Pico psram spi driver (pio)" OFF)
+option(PICO_SPI_PSRAM "Pico psram spi driver (pio)" ON)
 
 # libpico2d default board is adafruit feather rp2040
 if (DEFINED ENV{PICO_SDK_PATH})
@@ -122,18 +122,9 @@ if (PICO_BOARD)
 
     if (PICO_SPI_PSRAM)
         # psram module
-        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/rp2040-psram)
-        list(APPEND PLATFORM_FLAGS
-                -DPSRAM_MUTEX
-                #-DPSRAM_SPINLOCK=1
-                -DPSRAM_ASYNC=1
-                -DPSRAM_PIN_MOSI=12
-                -DPSRAM_PIN_CS=13
-                -DPSRAM_PIN_SCK=14
-                -DPSRAM_PIN_MISO=15
-                -DPICO_PSRAM=1
-        )
-        list(APPEND PLATFORM_LIBS rp2040-psram)
+        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/aps6404)
+        list(APPEND PLATFORM_FLAGS -DPICO_PSRAM=1)
+        list(APPEND PLATFORM_LIBS aps6404)
     endif ()
 
     # microboy board revision pinout definition

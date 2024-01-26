@@ -46,7 +46,9 @@
 #define BTN_PIN_DOWN    (2)     //                  SDA
 #endif
 #elif defined(MICROBOY_11)
-// SPI LCD PINS         GPIO
+// SPI LCD PINOUT
+#define LCD_PIO         pio0
+#define LCD_SM          0
 #define LCD_PIN_CLK     2   // SCK
 #define LCD_PIN_DIN     3   // MOSI
 #define LCD_PIN_DC      4
@@ -54,24 +56,30 @@
 #define LCD_PIN_RESET   6
 #define LCD_PIN_BL      7
 
-// SPI SDCARD PINS      GPIO
-#define SD_PIN_CS       17
-#define SD_PIN_CLK      18
-#define SD_PIN_MOSI     19
-#define SD_PIN_MISO     20
+// SPI SDCARD PINOUT
+#define SD_PIO          pio0
+#define SD_SM           1
+#define SD_PIN_CS       12
+#define SD_PIN_CLK      13
+#define SD_PIN_MOSI     14
+#define SD_PIN_MISO     15
 
-// AUDIO PINS (I2S)     GPIO
+// AUDIO PINOUT (I2S)
+#define AUDIO_PIO       pio1
+#define AUDIO_SM        0
 #define AUDIO_PIN_DATA  9  // DIN
 #define AUDIO_PIN_CLOCK 10  // BCLK
 #define AUDIO_PIN_LRC   11  // LRC (CLOCK + 1)
 
-// PSRAM
-/*
-#define PSRAM_PIN_MOSI  (12)
-#define PSRAM_PIN_CS    (13)
-#define PSRAM_PIN_SCK   (14)
-#define PSRAM_PIN_MISO  (15)
-*/
+// PSRAM PINOUT
+#define PSRAM_PIO       pio1
+#define PSRAM_SM        1
+#define PSRAM_PIN_CS    17
+#define PSRAM_PIN_CLK   18
+#define PSRAM_PIN_D0    19
+#define PSRAM_PIN_D1    20
+#define PSRAM_PIN_D2    21
+#define PSRAM_PIN_D3    22
 
 #define BTN_PIN_START   (24)
 #define BTN_PIN_SELECT  (-1)

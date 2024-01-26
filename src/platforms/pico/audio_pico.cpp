@@ -7,7 +7,9 @@
 #include "platform.h"
 #include "pinout.h"
 
-#define audio_pio __CONCAT(pio, PICO_AUDIO_I2S_PIO)
+//#define audio_pio __CONCAT(pio, PICO_AUDIO_I2S_PIO)
+#define audio_pio AUDIO_PIO
+#define audio_sm AUDIO_SM
 
 using namespace p2d;
 
@@ -28,17 +30,17 @@ void PicoAudio::setup(uint16_t rate, uint16_t samples, uint8_t channels) {
     };
 
     // audio_i2s_setup claims
-    uint8_t pio_sm = pio_claim_unused_sm(audio_pio, true);
+    //uint8_t pio_sm = pio_claim_unused_sm(audio_pio, true);
     uint8_t dma_channel = dma_claim_unused_channel(true);
     // audio_i2s_setup will use pio_sm_claim / dma_channel_claim so free them before
     dma_channel_unclaim(dma_channel);
-    pio_sm_unclaim(audio_pio, pio_sm);
+    //pio_sm_unclaim(audio_pio, pio_sm);
 
     m_i2s_config = {
             .data_pin = AUDIO_PIN_DATA,
             .clock_pin_base = AUDIO_PIN_CLOCK,
             .dma_channel = dma_channel,
-            .pio_sm = pio_sm
+            .pio_sm = audio_sm
     };
 
     p_producer_pool = audio_new_producer_pool(&producer_format, 4, m_samples);

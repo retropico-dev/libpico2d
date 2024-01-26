@@ -12,11 +12,11 @@
 namespace p2d {
     class PSram {
     public:
-        static void init(float spi_mhz = 100.0f);
+        static bool init();
 
-        static void read(uint32_t addr, uint8_t *dst, size_t count);
+        static void read(uint32_t addr, uint32_t *read_buf, size_t count);
 
-        static void write(uint32_t addr, uint8_t *src, size_t count);
+        static void write(uint32_t addr, uint32_t *data, size_t count);
 
         static void memset(uint32_t addr, uint32_t value, size_t count);
 

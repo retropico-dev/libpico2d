@@ -11,8 +11,8 @@
 #include "st7789.h"
 #include "pinout.h"
 
-static PIO pio = pio0;
-static uint pio_sm = 0;
+static PIO pio = LCD_PIO;
+static uint pio_sm = LCD_SM;
 static uint8_t pio_bit_size = 16;
 
 // Format: cmd length (including cmd byte), post delay in units of 5 ms, then cmd payload
@@ -111,7 +111,7 @@ void st7789_init(uint8_t format, float spiClockMhz) {
     auto clock_div = (float) sys_clock * (62.5f / spiClockMhz) / 125;
 
     uint offset = pio_add_program(pio, &st7789_lcd_program);
-    pio_sm_claim(pio, pio_sm);
+    //pio_sm_claim(pio, pio_sm);
     st7789_lcd_program_init(pio, pio_sm, offset, LCD_PIN_DIN, LCD_PIN_CLK, clock_div);
 
     gpio_init(LCD_PIN_CS);

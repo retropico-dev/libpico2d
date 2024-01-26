@@ -17,8 +17,8 @@
 
 #define SD_TIMEOUT 10
 
-static PIO sd_pio = pio1;
-static int sd_sm = 0;
+static PIO sd_pio = SD_PIO;
+static int sd_sm = SD_SM;
 static bool sd_io_initialised = false;
 
 static uint32_t card_size_blocks = 0;
@@ -264,7 +264,8 @@ bool p2d::io_sdcard_init(float spiMhz) {
     // this will be called again if it fails
     if (!sd_io_initialised) {
         uint offset = pio_add_program(sd_pio, &spi_cpha0_program);
-        sd_sm = pio_claim_unused_sm(sd_pio, true);
+        //sd_sm = pio_claim_unused_sm(sd_pio, true);
+        //pio_sm_claim(sd_pio, sd_sm);
 
         pio_sm_config c = spi_cpha0_program_get_default_config(offset);
 
@@ -401,8 +402,9 @@ bool p2d::io_sdcard_init(float spiMhz) {
     pio_sm_set_clkdiv(sd_pio, sd_sm, clock_div);
     pio_sm_restart(sd_pio, sd_sm);
 
-    printf("PicoIo: detected %s card @ %i Mhz\r\n", is_v2 ? (is_hcs ? "SDHC" : "SDv2") : "SDv1",
-           (uint16_t) ((float) sys_clock / clock_div));
+    printf("PicoIo: detected %s card @ %i Mhz (pio: %i, sm: %i)\r\n",
+           is_v2 ? (is_hcs ? "SDHC" : "SDv2") : "SDv1",
+           (uint16_t) ((float) sys_clock / clock_div), sd_pio == pio0 ? 0 : 1, sd_sm);
 
     return true;
 }
