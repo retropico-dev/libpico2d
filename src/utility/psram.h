@@ -7,6 +7,8 @@
 
 #ifdef PICO_PSRAM
 
+#include "aps6404.hpp"
+
 #define PSRAM_INVALID_ADDRESS UINT32_MAX
 
 namespace p2d {
@@ -14,16 +16,26 @@ namespace p2d {
     public:
         static bool init();
 
-        static void read(uint32_t addr, uint32_t *read_buf, size_t count);
+        static void read(uint32_t addr, uint32_t *read_buf, const size_t len);
 
-        static void write(uint32_t addr, uint32_t *data, size_t count);
+        static void read(uint32_t addr, uint16_t *read_buf, size_t len);
 
-        static void memset(uint32_t addr, uint32_t value, size_t count);
+        static void read_blocking(uint32_t addr, uint32_t *read_buf, const size_t len);
+
+        static void write(uint32_t addr, uint32_t *data, const size_t len);
+
+        static void write(uint32_t addr, const uint16_t color, const size_t len);
+
+        static void memset(uint32_t addr, uint32_t value, const size_t len);
+
+        static void flush();
 
         static uint32_t alloc(size_t size);
 
         // TODO
         //static void free(void *ptr);
+
+        static pimoroni::APS6404 *getRam();
     };
 }
 
