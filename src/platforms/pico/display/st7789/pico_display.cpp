@@ -2,10 +2,13 @@
 // Created by cpasjuste on 30/05/23.
 //
 
+#ifndef PICO_PSRAM
+
 #include <cstdio>
 #include <hardware/clocks.h>
 #include "platform.h"
 #include "pico_display.h"
+
 #include "st7789.h"
 
 using namespace p2d;
@@ -71,7 +74,7 @@ PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i
     }
 
     // clear display
-    clearDisplay();
+    st7789_clear();
 }
 
 void PicoDisplay::setCursor(int16_t x, int16_t y) {
@@ -87,15 +90,6 @@ __always_inline void PicoDisplay::setPixel(uint16_t color) {
     if (m_cursor.x >= m_renderSize.x) {
         m_cursor.x = 0;
         m_cursor.y += 1;
-    }
-}
-
-void PicoDisplay::clearDisplay() {
-    st7789_set_cursor(0, 0);
-    for (uint_fast16_t y = 0; y < m_displaySize.x; y++) {
-        for (uint_fast16_t x = 0; x < m_displaySize.y; x++) {
-            st7789_put16(Display::Color::Black);
-        }
     }
 }
 
@@ -258,3 +252,5 @@ static void in_ram(draw)(Surface *surface) {
         }
     }
 }
+
+#endif

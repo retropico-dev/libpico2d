@@ -2,6 +2,8 @@
 // Created by cpasjuste on 30/05/23.
 //
 
+#ifndef PICO_PSRAM
+
 #include <cstdio>
 #include "platform.h"
 #include "pico_display_direct.h"
@@ -37,3 +39,5 @@ __always_inline void PicoDisplayDirectDraw::setPixel(uint16_t color) {
     // no alpha support (colorKey), prevent function call overhead in "direct drawing" mode
     st7789_put16(color << m_bit_shift);
 }
+
+#endif

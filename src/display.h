@@ -93,7 +93,7 @@ namespace p2d {
         virtual void drawPixelLine(const uint16_t *pixels, uint16_t width);
 
         // draw a surface (pixel buffer) to the display with scaling if requested
-        void drawSurface(Surface *surface, const Utility::Vec4i &bounds);
+        virtual void drawSurface(Surface *surface, const Utility::Vec4i &bounds);
 
         // draw a surface (pixel buffer) to the display
         void drawSurface(Surface *surface, const Utility::Vec2i &pos) {

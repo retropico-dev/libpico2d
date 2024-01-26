@@ -103,8 +103,8 @@ namespace pimoroni {
         //pio_sm_claim(pio, pio_sm);
 
         // Claim DMA channels
-        dma_channel = dma_claim_unused_channel(true);
-        read_cmd_dma_channel = dma_claim_unused_channel(true);
+        dma_channel = 1;//= dma_claim_unused_channel(true);
+        read_cmd_dma_channel = 2;//dma_claim_unused_channel(true);
         setup_dma_config();
     }
 

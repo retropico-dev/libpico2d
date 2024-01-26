@@ -26,9 +26,9 @@ using namespace p2d;
 
 static Display::Settings ds{
         .displaySize = {240, 240},          // real display size (hardware size)
-        .renderSize = {120, 120},           // rendering size (framebuffer size)
+        .renderSize = {240, 240},           // rendering size (framebuffer size)
         .renderBounds = {0, 0, 240, 240},   // rendering bounds, used for scaling (if renderSize != renderBounds.w/h)
-        .bufferingMode = Display::Buffering::Double,
+        .bufferingMode = Display::Buffering::Single,
         .format = Display::Format::RGB565
 };
 
@@ -48,7 +48,14 @@ int main() {
     auto girl = new Bitmap(Io::File{"res:/data/girl_120x120.bmp"});
     //girl->setOrigin(Widget::Origin::Center);
     platform->add(girl);
-    //platform->add(girl);
+    platform->add(girl);
+    platform->add(girl);
+    platform->add(girl);
+    platform->add(girl);
+    platform->add(girl);
+    platform->add(girl);
+    platform->add(girl);
+    platform->add(girl);
     //platform->add(girl);
     //platform->add(girl);
 

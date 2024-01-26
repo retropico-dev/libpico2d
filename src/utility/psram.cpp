@@ -95,9 +95,12 @@ void in_ram(PSram::memset)(uint32_t addr, uint32_t value, size_t len) {
     }
 }
 
-uint32_t in_ram(PSram::alloc)(size_t size) {
+uint32_t in_ram(PSram::alloc)(size_t size, bool clear) {
     if (current_address + size < max_address) {
         current_address += size;
+        if (clear) {
+            p_ram->write_repeat(current_address, 0, size << 1);
+        }
         return current_address;
     }
 

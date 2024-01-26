@@ -7,13 +7,40 @@
 #include <cstdio>
 #include <hardware/structs/clocks.h>
 #include <hardware/clocks.h>
-#include "st7789_lcd.pio.h"
+#include <hardware/dma.h>
+#include "st7789-spi.pio.h"
 #include "st7789.h"
 #include "pinout.h"
 
 static PIO pio = LCD_PIO;
 static uint pio_sm = LCD_SM;
 static uint8_t pio_bit_size = 16;
+static uint32_t dma_channel = 0;
+
+#if TEST_LINE_BUFFER
+uint16_t frame_buffer[DISPLAY_WIDTH];
+#else
+uint16_t frame_buffer[DISPLAY_WIDTH * DISPLAY_HEIGHT];
+#endif
+
+// used for pixel doubling
+static void __isr
+
+st7789_dma_irq_handler() {
+    /*
+    if (dma_channel_get_irq0_status(dma_channel)) {
+        dma_channel_acknowledge_irq0(dma_channel);
+
+        if (++cur_scanline > win_h / 2)
+            return;
+
+        auto count = cur_scanline == (win_h + 1) / 2 ? win_w / 4 : win_w / 2;
+
+        dma_channel_set_trans_count(dma_channel, count, false);
+        dma_channel_set_read_addr(dma_channel, upd_frame_buffer + (cur_scanline - 1) * (win_w / 2), true);
+    }
+    */
+}
 
 // Format: cmd length (including cmd byte), post delay in units of 5 ms, then cmd payload
 // Note the delays have been shortened a little
@@ -110,7 +137,7 @@ void st7789_init(uint8_t format, float spiClockMhz) {
     auto sys_clock = (uint16_t) (clock_get_hz(clk_sys) / 1000000);
     auto clock_div = (float) sys_clock * (62.5f / spiClockMhz) / 125;
 
-    uint offset = pio_add_program(pio, &st7789_lcd_program);
+    uint offset = pio_add_program(pio, &st7789_raw_program);
     //pio_sm_claim(pio, pio_sm);
     st7789_lcd_program_init(pio, pio_sm, offset, LCD_PIN_DIN, LCD_PIN_CLK, clock_div);
 
@@ -131,6 +158,22 @@ void st7789_init(uint8_t format, float spiClockMhz) {
     st7789_lcd_init(st7789_init_seq);
 
     gpio_put(LCD_PIN_BL, true);
+
+    // initialise dma channel for transmitting pixel data to screen
+    dma_channel = dma_claim_unused_channel(true);
+    dma_channel_config config = dma_channel_get_default_config(dma_channel);
+    channel_config_set_transfer_data_size(&config, DMA_SIZE_16);
+    channel_config_set_dreq(&config, pio_get_dreq(pio, pio_sm, true));
+#if TEST_LINE_BUFFER
+    dma_channel_configure(dma_channel, &config, &pio->txf[pio_sm], frame_buffer, DISPLAY_WIDTH, false);
+#else
+    dma_channel_configure(dma_channel, &config, &pio->txf[pio_sm], frame_buffer,
+                          DISPLAY_WIDTH * DISPLAY_HEIGHT, false);
+#endif
+    irq_add_shared_handler(DMA_IRQ_0, st7789_dma_irq_handler, PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
+    irq_set_enabled(DMA_IRQ_0, true);
+
+    st7789_clear();
 }
 
 void st7789_start_pixels() {
@@ -158,4 +201,108 @@ void st7789_set_data_size(uint8_t size) {
     pio_bit_size = size;
     st7789_lcd_wait_idle(pio, pio_sm);
     st7789_lcd_set_autopull_threshold(pio, pio_sm, size);
+}
+
+
+////////// DMA TEST ///////////
+
+#define RAMWR 0x2C
+bool write_mode = false;
+bool pixel_double = false;
+
+static void pio_put_byte(PIO p, uint sm, uint8_t b) {
+    while (pio_sm_is_tx_fifo_full(p, sm));
+    *(volatile uint8_t *) &p->txf[sm] = b;
+}
+
+static void pio_wait(PIO p, uint sm) {
+    uint32_t stall_mask = 1u << (PIO_FDEBUG_TXSTALL_LSB + sm);
+    p->fdebug |= stall_mask;
+    while (!(p->fdebug & stall_mask));
+}
+
+void st7789_prepare_write() {
+    pio_wait(pio, pio_sm);
+
+    // setup for writing
+    uint8_t r = RAMWR;
+    gpio_put(LCD_PIN_CS, false);
+
+    gpio_put(LCD_PIN_DC, false); // command mode
+    pio_put_byte(pio, pio_sm, r);
+    pio_wait(pio, pio_sm);
+
+    gpio_put(LCD_PIN_DC, true); // data mode
+
+    pio_sm_set_enabled(pio, pio_sm, false);
+    pio_sm_restart(pio, pio_sm);
+
+    if (pixel_double) {
+        /*
+        // switch program
+        pio_sm_set_wrap(pio, pio_sm, pio_double_offset + st7789_pixel_double_wrap_target,
+                        pio_double_offset + st7789_pixel_double_wrap);
+
+        // 32 bits, no autopull
+        pio->sm[pio_sm].shiftctrl &= ~(PIO_SM0_SHIFTCTRL_PULL_THRESH_BITS | PIO_SM0_SHIFTCTRL_AUTOPULL_BITS);
+
+        pio_sm_exec(pio, pio_sm, pio_encode_jmp(pio_double_offset));
+
+        // reconfigure dma size
+        dma_channel_hw_addr(dma_channel)->al1_ctrl &= ~DMA_CH0_CTRL_TRIG_DATA_SIZE_BITS;
+        dma_channel_hw_addr(dma_channel)->al1_ctrl |= DMA_SIZE_32 << DMA_CH0_CTRL_TRIG_DATA_SIZE_LSB;
+        */
+    } else {
+        // 16 bits, autopull
+        pio->sm[pio_sm].shiftctrl &= ~PIO_SM0_SHIFTCTRL_PULL_THRESH_BITS;
+        pio->sm[pio_sm].shiftctrl |= (16 << PIO_SM0_SHIFTCTRL_PULL_THRESH_LSB) | PIO_SM0_SHIFTCTRL_AUTOPULL_BITS;
+
+        dma_channel_hw_addr(dma_channel)->al1_ctrl &= ~DMA_CH0_CTRL_TRIG_DATA_SIZE_BITS;
+        dma_channel_hw_addr(dma_channel)->al1_ctrl |= DMA_SIZE_16 << DMA_CH0_CTRL_TRIG_DATA_SIZE_LSB;
+    }
+
+    pio_sm_set_enabled(pio, pio_sm, true);
+
+    write_mode = true;
+}
+
+void st7789_push(uint32_t size, bool dont_block) {
+    if (dma_channel_is_busy(dma_channel) && dont_block) {
+        return;
+    }
+
+    dma_channel_wait_for_finish_blocking(dma_channel);
+
+    if (!write_mode)
+        st7789_prepare_write();
+
+    if (pixel_double) {
+        /*
+        cur_scanline = 0;
+        //upd_frame_buffer = frame_buffer; // TODO
+        dma_channel_set_trans_count(dma_channel, win_w / 4, false);
+        */
+    } else {
+        dma_channel_set_trans_count(dma_channel, size, false);
+    }
+
+    dma_channel_set_read_addr(dma_channel, frame_buffer, true);
+}
+
+void st7789_clear() {
+    if (!write_mode)
+        st7789_prepare_write();
+
+    for (int i = 0; i < DISPLAY_WIDTH * DISPLAY_HEIGHT; i++)
+        pio_sm_put_blocking(pio, pio_sm, 0);
+}
+
+bool st7789_dma_is_busy() {
+    //if (pixel_double && cur_scanline <= win_h / 2)
+    //    return true;
+    return dma_channel_is_busy(dma_channel);
+}
+
+void st7789_dma_flush() {
+    while (dma_channel_is_busy(dma_channel)) {}
 }

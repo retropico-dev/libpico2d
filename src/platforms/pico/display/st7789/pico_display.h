@@ -28,9 +28,9 @@ namespace p2d {
 
         void flip() override;
 
-    private:
-        void clearDisplay();
+        //void drawPixelLine(const uint16_t *pixels, uint16_t width) override;
 
+    private:
         uint8_t m_bit_shift = 0;
         Utility::Vec2i m_cursor;
     };

@@ -30,7 +30,7 @@ namespace p2d {
 
         static void flush();
 
-        static uint32_t alloc(size_t size);
+        static uint32_t alloc(size_t size, bool clear = false);
 
         // TODO
         //static void free(void *ptr);

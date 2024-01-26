@@ -9,7 +9,7 @@ option(PICO_DEBUG_USB "Pico usb debug" OFF)
 option(PICO_DISPLAY_ST7789_PIO "Pico ST7789 display driver (pio)" ON)
 
 # tested at ~4Mb/sec, too slow for framebuffer usage
-option(PICO_SPI_PSRAM "Pico psram spi driver (pio)" ON)
+option(PICO_SPI_PSRAM "Pico psram spi driver (pio)" OFF)
 
 # libpico2d default board is adafruit feather rp2040
 if (DEFINED ENV{PICO_SDK_PATH})
@@ -108,15 +108,13 @@ if (PICO_BOARD)
             hardware_pio
             hardware_dma
             hardware_flash
+            hardware_pwm
     )
 
     # display driver
     if (PICO_DISPLAY_ST7789_PIO)
-        list(APPEND PLATFORM_SOURCES
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/st7789.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/pico_display.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/pico_display_direct.cpp
-        )
+        file(GLOB TEMP ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/*.c*)
+        list(APPEND PLATFORM_SOURCES ${TEMP})
         list(APPEND PLATFORM_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789)
     endif ()
 
@@ -196,7 +194,8 @@ if (PICO_BOARD)
     # ST7789 pio
     if (PICO_DISPLAY_ST7789_PIO)
         pico_generate_pio_header(pico2d-skeleton
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/st7789_lcd.pio)
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/st7789-spi.pio
+        )
     endif ()
 
     # sdcard
