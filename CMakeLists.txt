@@ -7,8 +7,12 @@ option(BUILD_EXAMPLE "Build example project" OFF)
 option(PICO_DEBUG_UART "Pico uart debug" OFF)
 option(PICO_DEBUG_USB "Pico usb debug" OFF)
 option(PICO_DISPLAY_ST7789_PIO "Pico ST7789 display driver (pio)" ON)
+option(PICO_DISPLAY_ALPHA_SUPPORT "Enable alpha/transparency support" ON)
 
-# tested at ~4Mb/sec, too slow for framebuffer usage
+# too many "problems" to handles
+# - requires 6 pins
+# - ADC + resistors or shift register for buttons
+# - very (very) fast for large read/write, but slow for "pixel drawing"
 option(PICO_SPI_PSRAM "Pico psram spi driver (pio)" OFF)
 
 # libpico2d default board is adafruit feather rp2040
@@ -116,6 +120,11 @@ if (PICO_BOARD)
         file(GLOB TEMP ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/*.c*)
         list(APPEND PLATFORM_SOURCES ${TEMP})
         list(APPEND PLATFORM_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789)
+    endif ()
+
+    # alpha support
+    if (PICO_DISPLAY_ALPHA_SUPPORT)
+        list(APPEND PLATFORM_FLAGS -DPICO_DISPLAY_ALPHA_SUPPORT=1)
     endif ()
 
     if (PICO_SPI_PSRAM)

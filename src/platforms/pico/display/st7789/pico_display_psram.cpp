@@ -139,7 +139,7 @@ __always_inline void in_ram(PicoDisplay::flip)() {
     for (int y = 0; y < m_renderSize.y; y++) {
         p_ram->read_blocking(s_sram_surfaces[m_bufferIndex] + y * m_pitch,
                              (uint32_t *) frame_buffer, m_renderSize.x / 2);
-        st7789_update();
+        st7789_push();
     }
 #else
     PSram::flush();
@@ -147,7 +147,8 @@ __always_inline void in_ram(PicoDisplay::flip)() {
 
     st7789_dma_flush();
     st7789_set_cursor(0, 0);
-    st7789_update();
+    // TODO: handle size
+    st7789_push();
 #endif
 #endif
 

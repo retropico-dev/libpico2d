@@ -24,9 +24,6 @@ PicoDisplayDirectDraw::PicoDisplayDirectDraw(const Utility::Vec2i &displaySize, 
 
     printf("PicoDisplay: st7789 pio without buffering @ %i Mhz (%ix%i)\r\n",
            (uint16_t) spiSpeedMhz, renderBounds.w, renderBounds.h);
-
-    // clear display
-    PicoDisplayDirectDraw::clear();
 }
 
 __always_inline void PicoDisplayDirectDraw::setCursor(int16_t x, int16_t y) {
@@ -38,6 +35,19 @@ __always_inline void PicoDisplayDirectDraw::setCursor(int16_t x, int16_t y) {
 __always_inline void PicoDisplayDirectDraw::setPixel(uint16_t color) {
     // no alpha support (colorKey), prevent function call overhead in "direct drawing" mode
     st7789_put16(color << m_bit_shift);
+}
+
+__always_inline void in_ram(PicoDisplayDirectDraw::drawPixelLine)(const uint16_t *pixels, uint16_t width) {
+    if (m_bit_shift == 0) {
+        // RGB565
+        st7789_dma_flush();
+        st7789_push((uint16_t *) pixels, width);
+    } else {
+        // ARGB444
+        for (uint_fast16_t i = 0; i < width; i++) {
+            st7789_put16(pixels[i] << m_bit_shift);
+        }
+    }
 }
 
 #endif

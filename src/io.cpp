@@ -194,10 +194,11 @@ bool Io::format(const Io::Device &device) {
     return true;
 }
 
-bool Io::copy(const File &src, const File &dst) {
-    char buf[4096];
+bool Io::copy(const File &src, const File &dst, bool checksum) {
     int32_t read;
     int32_t offset = 0;
+    char *read_buffer = nullptr;
+    char *check_buffer = nullptr;
 
     if (!src.isOpen()) {
         printf("Io::copy: could not open source file\r\n");
@@ -209,22 +210,37 @@ bool Io::copy(const File &src, const File &dst) {
         return false;
     }
 
-    while ((read = src.read(offset, 4096, buf)) > 0) {
-        dst.write(offset, read, buf);
+    read_buffer = (char *) malloc(4096);
+
+    while ((read = src.read(offset, 4096, read_buffer)) > 0) {
+        dst.write(offset, read, read_buffer);
+        if (checksum) {
+            if (check_buffer == nullptr) check_buffer = (char *) malloc(4096);
+            dst.read(offset, read, check_buffer);
+            if (memcmp(read_buffer, check_buffer, read) != 0) {
+                printf("Io::copy: copy failed, checksum failed !\r\n");
+                free(read_buffer);
+                return false;
+            }
+        }
         offset += read;
     }
+
+    if (check_buffer != nullptr) free(check_buffer);
+    free(read_buffer);
 
     printf("Io::copy: copied %i bytes\r\n", offset);
     return true;
 }
 
-bool Io::copy(const std::string &src, const std::string &dst) {
+bool Io::copy(const std::string &src, const std::string &dst, bool checksum) {
     bool core1_pause_needed = Utility::startWith(dst, "flash:");
     if (core1_pause_needed) p2d_display_pause();
 
     const File srcFile = File{src, File::OpenMode::Read};
-    const File dstFile = File{dst, File::OpenMode::Write};
-    auto res = copy(srcFile, dstFile);
+    const File dstFile = File{dst, checksum ? File::OpenMode::Read | File::OpenMode::Write
+                                            : File::OpenMode::Write};
+    auto res = copy(srcFile, dstFile, checksum);
 
     if (core1_pause_needed) p2d_display_resume();
 

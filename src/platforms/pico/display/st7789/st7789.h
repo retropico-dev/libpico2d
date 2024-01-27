@@ -75,7 +75,7 @@
 #define Y_SHIFT 0
 #endif
 
-extern uint16_t frame_buffer[];
+extern uint16_t *frame_buffer;
 
 void st7789_init(uint8_t format, float clock_div);
 
@@ -93,7 +93,7 @@ void st7789_set_data_size(uint8_t size);
 
 void st7789_prepare_write();
 
-void st7789_push(uint32_t size = DISPLAY_WIDTH, bool dont_block = false);
+void st7789_push(uint16_t *data, uint32_t size = DISPLAY_WIDTH, bool dont_block = false);
 
 void st7789_clear();
 

@@ -93,7 +93,15 @@ __always_inline void PicoDisplay::setPixel(uint16_t color) {
     }
 }
 
-void in_ram(PicoDisplay::clear)() {
+#if !PICO_DISPLAY_ALPHA_SUPPORT
+
+__always_inline void PicoDisplay::drawPixelLine(const uint16_t *pixels, uint16_t width) {
+    memcpy(p_surfaces[m_bufferIndex]->getPixels() + m_cursor.y * m_pitch + m_cursor.x * m_bpp, pixels, width * 2);
+}
+
+#endif
+
+__always_inline void PicoDisplay::clear() {
     auto buffer = p_surfaces[m_bufferIndex]->getPixels();
     if (m_clearColor == Color::Black || m_clearColor == Color::White) {
         memset((uint16_t *) buffer, m_clearColor, p_surfaces[m_bufferIndex]->getPixelsSize());
@@ -114,7 +122,6 @@ void in_ram(PicoDisplay::flip)() {
         // wait for previous buffer flip if needed
         while (__atomic_load_n(&core1_busy, __ATOMIC_SEQ_CST)) {
             //printf("PicoDisplay::flip: waiting for rendering done...\r\n");
-            tight_loop_contents();
         }
 
         // send core1 flip "cmd"
@@ -124,7 +131,7 @@ void in_ram(PicoDisplay::flip)() {
 
         // flip buffers
         m_bufferIndex = !m_bufferIndex;
-    } else if (m_buffering == Buffering::Single) {
+    } else {
         // slow...
         draw(p_surfaces[m_bufferIndex]);
     }
@@ -172,11 +179,6 @@ static void in_ram(core1_main)() {
         }
 
         __atomic_store_n(&core1_busy, 0, __ATOMIC_SEQ_CST);
-#if 0
-        while (!s_flip) tight_loop_contents();
-        draw(s_surfaces[s_buffer_index]);
-        s_flip = false;
-#endif
     }
 
     core1_stopped = true;
@@ -201,7 +203,6 @@ static void in_ram(draw)(Surface *surface) {
                 st7789_put16(*(uint16_t *) (pixels + y * pitch + x * bpp) << s_bit_shift);
             }
         }
-
         return;
     }
 

@@ -17,11 +17,7 @@ static uint pio_sm = LCD_SM;
 static uint8_t pio_bit_size = 16;
 static uint32_t dma_channel = 0;
 
-#if TEST_LINE_BUFFER
-uint16_t frame_buffer[DISPLAY_WIDTH];
-#else
-uint16_t frame_buffer[DISPLAY_WIDTH * DISPLAY_HEIGHT];
-#endif
+uint16_t *frame_buffer;
 
 // used for pixel doubling
 static void __isr
@@ -266,7 +262,7 @@ void st7789_prepare_write() {
     write_mode = true;
 }
 
-void st7789_push(uint32_t size, bool dont_block) {
+void st7789_push(uint16_t *data, uint32_t size, bool dont_block) {
     if (dma_channel_is_busy(dma_channel) && dont_block) {
         return;
     }
@@ -276,17 +272,17 @@ void st7789_push(uint32_t size, bool dont_block) {
     if (!write_mode)
         st7789_prepare_write();
 
+    /*
     if (pixel_double) {
-        /*
         cur_scanline = 0;
         //upd_frame_buffer = frame_buffer; // TODO
         dma_channel_set_trans_count(dma_channel, win_w / 4, false);
-        */
     } else {
         dma_channel_set_trans_count(dma_channel, size, false);
     }
-
-    dma_channel_set_read_addr(dma_channel, frame_buffer, true);
+    */
+    dma_channel_set_trans_count(dma_channel, size, false);
+    dma_channel_set_read_addr(dma_channel, data, true);
 }
 
 void st7789_clear() {

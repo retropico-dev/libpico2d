@@ -28,7 +28,11 @@ namespace p2d {
 
         void flip() override;
 
-        //void drawPixelLine(const uint16_t *pixels, uint16_t width) override;
+#if !PICO_DISPLAY_ALPHA_SUPPORT
+
+        void drawPixelLine(const uint16_t *pixels, uint16_t width) override;
+
+#endif
 
     private:
         uint8_t m_bit_shift = 0;

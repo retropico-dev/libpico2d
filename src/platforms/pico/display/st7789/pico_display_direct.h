@@ -24,6 +24,8 @@ namespace p2d {
 
         void setPixel(uint16_t color) override;
 
+        void drawPixelLine(const uint16_t *pixels, uint16_t width) override;
+
     private:
         uint8_t m_bit_shift = 0;
 
