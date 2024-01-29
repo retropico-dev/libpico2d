@@ -4,16 +4,23 @@
 
 #include <cstdio>
 #include <cstdlib>
+
 #ifndef LINUX
+
 #include <pico/stdlib.h>
 #include <pico/sleep.h>
 #include <hardware/rosc.h>
 #include <hardware/clocks.h>
 #include <hardware/structs/scb.h>
+
 #endif
 
 #include "sleep.h"
+#include "pinout.h"
 
+using namespace p2d;
+
+#if 0
 static bool awake;
 
 static void sleep_callback() {
@@ -55,25 +62,57 @@ static void rtc_sleep() {
     sleep_goto_sleep_until(&t_alarm, &sleep_callback);
 #endif
 }
-
-void rtc_recover(uint scb_orig, uint clock0_orig, uint clock1_orig) {
-#ifndef LINUX
-    // https://ghubcoder.github.io/posts/awaking-the-pico/
-
-    // re-enable ring Oscillator control
-    rosc_write(&rosc_hw->ctrl, ROSC_CTRL_ENABLE_BITS);
-
-    // reset proc back to default
-    scb_hw->scr = scb_orig;
-    clocks_hw->sleep_en0 = clock0_orig;
-    clocks_hw->sleep_en1 = clock1_orig;
-
-    // reset clocks
-    clocks_init();
-    stdio_init_all();
 #endif
+
+static void rosc_reset() {
+    uint32_t tmp = rosc_hw->ctrl;
+    tmp &= (~ROSC_CTRL_ENABLE_BITS);
+    tmp |= (ROSC_CTRL_ENABLE_VALUE_ENABLE << ROSC_CTRL_ENABLE_LSB);
+    rosc_write(&rosc_hw->ctrl, tmp);
+    // Wait for stable
+    while ((rosc_hw->status & ROSC_STATUS_STABLE_BITS) != ROSC_STATUS_STABLE_BITS);
 }
 
 void Sleep::sleep() {
-    // TODO
+    // be sure sleep button is released
+    while (!gpio_get(BTN_PIN_SLEEP)) tight_loop_contents();
+
+    printf("Sleep::sleep: entering dormant mode\r\n");
+    uart_default_tx_wait_blocking();
+
+    // save current sys clock
+    uint32_t saved_clock = clock_get_hz(clk_sys);
+
+    // power-off display if possible
+#ifdef LCD_PIN_BL
+    gpio_put(LCD_PIN_BL, false);
+    sleep_ms(5);
+#endif
+
+    // go to dormant mode
+    sleep_run_from_xosc();
+    sleep_goto_dormant_until_edge_high(BTN_PIN_SLEEP);
+
+    // reset clocks
+    rosc_reset();
+    clocks_init();
+
+    // reset overclocking
+    sleep_ms(2);
+    set_sys_clock_khz(saved_clock / 1000, false);
+    sleep_ms(2);
+
+    stdio_init_all();
+    uart_default_tx_wait_blocking();
+
+    // be sure sleep button is released
+    while (!gpio_get(BTN_PIN_SLEEP)) tight_loop_contents();
+
+    printf("Sleep::sleep: exiting dormant mode, clock restored @ %i Mhz\r\n",
+           (uint16_t) (clock_get_hz(clk_sys) / 1000000));
+
+#ifdef LCD_PIN_BL
+    gpio_put(LCD_PIN_BL, true);
+    sleep_ms(5);
+#endif
 }
