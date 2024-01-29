@@ -14,7 +14,7 @@
 namespace p2d {
     class LinuxPlatform : public Platform {
     public:
-        explicit LinuxPlatform(bool overclock = false);
+        explicit LinuxPlatform();
 
         ~LinuxPlatform() override;
     };

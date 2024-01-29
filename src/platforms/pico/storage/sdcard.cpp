@@ -402,9 +402,8 @@ bool p2d::io_sdcard_init(float spiMhz) {
     pio_sm_set_clkdiv(sd_pio, sd_sm, clock_div);
     pio_sm_restart(sd_pio, sd_sm);
 
-    printf("PicoIo: detected %s card @ %i Mhz (pio: %i, sm: %i)\r\n",
-           is_v2 ? (is_hcs ? "SDHC" : "SDv2") : "SDv1",
-           (uint16_t) ((float) sys_clock / clock_div), sd_pio == pio0 ? 0 : 1, sd_sm);
+    printf("Io: detected %s card @ %i Mhz \r\n",
+           is_v2 ? (is_hcs ? "SDHC" : "SDv2") : "SDv1", (uint16_t) spiMhz);
 
     return true;
 }

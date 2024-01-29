@@ -65,10 +65,10 @@ PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i
         multicore_reset_core1(); // seems to be needed for "picoprobe" debugging
 #endif
         multicore_launch_core1(core1_main);
-        printf("PicoDisplay: st7789 pio with double buffering @ %i Mhz (%ix%i => %ix%i) (pio: 0, sm: 0)\r\n",
+        printf("PicoDisplay: st7789 pio with double buffering @ %i Mhz (%ix%i => %ix%i)\r\n",
                (uint16_t) spiSpeedMhz, m_renderSize.x, m_renderSize.y, m_renderBounds.w, m_renderBounds.h);
     } else {
-        printf("PicoDisplay: st7789 pio with single buffering @ %i Mhz (%ix%i => %i%i) (pio: 0, sm: 0)\r\n",
+        printf("PicoDisplay: st7789 pio with single buffering @ %i Mhz (%ix%i => %i%i)\r\n",
                (uint16_t) spiSpeedMhz, m_renderSize.x, m_renderSize.y, m_renderBounds.w, m_renderBounds.h);
     }
 
@@ -149,7 +149,7 @@ void in_ram(PicoDisplay::flip)() {
 static bool core1_stop = false;
 static bool core1_stopped = true;
 
-void in_ram(p2d_display_pause)() {
+void p2d_display_pause() {
     //printf("p2d_display_pause\r\n");
 
     if (!core1_stopped) {
@@ -158,16 +158,20 @@ void in_ram(p2d_display_pause)() {
         while (!core1_stopped) tight_loop_contents();
     }
 
+    sleep_ms(20);
+
     //printf("p2d_display_pause: true\r\n");
 }
 
-void in_ram(p2d_display_resume)() {
+void p2d_display_resume() {
     //printf("p2d_display_resume\r\n");
 
     if (core1_stop) {
         multicore_reset_core1();
         multicore_launch_core1(core1_main);
     }
+
+    sleep_ms(20);
 
     //printf("p2d_display_resume: true\r\n");
 }

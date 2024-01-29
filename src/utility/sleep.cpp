@@ -11,11 +11,11 @@
 #include <hardware/rosc.h>
 #include <hardware/clocks.h>
 #include <hardware/structs/scb.h>
+#include "pinout.h"
 
 #endif
 
 #include "sleep.h"
-#include "pinout.h"
 
 using namespace p2d;
 
@@ -119,7 +119,7 @@ void Sleep::sleep() {
     gpio_put(LCD_PIN_BL, true);
     sleep_ms(5);
 #endif
-#elif
+#else
     printf("Sleep::sleep: nop...\n");
 #endif
 }

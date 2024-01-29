@@ -218,19 +218,13 @@ bool Io::copy(const File &src, const File &dst) {
 
 bool Io::copy(const std::string &src, const std::string &dst) {
     bool core1_pause_needed = Utility::startWith(dst, "flash:");
-    if (core1_pause_needed) {
-        p2d_display_pause();
-        sleep_ms(20);
-    }
+    if (core1_pause_needed) p2d_display_pause();
 
     const File srcFile = File{src, File::OpenMode::Read};
     const File dstFile = File{dst, File::OpenMode::Write};
     auto res = copy(srcFile, dstFile);
 
-    if (core1_pause_needed) {
-        p2d_display_resume();
-        sleep_ms(20);
-    }
+    if (core1_pause_needed) p2d_display_resume();
 
     return res;
 }

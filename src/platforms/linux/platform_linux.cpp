@@ -6,7 +6,7 @@
 
 using namespace p2d;
 
-LinuxPlatform::LinuxPlatform(bool overclock) : Platform(overclock) {
+LinuxPlatform::LinuxPlatform() : Platform() {
     Io::init();
     p_audio = new LinuxAudio();
     p_input = new LinuxInput();
