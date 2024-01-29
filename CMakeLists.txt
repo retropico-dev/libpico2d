@@ -66,7 +66,8 @@ set(PLATFORM_INCLUDES
         ${CMAKE_CURRENT_SOURCE_DIR}/external/Adafruit-GFX-Library
 )
 
-set(PLATFORM_FLAGS "-DNO_PICO_LED -DARDUINO=123 -ffast-math -ffunction-sections -fdata-sections")
+set(PLATFORM_FLAGS "-DARDUINO=123 -ffast-math -ffunction-sections -fdata-sections")
+#-DNO_PICO_LED
 
 # tweeny
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/tweeny tweeny)
