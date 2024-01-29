@@ -46,6 +46,7 @@
 #define BTN_PIN_DOWN    (2)     //                  SDA
 #endif
 #elif defined(MICROBOY_11)
+
 // UART (PICOPROBE)
 #define UART_TX         16
 #define UART_RX         17
@@ -99,6 +100,7 @@
 #define BTN_PIN_RIGHT   (-1)
 #define BTN_PIN_LEFT    (-1)
 #define BTN_PIN_UP      (-1)
+#define BTN_PIN_SLEEP   (6)
 
 #else
 #error "microboy device version not defined"

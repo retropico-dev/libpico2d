@@ -33,7 +33,7 @@ namespace p2d {
         };
 
         struct Mapping {
-            uint8_t button{};
+            uint16_t button{};
             int8_t pin{};
             std::string name{};
         };

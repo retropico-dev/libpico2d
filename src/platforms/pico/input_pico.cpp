@@ -2,8 +2,10 @@
 // Created by cpasjuste on 31/05/23.
 //
 
+#include <hardware/uart.h>
 #include "platform.h"
 #include "pinout.h"
+#include "sleep.h"
 
 using namespace p2d;
 
@@ -27,6 +29,13 @@ PicoInput::PicoInput() : Input() {
                    map.pin, map.name.c_str(), gpio_is_pulled_up(map.pin));
         }
     }
+
+#if BTN_PIN_SLEEP
+    gpio_set_function(BTN_PIN_SLEEP, GPIO_FUNC_SIO);
+    gpio_set_dir(BTN_PIN_SLEEP, false);
+    gpio_pull_up(BTN_PIN_SLEEP);
+    printf("PicoInput: setting up pin %i as sleep button\r\n", BTN_PIN_SLEEP);
+#endif
 }
 
 uint16_t PicoInput::getButtons() {
@@ -37,6 +46,13 @@ uint16_t PicoInput::getButtons() {
     for (const auto &map: m_mapping) {
         if (map.pin != -1) m_buttons |= gpio_get(map.pin) ? 0 : map.button;
     }
+
+#if BTN_PIN_SLEEP
+    // check for sleep button
+    if (!gpio_get(BTN_PIN_SLEEP)) {
+        Sleep::sleep();
+    }
+#endif
 
 #if defined(PICO_DEBUG_UART) || defined(PICO_DEBUG_USB)
     int c = getchar_timeout_us(0);

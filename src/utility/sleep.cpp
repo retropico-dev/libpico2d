@@ -3,9 +3,8 @@
 //
 
 #include <cstdio>
-#include <cstdlib>
 
-#ifndef LINUX
+#ifdef PICO_BUILD
 
 #include <pico/stdlib.h>
 #include <pico/sleep.h>
@@ -64,6 +63,8 @@ static void rtc_sleep() {
 }
 #endif
 
+#ifdef PICO_BUILD
+
 static void rosc_reset() {
     uint32_t tmp = rosc_hw->ctrl;
     tmp &= (~ROSC_CTRL_ENABLE_BITS);
@@ -73,7 +74,10 @@ static void rosc_reset() {
     while ((rosc_hw->status & ROSC_STATUS_STABLE_BITS) != ROSC_STATUS_STABLE_BITS);
 }
 
+#endif
+
 void Sleep::sleep() {
+#ifdef PICO_BUILD
     // be sure sleep button is released
     while (!gpio_get(BTN_PIN_SLEEP)) tight_loop_contents();
 
@@ -114,5 +118,8 @@ void Sleep::sleep() {
 #ifdef LCD_PIN_BL
     gpio_put(LCD_PIN_BL, true);
     sleep_ms(5);
+#endif
+#elif
+    printf("Sleep::sleep: nop...\n");
 #endif
 }
