@@ -86,7 +86,9 @@ void PicoDisplay::setDisplayBounds(int16_t x, int16_t y, uint16_t w, uint16_t h)
 }
 
 __always_inline void PicoDisplay::put(uint16_t color) {
-    if (color != m_colorKey && m_cursor.x < m_renderSize.x && m_cursor.y < m_renderSize.y) {
+    bool clip = m_cursor.x < m_clip.x || m_cursor.y < m_clip.y
+                || m_cursor.x >= m_clip.x + m_clip.w || m_cursor.y >= m_clip.y + m_clip.h;
+    if (!clip && color != m_colorKey && m_cursor.x < m_renderSize.x && m_cursor.y < m_renderSize.y) {
         *(uint16_t *) (p_surfaces[m_bufferIndex]->getPixels() + m_cursor.y * m_pitch + m_cursor.x * m_bpp)
                 = color << m_bit_shift;
     }
@@ -215,6 +217,7 @@ static void in_ram(draw)(Surface *surface, bool doubleBuffering) {
     }
 
     if (s_render_bounds.w / surfaceSize.x == 2 && s_render_bounds.h / surfaceSize.y == 2) {
+        st7789_set_cursor(0, 0);
         // scale2x
         for (uint_fast16_t y = 0; y < maxHeight; y++) {
             for (uint_fast16_t i = 0; i < 2; i++) {
@@ -238,6 +241,7 @@ static void in_ram(draw)(Surface *surface, bool doubleBuffering) {
     uint_fast16_t x, y;
     uint_fast16_t xRatio = (surfaceSize.x << 16) / s_render_bounds.w + 1;
     uint_fast16_t yRatio = (surfaceSize.y << 16) / s_render_bounds.h + 1;
+    st7789_set_cursor(0, 0);
     for (uint_fast16_t i = 0; i < s_render_bounds.h; i++) {
         for (uint_fast16_t j = 0; j < s_render_bounds.w; j++) {
             x = (j * xRatio) >> 16;
