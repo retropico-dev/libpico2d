@@ -262,7 +262,7 @@ void st7789_prepare_write() {
     write_mode = true;
 }
 
-void st7789_push(uint16_t *data, uint32_t size, bool dont_block) {
+void st7789_push(const uint16_t *data, uint32_t size, bool dont_block) {
     if (dma_channel_is_busy(dma_channel) && dont_block) {
         return;
     }

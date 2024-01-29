@@ -46,31 +46,40 @@
 #define BTN_PIN_DOWN    (2)     //                  SDA
 #endif
 #elif defined(MICROBOY_11)
+// UART (PICOPROBE)
+#define UART_TX         16
+#define UART_RX         17
+
 // SPI LCD PINOUT
 #define LCD_PIO         pio0
 #define LCD_SM          0
-#define LCD_PIN_CLK     2   // SCK
-#define LCD_PIN_DIN     3   // MOSI
-#define LCD_PIN_DC      4
-#define LCD_PIN_CS      5
-#define LCD_PIN_RESET   6
-#define LCD_PIN_BL      7
+#define LCD_PIN_CLK     5   // SCK
+#define LCD_PIN_DIN     4   // MOSI
+#define LCD_PIN_DC      2
+#define LCD_PIN_CS      1
+#define LCD_PIN_RESET   3
+#define LCD_PIN_BL      0
 
 // SPI SDCARD PINOUT
-#define SD_PIO          pio0
-#define SD_SM           1
-#define SD_PIN_CS       12
-#define SD_PIN_CLK      13
-#define SD_PIN_MOSI     14
-#define SD_PIN_MISO     15
+#define SD_PIO          pio1
+#define SD_SM           0
+#define SD_PIN_CS       26
+#define SD_PIN_CLK      21
+#define SD_PIN_MOSI     22
+#define SD_PIN_MISO     27
 
 // AUDIO PINOUT (I2S)
+///
+/// WARNING: speaker is 500 mW max
+/// be sure to lower the volume via software or the speaker will fry !
+///
 #define AUDIO_PIO       pio1
-#define AUDIO_SM        0
-#define AUDIO_PIN_DATA  9  // DIN
-#define AUDIO_PIN_CLOCK 10  // BCLK
-#define AUDIO_PIN_LRC   11  // LRC (CLOCK + 1)
+#define AUDIO_SM        1
+#define AUDIO_PIN_DATA  20  // DIN
+#define AUDIO_PIN_CLOCK 18  // BCLK
+#define AUDIO_PIN_LRC   19  // LRC (CLOCK + 1)
 
+#if PICO_PSRAM
 // PSRAM PINOUT
 #define PSRAM_PIO       pio1
 #define PSRAM_SM        1
@@ -80,10 +89,11 @@
 #define PSRAM_PIN_D1    20
 #define PSRAM_PIN_D2    21
 #define PSRAM_PIN_D3    22
+#endif
 
-#define BTN_PIN_START   (24)
+#define BTN_PIN_START   (-1)
 #define BTN_PIN_SELECT  (-1)
-#define BTN_PIN_A       (24)
+#define BTN_PIN_A       (-1)
 #define BTN_PIN_B       (-1)
 #define BTN_PIN_DOWN    (-1)
 #define BTN_PIN_RIGHT   (-1)

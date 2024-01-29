@@ -41,6 +41,7 @@ static void getResources(const embedded_filesystem &fs, const std::string &path)
         } else {
             auto file = fs.open(p);
             Io::File::addBufferFile("res:" + p, (const uint8_t *) file.cbegin(), file.size());
+            printf("Io: resource added: \"%s\"\r\n", std::string("res:" + p).c_str());
         }
     }
 }
@@ -79,6 +80,9 @@ void Io::init() {
                io_flash_get_size_string().c_str());
     }
 
+#warning TODO
+    // TODO: fix "undefined reference to `cmrc::pico2d::get_filesystem()'"
+    //  when no resources added from cmake project (edit: release mode/flags bug?)
     // map "romfs" (resources)
     auto fs = pico2d::get_filesystem();
     getResources(fs, "");
@@ -194,11 +198,10 @@ bool Io::format(const Io::Device &device) {
     return true;
 }
 
-bool Io::copy(const File &src, const File &dst, bool checksum) {
+bool Io::copy(const File &src, const File &dst) {
     int32_t read;
     int32_t offset = 0;
-    char *read_buffer = nullptr;
-    char *check_buffer = nullptr;
+    char *read_buffer;
 
     if (!src.isOpen()) {
         printf("Io::copy: could not open source file\r\n");
@@ -210,39 +213,43 @@ bool Io::copy(const File &src, const File &dst, bool checksum) {
         return false;
     }
 
+    // TODO: fix this "randomly" not working
+    // use a contiguous region for flash for later raw access
+    if (Utility::startWith(dst.getPath(), "flash:")) {
+        auto r = f_expand((FIL *) dst.getHandler(), src.getLength(), 0);
+        if (r != FRESULT::FR_OK) {
+            printf("Io::copy: WARNING: could not put file in contiguous data area in flash\r\n");
+        }
+    }
+
     read_buffer = (char *) malloc(4096);
 
     while ((read = src.read(offset, 4096, read_buffer)) > 0) {
         dst.write(offset, read, read_buffer);
-        if (checksum) {
-            if (check_buffer == nullptr) check_buffer = (char *) malloc(4096);
-            dst.read(offset, read, check_buffer);
-            if (memcmp(read_buffer, check_buffer, read) != 0) {
-                printf("Io::copy: copy failed, checksum failed !\r\n");
-                free(read_buffer);
-                return false;
-            }
-        }
         offset += read;
     }
 
-    if (check_buffer != nullptr) free(check_buffer);
     free(read_buffer);
 
     printf("Io::copy: copied %i bytes\r\n", offset);
     return true;
 }
 
-bool Io::copy(const std::string &src, const std::string &dst, bool checksum) {
+bool Io::copy(const std::string &src, const std::string &dst) {
     bool core1_pause_needed = Utility::startWith(dst, "flash:");
-    if (core1_pause_needed) p2d_display_pause();
+    if (core1_pause_needed) {
+        p2d_display_pause();
+        sleep_ms(20);
+    }
 
     const File srcFile = File{src, File::OpenMode::Read};
-    const File dstFile = File{dst, checksum ? File::OpenMode::Read | File::OpenMode::Write
-                                            : File::OpenMode::Write};
-    auto res = copy(srcFile, dstFile, checksum);
+    const File dstFile = File{dst, File::OpenMode::Write};
+    auto res = copy(srcFile, dstFile);
 
-    if (core1_pause_needed) p2d_display_resume();
+    if (core1_pause_needed) {
+        p2d_display_resume();
+        sleep_ms(20);
+    }
 
     return res;
 }

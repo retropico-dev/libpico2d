@@ -67,30 +67,28 @@ namespace p2d {
         // set the position inside pixel buffer (hardware dependant, to be implemented)
         virtual void setCursor(int16_t x, int16_t y) {};
 
-        // set pixel color at cursor position
-        virtual void setPixel(uint16_t color) {};
-
-        virtual void setPixel32(uint32_t color) {};
-
         // flip the display (hardware dependant, to be implemented)
         virtual void flip() {}
 
         // clear the display
         virtual void clear();
 
-        // draw a pixel to the display (slow)
-        void drawPixel(int16_t x, int16_t y, uint16_t color) override {
+        // put a pixel at current cursor position
+        virtual void put(uint16_t color) {};
+
+        // put a pixel to the specific position (slow)
+        void put(int16_t x, int16_t y, uint16_t color) {
             setCursor(x, y);
-            setPixel(color);
+            put(color);
         }
 
-        // draw a pixel to the display (slow)
-        void drawPixel(const Utility::Vec2i &pos, uint16_t color) {
-            drawPixel(pos.x, pos.y, color);
+        // put a pixel to the specific position (slow)
+        void put(const Utility::Vec2i &pos, uint16_t color) {
+            put(pos.x, pos.y, color);
         }
 
-        // draw a pixel line buffer to the display (fast)
-        virtual void drawPixelLine(const uint16_t *pixels, uint16_t width);
+        // put x count of pixels from current cursor position
+        virtual void put(const uint16_t *buffer, uint32_t count);
 
         // draw a surface (pixel buffer) to the display with scaling if requested
         virtual void drawSurface(Surface *surface, const Utility::Vec4i &bounds);
@@ -164,6 +162,10 @@ namespace p2d {
 
         Surface *getSurface(uint8_t index) {
             return p_surfaces[index];
+        }
+
+        void drawPixel(int16_t x, int16_t y, uint16_t color) override {
+            put(x, y, color);
         }
     };
 }

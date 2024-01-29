@@ -100,8 +100,8 @@ if (PICO_BOARD)
             PICO_PRINTF_SUPPORT_PTRDIFF_T=0
             PICO_AUDIO_I2S_PIO=1
             PICO_AUDIO_I2S_DMA_IRQ=1
-            #PICO_DEFAULT_UART_TX_PIN=12
-            #PICO_DEFAULT_UART_RX_PIN=13
+            PICO_DEFAULT_UART_TX_PIN=16
+            PICO_DEFAULT_UART_RX_PIN=17
     )
     list(APPEND PLATFORM_LIBS
             -Wl,--print-memory-usage

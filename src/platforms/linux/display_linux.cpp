@@ -41,7 +41,7 @@ void LinuxDisplay::setCursor(int16_t x, int16_t y) {
     m_cursor = {x, y};
 }
 
-void LinuxDisplay::setPixel(uint16_t color) {
+void LinuxDisplay::put(uint16_t color) {
     if (color != Display::Color::Transparent
         && m_renderBounds.x + m_cursor.x < m_renderSize.x
         && m_renderBounds.y + m_cursor.y < m_renderSize.y) {

@@ -22,9 +22,9 @@ namespace p2d {
 
         void setCursor(int16_t x, int16_t y) override;
 
-        void setPixel(uint16_t color) override;
+        void put(uint16_t color) override;
 
-        void drawPixelLine(const uint16_t *pixels, uint16_t width) override;
+        void put(const uint16_t *buffer, uint32_t count) override;
 
     private:
         uint8_t m_bit_shift = 0;

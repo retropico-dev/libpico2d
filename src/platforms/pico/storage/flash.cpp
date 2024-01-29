@@ -50,7 +50,8 @@ int32_t p2d::io_flash_read_sector(uint32_t offset, void *buffer) {
 }
 
 int32_t __not_in_flash_func(p2d::io_flash_write)(uint32_t sector, uint32_t offset, const uint8_t *buffer, uint32_t size_bytes) {
-    //printf("io_flash_write: sector: %lu, offset: %lu, size: %lu\r\n", sector, offset, size_bytes);
+    //printf("io_flash_write: sector: %lu, offset: %lu, size: %lu (flash offset: 0x%08lx)\r\n",
+      //     sector, offset, size_bytes, flash_offset + sector * FLASH_SECTOR_SIZE);
     auto status = save_and_disable_interrupts();
 
     /*

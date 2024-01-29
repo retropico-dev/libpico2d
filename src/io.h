@@ -113,6 +113,8 @@ namespace p2d {
 
             [[nodiscard]] std::string getName() const { return m_name; }
 
+            [[nodiscard]] void *getHandler() const { return p_fh; }
+
             static void addBufferFile(const std::string &path, const uint8_t *ptr, uint32_t len);
 
         private:
@@ -139,9 +141,9 @@ namespace p2d {
 
         static bool directoryExists(const std::string &path);
 
-        static bool copy(const File &src, const File &dst, bool checksum = false);
+        static bool copy(const File &src, const File &dst);
 
-        static bool copy(const std::string &src, const std::string &dst, bool checksum = false);
+        static bool copy(const std::string &src, const std::string &dst);
 
         static std::vector<File::Info> getList(
                 const std::string &path, std::function<bool(const File::Info &)> const &filter = nullptr);

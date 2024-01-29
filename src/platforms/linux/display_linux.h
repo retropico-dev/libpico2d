@@ -26,7 +26,7 @@ namespace p2d {
 
         void setCursor(int16_t x, int16_t y) override;
 
-        void setPixel(uint16_t color) override;
+        void put(uint16_t color) override;
 
         void flip() override;
 

@@ -22,30 +22,29 @@ PicoDisplayDirectDraw::PicoDisplayDirectDraw(const Utility::Vec2i &displaySize, 
     // handle alpha channel removal (st7789 support rgb444)
     if (m_format == Format::ARGB444) m_bit_shift = 4;
 
-    printf("PicoDisplay: st7789 pio without buffering @ %i Mhz (%ix%i)\r\n",
+    printf("PicoDisplayDirectDraw: st7789 pio without buffering @ %i Mhz (%ix%i)\r\n",
            (uint16_t) spiSpeedMhz, renderBounds.w, renderBounds.h);
 }
 
-__always_inline void PicoDisplayDirectDraw::setCursor(int16_t x, int16_t y) {
+__always_inline void in_ram(PicoDisplayDirectDraw::setCursor)(int16_t x, int16_t y) {
     if (x >= 0 && x < m_renderBounds.w && y >= 0 && y < m_renderBounds.h) {
         st7789_set_cursor(x, y);
     }
 }
 
-__always_inline void PicoDisplayDirectDraw::setPixel(uint16_t color) {
+__always_inline void in_ram(PicoDisplayDirectDraw::put)(uint16_t color) {
     // no alpha support (colorKey), prevent function call overhead in "direct drawing" mode
     st7789_put16(color << m_bit_shift);
 }
 
-__always_inline void in_ram(PicoDisplayDirectDraw::drawPixelLine)(const uint16_t *pixels, uint16_t width) {
+__always_inline void in_ram(PicoDisplayDirectDraw::put)(const uint16_t *buffer, uint32_t count) {
     if (m_bit_shift == 0) {
         // RGB565
-        st7789_dma_flush();
-        st7789_push((uint16_t *) pixels, width);
+        st7789_push((uint16_t *) buffer, count);
     } else {
-        // ARGB444
-        for (uint_fast16_t i = 0; i < width; i++) {
-            st7789_put16(pixels[i] << m_bit_shift);
+        // ARGB444 > RGB444
+        for (uint_fast16_t i = 0; i < count; i++) {
+            st7789_put16(buffer[i] << m_bit_shift);
         }
     }
 }

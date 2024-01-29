@@ -20,17 +20,17 @@ namespace p2d {
                              const Format &format = Format::RGB565,
                              float spiSpeedMhz = 80.0f);
 
-        void setCursor(int16_t x, int16_t y) override;
-
-        void setPixel(uint16_t color) override;
-
         void clear() override;
 
         void flip() override;
 
+        void setCursor(int16_t x, int16_t y) override;
+
+        void put(uint16_t color) override;
+
 #if !PICO_DISPLAY_ALPHA_SUPPORT
 
-        void drawPixelLine(const uint16_t *pixels, uint16_t width) override;
+        void put(const uint16_t *buffer, uint32_t count) override;
 
 #endif
 

@@ -81,7 +81,7 @@ void PicoDisplay::setCursor(int16_t x, int16_t y) {
     m_cursor = {x, y};
 }
 
-__always_inline void PicoDisplay::setPixel(uint16_t color) {
+__always_inline void PicoDisplay::put(uint16_t color) {
     if (color != m_colorKey && m_cursor.x < m_renderSize.x && m_cursor.y < m_renderSize.y) {
         *(uint16_t *) (p_surfaces[m_bufferIndex]->getPixels() + m_cursor.y * m_pitch + m_cursor.x * m_bpp) = color;
     }
@@ -95,8 +95,8 @@ __always_inline void PicoDisplay::setPixel(uint16_t color) {
 
 #if !PICO_DISPLAY_ALPHA_SUPPORT
 
-__always_inline void PicoDisplay::drawPixelLine(const uint16_t *pixels, uint16_t width) {
-    memcpy(p_surfaces[m_bufferIndex]->getPixels() + m_cursor.y * m_pitch + m_cursor.x * m_bpp, pixels, width * 2);
+__always_inline void PicoDisplay::put(const uint16_t *buffer, uint32_t count) {
+    memcpy(p_surfaces[m_bufferIndex]->getPixels() + m_cursor.y * m_pitch + m_cursor.x * m_bpp, buffer, count * 2);
 }
 
 #endif
