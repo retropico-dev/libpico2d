@@ -12,20 +12,12 @@
 
 using namespace p2d;
 
-PicoPlatform::PicoPlatform(bool overclock) : Platform() {
+PicoPlatform::PicoPlatform() : Platform() {
     // overclock
-    if (0) {
-        // TODO: check display/psram stability
-        vreg_set_voltage(VREG_VOLTAGE_1_30);
-        sleep_ms(2);
-        set_sys_clock_khz(300000, true);
-        sleep_ms(2);
-    } else {
-        vreg_set_voltage(VREG_VOLTAGE_1_20);
-        sleep_ms(2);
-        set_sys_clock_khz(280000, true);
-        sleep_ms(2);
-    }
+    vreg_set_voltage(VREG_VOLTAGE_DEFAULT);
+    sleep_ms(2);
+    set_sys_clock_khz(280000, false);
+    sleep_ms(2);
 
 #if defined(PICO_DEBUG_UART) || defined(PICO_DEBUG_USB)
     // initialise USB serial connection for debugging

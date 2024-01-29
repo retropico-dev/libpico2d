@@ -23,7 +23,7 @@
 namespace p2d {
     class PicoPlatform : public Platform {
     public:
-        explicit PicoPlatform(bool overclock = false);
+        explicit PicoPlatform();
 
         ~PicoPlatform() override;
 

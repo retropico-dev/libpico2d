@@ -8,7 +8,7 @@ using namespace p2d;
 
 static Platform *s_platform = nullptr;
 
-Platform::Platform(bool overclock) : Widget() {
+Platform::Platform() : Widget() {
     s_platform = this;
 }
 

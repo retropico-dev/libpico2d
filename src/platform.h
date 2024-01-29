@@ -23,7 +23,7 @@
 namespace p2d {
     class Platform : Widget {
     public:
-        explicit Platform(bool overclock = false);
+        explicit Platform();
 
         virtual ~Platform();
 
