@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD 17)
 # set source files
 file(GLOB UI_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.c*)
 set(UI_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR})
-set(UI_RESOURCES data/girl_120x120.bmp data/star.bmp)
+set(UI_RESOURCES romfs/girl_120x120.bmp romfs/star.bmp)
 
 ####################
 # skeleton library

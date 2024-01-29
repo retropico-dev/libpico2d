@@ -9,8 +9,10 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include "utility.h"
 #include "flash.h"
 #include "sdcard.h"
+#include "romfs.h"
 
 // 16MB flash: 6MB for bootloader/apps/cache, 10MB for fatfs "user" data/cache
 #define FLASH_TARGET_OFFSET_CACHE ((1024 * 1024) * 5)   // 1MB flash cache (raw)

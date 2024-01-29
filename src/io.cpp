@@ -4,7 +4,6 @@
 #include <cstring>
 #include <algorithm>
 #include <map>
-#include "cmrc/cmrc.hpp"
 #include "platform.h"
 #include "ff.h"
 #include "diskio.h"
@@ -18,8 +17,6 @@
 #endif
 
 using namespace p2d;
-using namespace cmrc;
-CMRC_DECLARE(pico2d);
 
 static FATFS sd_fs;
 static FATFS flash_fs;
@@ -32,19 +29,6 @@ std::map<std::string, Io::FileBuffer> buf_files; // TODO: refactor/remove this
 extern void p2d_display_pause();
 
 extern void p2d_display_resume();
-
-static void getResources(const embedded_filesystem &fs, const std::string &path) {
-    for (auto &&entry: fs.iterate_directory(path)) {
-        std::string p = path + "/" + entry.filename();
-        if (entry.is_directory()) {
-            getResources(fs, p);
-        } else {
-            auto file = fs.open(p);
-            Io::File::addBufferFile("res:" + p, (const uint8_t *) file.cbegin(), file.size());
-            printf("Io: resource added: \"%s\"\r\n", std::string("res:" + p).c_str());
-        }
-    }
-}
 
 void Io::init() {
     if (io_initialised) return;
@@ -80,13 +64,10 @@ void Io::init() {
                io_flash_get_size_string().c_str());
     }
 
-#warning TODO
-    // TODO: fix "undefined reference to `cmrc::pico2d::get_filesystem()'"
-    //  when no resources added from cmake project (edit: release mode/flags bug?)
-    // map "romfs" (resources)
-    auto fs = pico2d::get_filesystem();
-    getResources(fs, "");
-
+    // map "romfs" (resources) if available
+    if (load_romfs) {
+        load_romfs();
+    }
 }
 
 void Io::exit() {

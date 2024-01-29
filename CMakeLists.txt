@@ -62,6 +62,7 @@ set(PLATFORM_INCLUDES
         ${CMAKE_CURRENT_SOURCE_DIR}/src/utility
         ${CMAKE_CURRENT_SOURCE_DIR}/src/compat
         ${CMAKE_CURRENT_SOURCE_DIR}/src/fatfs
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/romfs
         ${CMAKE_CURRENT_SOURCE_DIR}/external/Adafruit-GFX-Library
 )
 
@@ -69,13 +70,15 @@ set(PLATFORM_FLAGS "-DNO_PICO_LED -DARDUINO=123 -ffast-math -ffunction-sections 
 
 # tweeny
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/tweeny tweeny)
+list(APPEND PLATFORM_LIBS tweeny)
 
 # resources (romfs)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CMakeRC.cmake)
 list(APPEND PLATFORM_INCLUDES ${CMAKE_BINARY_DIR}/_cmrc/include)
 function(target_add_resources target)
     cmrc_add_resource_library(${target}-resources NAMESPACE pico2d ${ARGN})
-    target_link_libraries(${target} pico2d-skeleton ${target}-resources)
+    target_link_libraries(${target} ${target}-resources)
+    target_sources(${target} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/romfs/romfs.cpp)
 endfunction()
 
 if (PICO_BOARD)
@@ -138,7 +141,7 @@ if (PICO_BOARD)
     if (PICO_BOARD STREQUAL "adafruit_feather_rp2040")
         list(APPEND PLATFORM_FLAGS -DMICROBOY_10)
     else ()
-        list(APPEND PLATFORM_FLAGS -DMICROBOY_11)
+        list(APPEND PLATFORM_FLAGS -DMICROBOY_11) # Waveshare rp2040 plus
     endif ()
 
     # picoprobe debug
@@ -197,7 +200,7 @@ endif ()
 add_library(pico2d-skeleton ${PLATFORM_SOURCES})
 target_include_directories(pico2d-skeleton PUBLIC ${PLATFORM_INCLUDES})
 target_compile_definitions(pico2d-skeleton PUBLIC ${PLATFORM_FLAGS})
-target_link_libraries(pico2d-skeleton PUBLIC ${PLATFORM_LIBS} tweeny)
+target_link_libraries(pico2d-skeleton PUBLIC ${PLATFORM_LIBS})
 
 if (PICO_BOARD)
     # ST7789 pio
