@@ -65,9 +65,10 @@ static uint8_t st7789_init_seq[] = {
 };
 
 static inline void st7789_lcd_set_dc_cs(bool dc, bool cs) {
-    sleep_us(1);
+    //sleep_us(1);
+    st7789_lcd_wait_idle(pio, pio_sm);
     gpio_put_masked((1u << LCD_PIN_DC) | (1u << LCD_PIN_CS), !!dc << LCD_PIN_DC | !!cs << LCD_PIN_CS);
-    sleep_us(1);
+    //sleep_us(1);
 }
 
 static inline void st7789_lcd_write_cmd(const uint8_t *cmd, size_t count) {
@@ -109,10 +110,12 @@ static inline void st7789_lcd_init(const uint8_t *init_seq) {
     }
 }
 
-static inline void st7789_lcd_set_cursor(uint16_t x, uint16_t y) {
+static inline void st7789_lcd_set_cursor(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
     const uint8_t st7789_cursor_seq[] = {
-            5, 0, ST7789_CASET, (uint8_t) (x >> 8), (uint8_t) (x & 0xff), DISPLAY_WIDTH >> 8, DISPLAY_WIDTH & 0xff,
-            5, 0, ST7789_RASET, (uint8_t) (y >> 8), (uint8_t) (y & 0xff), DISPLAY_HEIGHT >> 8, DISPLAY_HEIGHT & 0xff,
+            5, 0, ST7789_CASET, (uint8_t) (x >> 8), (uint8_t) (x & 0xff),
+            (uint8_t) ((x + w - 1) >> 8), (uint8_t) ((x + w - 1) & 0xff),
+            5, 0, ST7789_RASET, (uint8_t) (y >> 8), (uint8_t) (y & 0xff),
+            (uint8_t) ((y + h - 1) >> 8), (uint8_t) ((y + h - 1) & 0xff),
             0
     };
 
@@ -189,8 +192,8 @@ void st7789_put32(uint32_t pixel) {
     st7789_lcd_put32(pio, pio_sm, pixel);
 }
 
-void st7789_set_cursor(uint16_t x, uint16_t y) {
-    st7789_lcd_set_cursor(x, y);
+void st7789_set_cursor(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+    st7789_lcd_set_cursor(x, y, width, height);
 }
 
 void st7789_set_data_size(uint8_t size) {
@@ -285,20 +288,16 @@ void st7789_push(const uint16_t *data, uint32_t size, bool dont_block) {
     dma_channel_set_read_addr(dma_channel, data, true);
 }
 
-void st7789_clear() {
+void st7789_clear(uint16_t color) {
+    uint32_t c = (uint32_t) (color << 16) | color;
+
     if (!write_mode)
         st7789_prepare_write();
 
     for (int i = 0; i < DISPLAY_WIDTH * DISPLAY_HEIGHT; i++)
-        pio_sm_put_blocking(pio, pio_sm, 0);
+        pio_sm_put_blocking(pio, pio_sm, c);
 }
 
-bool st7789_dma_is_busy() {
-    //if (pixel_double && cur_scanline <= win_h / 2)
-    //    return true;
-    return dma_channel_is_busy(dma_channel);
-}
-
-void st7789_dma_flush() {
+void st7789_flush() {
     while (dma_channel_is_busy(dma_channel)) {}
 }

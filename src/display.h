@@ -5,11 +5,16 @@
 #ifndef MICROBOY_DISPLAY_H
 #define MICROBOY_DISPLAY_H
 
+#ifndef ARDUINO
+#define ARDUINO 123
+#endif
+
 #include "Adafruit_GFX.h"
 #include "surface.h"
 #include "utility.h"
 
 namespace p2d {
+    // TODO: make Adafruit_GFX private
     class Display : public Adafruit_GFX {
     public:
         enum class Buffering {
@@ -62,7 +67,7 @@ namespace p2d {
                          float spiSpeedMhz = 80.0f);
 
         // destroy the display (hardware dependant, to be implemented)
-        virtual ~Display();
+        ~Display() override;
 
         // set the position inside pixel buffer (hardware dependant, to be implemented)
         virtual void setCursor(int16_t x, int16_t y) {};
@@ -87,8 +92,13 @@ namespace p2d {
             put(pos.x, pos.y, color);
         }
 
-        // put x count of pixels from current cursor position
+        // put x pixels from current cursor position
         virtual void put(const uint16_t *buffer, uint32_t count);
+
+        // put x count of pixels from current cursor position, without alpha color key handling
+        virtual void putFast(const uint16_t *buffer, uint32_t count) {
+            printf("Display::putFast: not supported in this mode...\r\n");
+        }
 
         // draw a surface (pixel buffer) to the display with scaling if requested
         virtual void drawSurface(Surface *surface, const Utility::Vec4i &bounds);
@@ -163,6 +173,8 @@ namespace p2d {
         Surface *getSurface(uint8_t index) {
             return p_surfaces[index];
         }
+
+        virtual void setDisplayBounds(int16_t x, int16_t y, uint16_t w, uint16_t h) {};
 
         void drawPixel(int16_t x, int16_t y, uint16_t color) override {
             put(x, y, color);

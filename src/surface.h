@@ -97,6 +97,10 @@ namespace p2d {
 
         [[nodiscard]] bool isBitmap() const { return m_is_bitmap; }
 
+        [[nodiscard]] bool isAlphaEnabled() const { return m_use_alpha; }
+
+        void setAlphaEnabled(bool value) { m_use_alpha = value; }
+
     private:
 #pragma pack(push, 2)
         struct BMPHeader {
@@ -124,6 +128,7 @@ namespace p2d {
         uint8_t m_bpp = 2;
         bool m_read_only = false;
         bool m_is_bitmap = false;
+        bool m_use_alpha = true;
     };
 }
 

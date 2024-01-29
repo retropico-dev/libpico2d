@@ -41,12 +41,31 @@ __always_inline void in_ram(PicoDisplayDirectDraw::put)(const uint16_t *buffer, 
     if (m_bit_shift == 0) {
         // RGB565
         st7789_push((uint16_t *) buffer, count);
+        st7789_flush();
     } else {
         // ARGB444 > RGB444
         for (uint_fast16_t i = 0; i < count; i++) {
             st7789_put16(buffer[i] << m_bit_shift);
         }
     }
+}
+
+__always_inline void in_ram(PicoDisplayDirectDraw::putFast)(const uint16_t *buffer, uint32_t count) {
+    if (m_bit_shift == 0) {
+        // RGB565
+        st7789_push((uint16_t *) buffer, count);
+        st7789_flush();
+    } else {
+        // ARGB444 > RGB444
+        for (uint_fast16_t i = 0; i < count; i++) {
+            st7789_put16(buffer[i] << m_bit_shift);
+        }
+    }
+}
+
+__always_inline void in_ram(PicoDisplayDirectDraw::clear)() {
+    st7789_set_cursor(0, 0);
+    st7789_clear(m_clearColor);
 }
 
 #endif

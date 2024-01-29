@@ -81,7 +81,7 @@ void st7789_init(uint8_t format, float clock_div);
 
 void st7789_start_pixels();
 
-void st7789_set_cursor(uint16_t x, uint16_t y);
+void st7789_set_cursor(uint16_t x, uint16_t y, uint16_t width = DISPLAY_WIDTH, uint16_t height = DISPLAY_HEIGHT);
 
 void st7789_put8(uint16_t pixel);
 
@@ -95,10 +95,8 @@ void st7789_prepare_write();
 
 void st7789_push(const uint16_t *data, uint32_t size = DISPLAY_WIDTH, bool dont_block = false);
 
-void st7789_clear();
+void st7789_clear(uint16_t color = 0);
 
-void st7789_dma_flush();
-
-bool st7789_dma_is_busy();
+void st7789_flush();
 
 #endif //MICROBOY_ST7789_H

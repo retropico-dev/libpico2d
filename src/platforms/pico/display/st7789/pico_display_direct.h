@@ -26,6 +26,10 @@ namespace p2d {
 
         void put(const uint16_t *buffer, uint32_t count) override;
 
+        void putFast(const uint16_t *buffer, uint32_t count) override;
+
+        void clear() override;
+
     private:
         uint8_t m_bit_shift = 0;
 

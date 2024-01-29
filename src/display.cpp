@@ -42,14 +42,22 @@ void in_ram(Display::drawSurface)(Surface *surface, const Utility::Vec4i &bounds
         if (width <= 0) return;
         for (int16_t y = 0; y < bounds.h; y++) {
             // break if y is out of screen
-            if (bounds.y + y < 0 || bounds.y + y >= m_renderSize.y) break;
+            if (bounds.y + y < 0 || bounds.y + y >= m_renderSize.y) continue;
             // set cursor position
             setCursor(bounds.x, (int16_t) (bounds.y + y));
             // draw line
-            if (isBitmap) // invert Y axis
-                put((uint16_t *) (pixels + (height - y - 1) * pitch), width);
-            else
-                put((uint16_t *) (pixels + y * pitch), width);
+            if (isBitmap) {
+                // invert Y axis
+                if (surface->isAlphaEnabled())
+                    put((uint16_t *) (pixels + (height - y - 1) * pitch), width);
+                else
+                    putFast((uint16_t *) (pixels + (height - y - 1) * pitch), width);
+            } else {
+                if (surface->isAlphaEnabled())
+                    put((uint16_t *) (pixels + y * pitch), width);
+                else
+                    putFast((uint16_t *) (pixels + y * pitch), width);
+            }
         }
     } else {
         // nearest-neighbor scaling

@@ -28,11 +28,10 @@ namespace p2d {
 
         void put(uint16_t color) override;
 
-#if !PICO_DISPLAY_ALPHA_SUPPORT
+        void putFast(const uint16_t *buffer, uint32_t count) override;
 
-        void put(const uint16_t *buffer, uint32_t count) override;
-
-#endif
+    protected:
+        void setDisplayBounds(int16_t x, int16_t y, uint16_t w, uint16_t h) override;
 
     private:
         uint8_t m_bit_shift = 0;
