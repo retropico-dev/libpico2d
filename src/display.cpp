@@ -10,7 +10,7 @@ Display::Display(const Utility::Vec2i &displaySize, const Utility::Vec2i &render
                  const Utility::Vec4i &renderBounds, const Buffering &buffering,
                  const Format &format, float spiSpeedMhz)
         : Adafruit_GFX(renderBounds.w, renderBounds.h) {
-    m_clip = {0, 0, renderBounds.x, renderBounds.y};
+    m_clip = renderBounds;
     m_displaySize = displaySize;
     m_renderSize = renderSize;
     m_renderBounds = renderBounds;

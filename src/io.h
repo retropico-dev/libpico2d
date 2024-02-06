@@ -18,6 +18,10 @@
 #define FLASH_TARGET_OFFSET_CACHE ((1024 * 1024) * 5)   // 1MB flash cache (raw)
 #define FLASH_TARGET_OFFSET_FATFS ((1024 * 1024) * 6)   // 10MB fatfs flash ("flash:")
 
+#ifndef FLASH_SECTOR_SIZE
+#define FLASH_SECTOR_SIZE 4096
+#endif
+
 #define IO_MAX_FILES 2048
 #define IO_MAX_PATH 128
 

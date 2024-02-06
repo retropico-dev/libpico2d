@@ -17,6 +17,7 @@
 #include "pico_display_direct.h"
 #include "input_pico.h"
 #include "audio_pico.h"
+#include "pico_battery.h"
 
 #define in_ram __not_in_flash_func
 

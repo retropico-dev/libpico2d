@@ -2,10 +2,12 @@
 // Created by cpasjuste on 31/05/23.
 //
 
-#include <hardware/uart.h>
 #include "platform.h"
 #include "pinout.h"
+
+#if defined(BTN_PIN_SLEEP)
 #include "sleep.h"
+#endif
 
 using namespace p2d;
 
@@ -19,6 +21,8 @@ PicoInput::PicoInput() : Input() {
     m_mapping[5] = {Input::Button::RIGHT, BTN_PIN_RIGHT, "RIGHT"};
     m_mapping[6] = {Input::Button::UP, BTN_PIN_UP, "UP"};
     m_mapping[7] = {Input::Button::DOWN, BTN_PIN_DOWN, "DOWN"};
+    m_mapping[8] = {Input::Button::VOL_UP, BTN_PIN_VOL_U, "VOL_UP"};
+    m_mapping[9] = {Input::Button::VOL_DOWN, BTN_PIN_VOL_D, "VOL_DOWN"};
 
     for (const auto &map: m_mapping) {
         if (map.pin != -1) {
@@ -30,7 +34,7 @@ PicoInput::PicoInput() : Input() {
         }
     }
 
-#if BTN_PIN_SLEEP
+#if defined(BTN_PIN_SLEEP)
     gpio_set_function(BTN_PIN_SLEEP, GPIO_FUNC_SIO);
     gpio_set_dir(BTN_PIN_SLEEP, false);
     gpio_pull_up(BTN_PIN_SLEEP);
@@ -38,7 +42,7 @@ PicoInput::PicoInput() : Input() {
 #endif
 }
 
-uint16_t PicoInput::getButtons() {
+void PicoInput::onUpdate() {
     // reset buttons state
     m_buttons = 0;
 
@@ -47,7 +51,7 @@ uint16_t PicoInput::getButtons() {
         if (map.pin != -1) m_buttons |= gpio_get(map.pin) ? 0 : map.button;
     }
 
-#if BTN_PIN_SLEEP
+#if defined(BTN_PIN_SLEEP)
     // check for sleep button
     if (!gpio_get(BTN_PIN_SLEEP)) {
         Sleep::sleep();
@@ -90,5 +94,5 @@ uint16_t PicoInput::getButtons() {
 #endif
 
     // handle repeat delay
-    return Input::getButtons();
+    Input::onUpdate();
 }

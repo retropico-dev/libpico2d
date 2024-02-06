@@ -8,6 +8,7 @@ using namespace p2d;
 
 LinuxPlatform::LinuxPlatform() : Platform() {
     Io::init();
+    p_battery = new Battery();
     p_audio = new LinuxAudio();
     p_input = new LinuxInput();
 }

@@ -53,8 +53,8 @@ void Text::setString(const std::string &str) {
     }
 }
 
-void Text::loop(const Utility::Vec2i &pos, const uint16_t &buttons) {
-    if (!isVisible()) return;
+void Text::onDraw(const Utility::Vec2i &pos, bool draw) {
+    if (!draw) return;
 
     // now draw the text
     Platform::instance()->getDisplay()->setTextColor(m_color);
@@ -67,5 +67,5 @@ void Text::loop(const Utility::Vec2i &pos, const uint16_t &buttons) {
              Platform::instance()->getDisplay()->getSize().y});
 
     // draw child's
-    Widget::loop(pos, buttons);
+    Widget::onDraw(pos, draw);
 }

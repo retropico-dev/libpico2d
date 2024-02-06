@@ -16,7 +16,7 @@ namespace p2d {
 
         ~Bitmap();
 
-        void loop(const Utility::Vec2i &pos, const uint16_t &buttons) override;
+        void onDraw(const Utility::Vec2i &pos, bool draw) override;
 
         [[nodiscard]] bool isAlphaEnabled() const {
             if (m_surface) return m_surface->isAlphaEnabled();

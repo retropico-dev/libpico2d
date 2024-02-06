@@ -32,7 +32,7 @@ namespace p2d {
             m_pitch = m_size.x * m_bpp;
         }
 
-        explicit Surface(const Io::File &file) {
+        explicit Surface(const Io::File &file, bool useAlpha = false) {
             auto bmp = (BMPHeader *) file.getPtr();
             if ((bmp->header[0] != 'B') || (bmp->header[1] != 'M')) {
                 printf("Surface: binary is not a bitmap dump...\r\n");
@@ -49,15 +49,16 @@ namespace p2d {
                 return;
             }
 
-            printf("Surface(): loading new bitmap (%i x %i @ %i bpp)\r\n",
-                   bmp->w, bmp->h, bmp->bpp);
-
             auto padding = ((4 - (bmp->w * 3) % 4) % 4);
             p_buffer = (uint8_t *) file.getPtr() + bmp->data_offset;
             m_size = {(int16_t) bmp->w, (int16_t) bmp->h};
             m_pitch = (m_size.x * m_bpp) - padding;
+            m_use_alpha = useAlpha;
             m_read_only = true;
             m_is_bitmap = true;
+
+            printf("Surface(): loaded bitmap (%i x %i @ %i bpp)\r\n",
+                   bmp->w, bmp->h, bmp->bpp);
         }
 
         ~Surface() {

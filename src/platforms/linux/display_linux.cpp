@@ -72,6 +72,10 @@ void LinuxDisplay::put(uint16_t color) {
     }
 }
 
+void LinuxDisplay::putFast(const uint16_t *buffer, uint32_t count) {
+    for (int i = 0; i < count; i++) put(buffer[i]);
+}
+
 void LinuxDisplay::flip() {
     SDL_RenderPresent(p_renderer);
 }

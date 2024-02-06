@@ -23,13 +23,13 @@ Bitmap::Bitmap(const Io::File &file, const Utility::Vec2i &pos) {
            m_surface->getSize().x, m_surface->getSize().y, m_surface->getPixelsSize());
 }
 
-void Bitmap::loop(const Utility::Vec2i &pos, const uint16_t &buttons) {
-    if (!isVisible()) return;
+void Bitmap::onDraw(const Utility::Vec2i &pos, bool draw) {
+    if (!draw) return;
 
     Platform::instance()->getDisplay()->drawSurface((Surface *) m_surface, pos);
 
     // draw child's
-    Widget::loop(pos, buttons);
+    Widget::onDraw(pos, draw);
 }
 
 Bitmap::~Bitmap() {

@@ -28,6 +28,8 @@ namespace p2d {
 
         void put(uint16_t color) override;
 
+        void putFast(const uint16_t *buffer, uint32_t count) override;
+
         void flip() override;
 
     private:

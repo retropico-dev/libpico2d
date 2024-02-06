@@ -10,7 +10,7 @@ namespace p2d {
     public:
         PicoInput();
 
-        uint16_t getButtons() override;
+        void onUpdate() override;
     };
 }
 

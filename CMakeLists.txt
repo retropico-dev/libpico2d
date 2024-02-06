@@ -98,7 +98,7 @@ if (PICO_BOARD)
             PICO_ENTER_USB_BOOT_ON_EXIT=1
             PICO_STDIO_ENABLE_CRLF_SUPPORT=0
             PICO_STDIO_DEFAULT_CRLF=0
-            PICO_PRINTF_SUPPORT_FLOAT=0
+            PICO_PRINTF_SUPPORT_FLOAT=1
             PICO_PRINTF_SUPPORT_EXPONENTIAL=0
             PICO_PRINTF_SUPPORT_LONG_LONG=1
             PICO_PRINTF_SUPPORT_PTRDIFF_T=0
@@ -117,6 +117,7 @@ if (PICO_BOARD)
             hardware_dma
             hardware_flash
             hardware_pwm
+            hardware_adc
     )
 
     # display driver

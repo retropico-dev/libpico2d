@@ -28,14 +28,11 @@ static Display::Settings ds{
         .displaySize = {240, 240},          // real display size (hardware size)
         .renderSize = {240, 240},           // rendering size (framebuffer size)
         .renderBounds = {0, 0, 240, 240},   // rendering bounds, used for scaling (if renderSize != renderBounds.w/h)
-        .bufferingMode = Display::Buffering::Double,
+        .bufferingMode = Display::Buffering::Single,
         .format = Display::Format::RGB565
 };
 
 int main() {
-    Clock clock; //deltaClock;
-    int frames = 0;
-
     auto platform = new P2DPlatform();
     auto display = (Display *) new P2DDisplay(ds);
     platform->setDisplay(display);
@@ -76,23 +73,9 @@ int main() {
             .during(5 * 1000);
     */
 
-    clock.restart();
-
-    while (platform->loop(true)) {
+    while (platform->loop()) {
         //int16_t x = tween.step((int32_t) tweenClock.restart().asMilliseconds(), true);
         //girl->setPosition(x, girl->getPosition().y);
-
-        // fps
-        if (clock.getElapsedTime().asSeconds() >= 1) {
-            auto percent = (uint16_t) (((float) Utility::getUsedHeap() / (float) Utility::getTotalHeap()) * 100);
-            printf("fps: %i, heap: %i/%i (%i%%)\r\n",
-                   (int) ((float) frames / clock.restart().asSeconds()),
-                   Utility::getUsedHeap(), Utility::getTotalHeap(), percent);
-            frames = 0;
-        }
-
-        // increment frames for fps counter
-        frames++;
     }
 
     // reboot to bootloader

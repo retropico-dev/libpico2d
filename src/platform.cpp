@@ -12,27 +12,90 @@ Platform::Platform() : Widget() {
     s_platform = this;
 }
 
-Platform *Platform::instance() {
-    return s_platform;
+bool Platform::loop() {
+    // input
+    bool stop = onInput(0);
+
+    // update loop
+    onUpdate(m_delta_clock.restart());
+
+    // drawing
+    onDraw(m_position, true);
+
+    return stop;
 }
 
-bool Platform::loop(bool forceDraw) {
-    uint16_t buttons = p_input ? p_input->getButtons() : 0;
-    if (buttons & Input::Button::QUIT) return false;
+void Platform::onUpdate(Time delta) {
+    // battery
+    if (p_battery) p_battery->loop();
 
-    // only refresh screen on button inputs
-    if (p_display && (forceDraw || buttons && buttons != Input::Button::DELAY)) {
+    // runtime
+    if (m_elapsed_clock.getElapsedTime().asSeconds() == 60) {
+        m_runtime_minutes++;
+        m_elapsed_clock.restart();
+    }
+
+    // fps
+    if (m_fps_clock.getElapsedTime().asMilliseconds() >= 1000) {
+        m_fps = m_frames;
+        m_frames = 0;
+        m_fps_clock.restart();
+        if (m_stats_print) {
+            auto percent = (uint16_t) (((float) Utility::getUsedHeap() / (float) Utility::getTotalHeap()) * 100);
+            printf("fps: %i, heap: %i/%i (%i%%), battery: %i%% (%.02fv), runtime: %lu minutes\r\n",
+                   m_fps, Utility::getUsedHeap(), Utility::getTotalHeap(), percent,
+                   p_battery->getPercent(), p_battery->getVoltage(), m_runtime_minutes);
+        }
+    }
+
+    Widget::onUpdate(delta);
+
+    m_frames++;
+}
+
+bool Platform::onInput(const uint16_t &dummy) {
+    // update buttons state
+    p_input->onUpdate();
+
+    auto buttons = p_input->getButtons();
+    if (buttons && buttons != Input::Button::DELAY) {
+        Widget::onInput(buttons);
+    }
+
+    return !(buttons & Input::Button::QUIT);
+}
+
+void Platform::onDraw(const Utility::Vec2i &pos, bool draw) {
+    if (p_display && draw) {
         // clear screen
         p_display->clear();
 
         // draw child's
-        Widget::loop(m_position, buttons);
+        Widget::onDraw(pos, draw);
 
         // flip screen
         p_display->flip();
     }
+}
 
-    return true;
+Platform *Platform::instance() {
+    return s_platform;
+}
+
+Display *Platform::display() {
+    return s_platform->p_display;
+}
+
+Audio *Platform::audio() {
+    return s_platform->p_audio;
+}
+
+Input *Platform::input() {
+    return s_platform->p_input;
+}
+
+Battery *Platform::battery() {
+    return s_platform->p_battery;
 }
 
 Platform::~Platform() {
@@ -40,5 +103,6 @@ Platform::~Platform() {
     delete (p_display);
     delete (p_audio);
     delete (p_input);
+    delete (p_battery);
     Io::exit();
 }

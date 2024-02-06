@@ -35,6 +35,7 @@ PicoPlatform::PicoPlatform() : Platform() {
 #endif
 
     Io::init();
+    p_battery = new PicoBattery();
     p_audio = new PicoAudio();
     p_input = new PicoInput();
 }

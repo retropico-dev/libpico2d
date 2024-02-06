@@ -6,7 +6,7 @@
 
 using namespace p2d;
 
-uint16_t Input::getButtons() {
+void Input::onUpdate() {
     // handle auto-repeat
     if (m_repeatClock.getElapsedTime().asMilliseconds() >= m_repeatDelayMs) {
         m_repeatClock.restart();
@@ -20,6 +20,4 @@ uint16_t Input::getButtons() {
             m_buttons = Button::DELAY;
         }
     }
-
-    return m_buttons;
 }

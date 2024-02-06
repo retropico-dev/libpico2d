@@ -8,7 +8,6 @@
 #include <hardware/sync.h>
 #include "utility.h"
 #include "io.h"
-#include "flash.h"
 
 static const uint32_t flash_offset = FLASH_TARGET_OFFSET_FATFS;
 static const uint32_t flash_size = PICO_FLASH_SIZE_BYTES - FLASH_TARGET_OFFSET_FATFS;

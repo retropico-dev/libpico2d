@@ -13,6 +13,7 @@
 #include "io.h"
 #include "clock.h"
 #include "widget.h"
+#include "battery.h"
 
 #ifdef PICO_PSRAM
 
@@ -27,7 +28,19 @@ namespace p2d {
 
         virtual ~Platform();
 
-        static Platform *instance();
+        virtual bool loop();
+
+        void onUpdate(Time delta) override;
+
+        bool onInput(const uint16_t &buttons) override;
+
+        void onDraw(const Utility::Vec2i &pos, bool draw = true) override;
+
+        virtual void reboot(uint32_t watchdog_scratch = 0) {};
+
+        void add(Widget *widget) override { Widget::add(widget); }
+
+        void remove(Widget *widget) override { Widget::remove(widget); };
 
         void setDisplay(Display *display) {
             p_display = display;
@@ -41,18 +54,27 @@ namespace p2d {
 
         Input *getInput() { return p_input; }
 
-        virtual bool loop(bool forceDraw = false);
+        Battery *getBattery() { return p_battery; }
 
-        virtual void reboot(uint32_t watchdog_scratch = 0) {};
+        static Platform *instance();
 
-        void add(Widget *widget) override { Widget::add(widget); }
+        static Display *display();
 
-        void remove(Widget *widget) override { Widget::remove(widget); };
+        static Audio *audio();
+
+        static Input *input();
+
+        static Battery *battery();
 
     protected:
         Display *p_display = nullptr;
         Input *p_input = nullptr;
         Audio *p_audio = nullptr;
+        Battery *p_battery = nullptr;
+        Clock m_elapsed_clock{}, m_delta_clock{}, m_fps_clock{};
+        uint16_t m_fps = 0, m_frames = 0;
+        uint32_t m_runtime_minutes = 0;
+        bool m_stats_print = true;
     };
 }
 

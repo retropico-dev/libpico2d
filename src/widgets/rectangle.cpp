@@ -30,8 +30,8 @@ Rectangle::Rectangle(const Utility::Vec4i &bounds, uint16_t color, int16_t radiu
     m_radius = radius;
 }
 
-void Rectangle::loop(const Utility::Vec2i &pos, const uint16_t &buttons) {
-    if (!isVisible()) return;
+void Rectangle::onDraw(const Utility::Vec2i &pos, bool draw) {
+    if (!draw) return;
 
     // first draw outline if needed
     if (m_outline_thickness > 0 && m_outline_color != Display::Color::Transparent) {
@@ -61,5 +61,5 @@ void Rectangle::loop(const Utility::Vec2i &pos, const uint16_t &buttons) {
     }
 
     // draw child's
-    Widget::loop(pos, buttons);
+    Widget::onDraw(pos, draw);
 }

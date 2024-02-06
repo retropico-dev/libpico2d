@@ -13,7 +13,7 @@
 #define BIT(n) (1U<<(n))
 #endif
 
-#define MAX_BUTTONS 8
+#define MAX_BUTTONS 10
 #define INPUT_DELAY_UI 300
 
 namespace p2d {
@@ -28,8 +28,10 @@ namespace p2d {
             RIGHT = BIT(5),
             UP = BIT(6),
             DOWN = BIT(7),
-            DELAY = BIT(8),
-            QUIT = BIT(9)
+            VOL_UP = BIT(8),
+            VOL_DOWN = BIT(9),
+            DELAY = BIT(10),
+            QUIT = BIT(11)
         };
 
         struct Mapping {
@@ -38,7 +40,9 @@ namespace p2d {
             std::string name{};
         };
 
-        virtual uint16_t getButtons();
+        virtual void onUpdate();
+
+        virtual uint16_t getButtons() { return m_buttons; }
 
         uint16_t getRepeatDelay() { return m_repeatDelayMs; };
 

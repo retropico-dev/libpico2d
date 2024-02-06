@@ -74,11 +74,15 @@ namespace p2d {
 
         virtual void setVisibility(Visibility visibility) { m_visibility = visibility; };
 
-        virtual void loop(const Utility::Vec2i &pos, const uint16_t &buttons);
+        virtual void onUpdate(Time delta);
+
+        virtual bool onInput(const uint16_t &buttons);
+
+        virtual void onDraw(const Utility::Vec2i &pos, bool draw = true);
 
     protected:
         Widget *p_parent = nullptr;
-        std::vector<Widget *> p_child_list;
+        std::vector<Widget *> p_childs;
         Visibility m_visibility = Visibility::Visible;
         Utility::Vec2i m_position{};
         Utility::Vec2i m_size{};

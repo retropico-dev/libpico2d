@@ -16,7 +16,6 @@ static void load_resources(const embedded_filesystem &fs, const std::string &pat
         } else {
             auto file = fs.open(p);
             auto resPath = "res:" + p;
-            if (resPath == "res:/src/romfs/.keep") continue;
             p2d::Io::File::addBufferFile(resPath, (const uint8_t *) file.cbegin(), file.size());
             printf("Io: resource added: \"%s\"\r\n", resPath.c_str());
         }

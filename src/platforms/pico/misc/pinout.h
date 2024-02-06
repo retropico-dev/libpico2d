@@ -47,10 +47,6 @@
 #endif
 #elif defined(MICROBOY_11)
 
-// UART (PICOPROBE)
-#define UART_TX         16
-#define UART_RX         17
-
 // SPI LCD PINOUT
 #define LCD_PIO         pio0
 #define LCD_SM          0
@@ -65,8 +61,8 @@
 #define SD_PIO          pio1
 #define SD_SM           0
 #define SD_PIN_CS       26
-#define SD_PIN_CLK      21
-#define SD_PIN_MOSI     22
+#define SD_PIN_CLK      22
+#define SD_PIN_MOSI     21
 #define SD_PIN_MISO     27
 
 // AUDIO PINOUT (I2S)
@@ -92,15 +88,27 @@
 #define PSRAM_PIN_D3    22
 #endif
 
-#define BTN_PIN_START   (-1)
-#define BTN_PIN_SELECT  (-1)
-#define BTN_PIN_A       (-1)
-#define BTN_PIN_B       (-1)
-#define BTN_PIN_DOWN    (-1)
-#define BTN_PIN_RIGHT   (-1)
-#define BTN_PIN_LEFT    (-1)
-#define BTN_PIN_UP      (-1)
-#define BTN_PIN_SLEEP   (6)
+#define BTN_PIN_VBAT    (28)    // battery "monitor"
+#define BTN_PIN_VOL_U   (6)     // volume up
+#define BTN_PIN_VOL_D   (7)     // volume down
+#define BTN_PIN_UP      (8)
+#define BTN_PIN_LEFT    (9)
+#define BTN_PIN_DOWN    (10)
+#define BTN_PIN_RIGHT   (11)
+#define BTN_PIN_START   (12)
+#define BTN_PIN_SELECT  (13)
+#define BTN_PIN_A       (15)
+#define BTN_PIN_B       (14)
+
+#if defined(NDEBUG) && !defined(PICO_DEBUG_UART)
+#define BTN_PIN_SLEEP   (17)    // sleep (dormant) mode
+#endif
+
+// UART (PICOPROBE)
+#if !defined(NDEBUG) && defined(PICO_DEBUG_UART)
+#define UART_TX         16
+#define UART_RX         17
+#endif
 
 #else
 #error "microboy device version not defined"

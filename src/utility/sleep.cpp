@@ -77,7 +77,7 @@ static void rosc_reset() {
 #endif
 
 void Sleep::sleep() {
-#ifdef PICO_BUILD
+#if defined(PICO_BUILD) && defined(BTN_PIN_SLEEP)
     // be sure sleep button is released
     while (!gpio_get(BTN_PIN_SLEEP)) tight_loop_contents();
 
@@ -120,6 +120,6 @@ void Sleep::sleep() {
     sleep_ms(5);
 #endif
 #else
-    printf("Sleep::sleep: nop...\n");
+    printf("Sleep::sleep: not enabled...\n");
 #endif
 }
