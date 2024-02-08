@@ -22,7 +22,7 @@ const Mapping mapping[MAX_BUTTONS] = {
         {Input::Button::DOWN,   SDL_SCANCODE_DOWN}
 };
 
-uint16_t LinuxInput::getButtons() {
+void LinuxInput::onUpdate() {
     // reset buttons state
     m_buttons = 0;
 
@@ -30,7 +30,8 @@ uint16_t LinuxInput::getButtons() {
     SDL_Event ev;
     while (SDL_PollEvent(&ev)) {
         if (ev.type == SDL_QUIT) {
-            return Input::Button::QUIT;
+            m_buttons = Input::Button::QUIT;
+            return;
         }
     }
 
@@ -40,5 +41,5 @@ uint16_t LinuxInput::getButtons() {
     }
 
     // handle repeat delay
-    return Input::getButtons();
+    Input::onUpdate();
 }

@@ -22,9 +22,9 @@
 #endif
 
 namespace p2d {
-    class Platform : Widget {
+    class Platform : public Widget {
     public:
-        explicit Platform();
+        explicit Platform(const Display::Settings &displaySettings);
 
         virtual ~Platform();
 
@@ -41,12 +41,6 @@ namespace p2d {
         void add(Widget *widget) override { Widget::add(widget); }
 
         void remove(Widget *widget) override { Widget::remove(widget); };
-
-        void setDisplay(Display *display) {
-            p_display = display;
-            Widget::setPosition(0, 0);
-            Widget::setSize(p_display->getSize());
-        }
 
         Display *getDisplay() { return p_display; }
 

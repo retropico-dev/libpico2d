@@ -6,11 +6,12 @@
 
 using namespace p2d;
 
-LinuxPlatform::LinuxPlatform() : Platform() {
+LinuxPlatform::LinuxPlatform(const Display::Settings &settings) : Platform(settings) {
     Io::init();
     p_battery = new Battery();
-    p_audio = new LinuxAudio();
     p_input = new LinuxInput();
+    p_audio = new LinuxAudio();
+    p_display = new LinuxDisplay(settings);
 }
 
 LinuxPlatform::~LinuxPlatform() {

@@ -8,7 +8,7 @@
 namespace p2d {
     class LinuxInput : public Input {
     public:
-        uint16_t getButtons() override;
+        void onUpdate() override;
     };
 }
 

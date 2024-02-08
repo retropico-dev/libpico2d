@@ -7,6 +7,8 @@
 
 #include <cstdint>
 #include <vector>
+#include "display.h"
+#include "utility.h"
 
 namespace p2d {
     class Widget {

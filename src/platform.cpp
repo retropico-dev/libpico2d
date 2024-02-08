@@ -8,13 +8,16 @@ using namespace p2d;
 
 static Platform *s_platform = nullptr;
 
-Platform::Platform() : Widget() {
+Platform::Platform(const Display::Settings &displaySettings) : Widget() {
     s_platform = this;
 }
 
 bool Platform::loop() {
     // input
-    bool stop = onInput(0);
+    onInput(0);
+    if (p_input->getButtons() & Input::Button::QUIT) {
+        return false;
+    }
 
     // update loop
     onUpdate(m_delta_clock.restart());
@@ -22,7 +25,7 @@ bool Platform::loop() {
     // drawing
     onDraw(m_position, true);
 
-    return stop;
+    return true;
 }
 
 void Platform::onUpdate(Time delta) {
@@ -59,10 +62,10 @@ bool Platform::onInput(const uint16_t &dummy) {
 
     auto buttons = p_input->getButtons();
     if (buttons && buttons != Input::Button::DELAY) {
-        Widget::onInput(buttons);
+        return Widget::onInput(buttons);
     }
 
-    return !(buttons & Input::Button::QUIT);
+    return false;
 }
 
 void Platform::onDraw(const Utility::Vec2i &pos, bool draw) {
