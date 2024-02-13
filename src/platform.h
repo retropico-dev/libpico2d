@@ -74,14 +74,14 @@ namespace p2d {
 
 #ifdef LINUX
 #include "platform_linux.h"
-#define P2DPlatform LinuxPlatform
-#define P2DDisplay LinuxDisplay
+#define P2DPlatform p2d::LinuxPlatform
+#define P2DDisplay p2d::LinuxDisplay
 #else
 
 #include "platform_pico.h"
 
-#define P2DPlatform PicoPlatform
-#define P2DDisplay PicoDisplay
+#define P2DPlatform p2d::PicoPlatform
+#define P2DDisplay p2d::PicoDisplay
 #endif
 
 #endif //PICO2D_PLATFORM_H
