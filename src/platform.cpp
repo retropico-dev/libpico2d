@@ -85,22 +85,6 @@ Platform *Platform::instance() {
     return s_platform;
 }
 
-Display *Platform::display() {
-    return s_platform->p_display;
-}
-
-Audio *Platform::audio() {
-    return s_platform->p_audio;
-}
-
-Input *Platform::input() {
-    return s_platform->p_input;
-}
-
-Battery *Platform::battery() {
-    return s_platform->p_battery;
-}
-
 Platform::~Platform() {
     printf("~Platform()\n");
     delete (p_display);

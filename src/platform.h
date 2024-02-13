@@ -52,14 +52,6 @@ namespace p2d {
 
         static Platform *instance();
 
-        static Display *display();
-
-        static Audio *audio();
-
-        static Input *input();
-
-        static Battery *battery();
-
     protected:
         Display *p_display = nullptr;
         Input *p_input = nullptr;
@@ -73,7 +65,9 @@ namespace p2d {
 }
 
 #ifdef LINUX
+
 #include "platform_linux.h"
+
 #define P2DPlatform p2d::LinuxPlatform
 #define P2DDisplay p2d::LinuxDisplay
 #else

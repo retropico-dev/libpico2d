@@ -97,7 +97,7 @@ namespace p2d {
 
         // put x count of pixels from current cursor position, without alpha color key handling
         virtual void putFast(const uint16_t *buffer, uint32_t count) {
-            printf("Display::putFast: not supported in this mode...\r\n");
+            for (int i = 0; i < count; i++) put(buffer[i]);
         }
 
         // draw a surface (pixel buffer) to the display with scaling if requested
