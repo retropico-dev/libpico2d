@@ -12,7 +12,7 @@
 
 using namespace p2d;
 
-PicoPlatform::PicoPlatform() : Platform() {
+PicoPlatform::PicoPlatform(const Display::Settings &displaySettings) : Platform(displaySettings) {
     // overclock
     vreg_set_voltage(VREG_VOLTAGE_DEFAULT);
     sleep_ms(2);
@@ -38,6 +38,11 @@ PicoPlatform::PicoPlatform() : Platform() {
     p_battery = new PicoBattery();
     p_audio = new PicoAudio();
     p_input = new PicoInput();
+    if (displaySettings.bufferingMode == Display::Buffering::None) {
+        p_display = new PicoDisplayDirectDraw(displaySettings);
+    } else {
+        p_display = new PicoDisplay(displaySettings);
+    }
 }
 
 void PicoPlatform::reboot(uint32_t watchdog_scratch) {

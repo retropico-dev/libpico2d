@@ -24,7 +24,7 @@
 namespace p2d {
     class PicoPlatform : public Platform {
     public:
-        explicit PicoPlatform();
+        explicit PicoPlatform(const Display::Settings &displaySettings);
 
         ~PicoPlatform() override;
 
