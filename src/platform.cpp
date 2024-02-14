@@ -61,7 +61,22 @@ bool Platform::onInput(const uint16_t &dummy) {
     p_input->onUpdate();
 
     auto buttons = p_input->getButtons();
+
+    // handle special keys
+    if (m_special_buttons_clock.getElapsedTime().asMilliseconds() > 500) {
+        // volume keys
+        if (buttons & p2d::Input::Button::VOL_UP) {
+            getAudio()->volumeUp();
+            printf("new volume: %i\n", getAudio()->getVolume());
+        } else if (buttons & p2d::Input::Button::VOL_DOWN) {
+            getAudio()->volumeDown();
+            printf("new volume: %i\n", getAudio()->getVolume());
+        }
+        m_special_buttons_clock.restart();
+    }
+
     if (buttons && buttons != Input::Button::DELAY) {
+        // call input callback on childs
         return Widget::onInput(buttons);
     }
 

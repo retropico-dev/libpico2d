@@ -57,7 +57,7 @@ namespace p2d {
         Input *p_input = nullptr;
         Audio *p_audio = nullptr;
         Battery *p_battery = nullptr;
-        Clock m_elapsed_clock{}, m_delta_clock{}, m_fps_clock{};
+        Clock m_elapsed_clock{}, m_delta_clock{}, m_fps_clock{}, m_special_buttons_clock{};
         uint16_t m_fps = 0, m_frames = 0;
         uint32_t m_runtime_minutes = 0;
         bool m_stats_print = true;
