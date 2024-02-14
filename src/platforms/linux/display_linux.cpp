@@ -99,6 +99,8 @@ void LinuxDisplay::flip() {
                 renderPutPixel(x, y, *(uint16_t *) (p_surfaces[0]->getPixels() + y * m_pitch + x * m_bpp));
             }
         }
+
+        SDL_RenderPresent(p_renderer);
         return;
     }
 
@@ -110,6 +112,8 @@ void LinuxDisplay::flip() {
                                *(uint16_t *) (p_surfaces[0]->getPixels() + y * m_pitch + x * m_bpp));
             }
         }
+
+        SDL_RenderPresent(p_renderer);
         return;
     }
 
@@ -130,6 +134,7 @@ void LinuxDisplay::flip() {
             }
         }
 
+        SDL_RenderPresent(p_renderer);
         return;
     }
 
