@@ -36,9 +36,6 @@ LinuxDisplay::LinuxDisplay(const Utility::Vec2i &displaySize, const Utility::Vec
 
     p_surfaces[0] = new Surface(m_renderSize);
 
-    // handle alpha channel removal (st7789 support rgb444)
-    if (m_format == Format::ARGB444) m_bit_shift = 4;
-
     printf("LinuxDisplay: %ix%i (texture pitch: %i)\n", m_displaySize.x, m_displaySize.y, m_pitch);
 }
 
@@ -50,8 +47,7 @@ void LinuxDisplay::put(uint16_t color) {
     bool clip = m_cursor.x < m_clip.x || m_cursor.y < m_clip.y
                 || m_cursor.x >= m_clip.x + m_clip.w || m_cursor.y >= m_clip.y + m_clip.h;
     if (!clip && color != m_colorKey && m_cursor.x < m_renderSize.x && m_cursor.y < m_renderSize.y) {
-        *(uint16_t *) (p_surfaces[0]->getPixels() + m_cursor.y * m_pitch + m_cursor.x * m_bpp)
-                = color << m_bit_shift;
+        *(uint16_t *) (p_surfaces[0]->getPixels() + m_cursor.y * m_pitch + m_cursor.x * m_bpp) = color;
     }
 
     // emulate tft lcd "put_pixel"
