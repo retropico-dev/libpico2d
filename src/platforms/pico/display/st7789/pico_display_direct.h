@@ -20,6 +20,8 @@ namespace p2d {
                                        const Format &format = Format::RGB565,
                                        float spiSpeedMhz = 80.0f);
 
+        void setDisplayBounds(int16_t x, int16_t y, uint16_t w, uint16_t h) override;
+
         void setCursor(int16_t x, int16_t y) override;
 
         void put(uint16_t color) override;

@@ -26,6 +26,10 @@ PicoDisplayDirectDraw::PicoDisplayDirectDraw(const Utility::Vec2i &displaySize, 
            (uint16_t) spiSpeedMhz, renderBounds.w, renderBounds.h);
 }
 
+void PicoDisplayDirectDraw::setDisplayBounds(int16_t x, int16_t y, uint16_t w, uint16_t h) {
+    st7789_set_cursor(x, y, w, h);
+}
+
 __always_inline void in_ram(PicoDisplayDirectDraw::setCursor)(int16_t x, int16_t y) {
     if (x >= 0 && x < m_renderBounds.w && y >= 0 && y < m_renderBounds.h) {
         st7789_set_cursor(x, y);

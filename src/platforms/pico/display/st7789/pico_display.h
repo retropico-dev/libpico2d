@@ -24,14 +24,13 @@ namespace p2d {
 
         void flip() override;
 
+        void setDisplayBounds(int16_t x, int16_t y, uint16_t w, uint16_t h) override;
+
         void setCursor(int16_t x, int16_t y) override;
 
         void put(uint16_t color) override;
 
         void putFast(const uint16_t *buffer, uint32_t count) override;
-
-    protected:
-        void setDisplayBounds(int16_t x, int16_t y, uint16_t w, uint16_t h) override;
 
     private:
         uint8_t m_bit_shift = 0;

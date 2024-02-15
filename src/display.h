@@ -69,6 +69,8 @@ namespace p2d {
         // destroy the display (hardware dependant, to be implemented)
         ~Display() override;
 
+        virtual void setDisplayBounds(int16_t x, int16_t y, uint16_t w, uint16_t h) {};
+
         // set the position inside pixel buffer (hardware dependant, to be implemented)
         virtual void setCursor(int16_t x, int16_t y) {};
 
@@ -173,8 +175,6 @@ namespace p2d {
         Surface *getSurface(uint8_t index) {
             return p_surfaces[index];
         }
-
-        virtual void setDisplayBounds(int16_t x, int16_t y, uint16_t w, uint16_t h) {};
 
         void drawPixel(int16_t x, int16_t y, uint16_t color) override {
             put(x, y, color);
