@@ -33,9 +33,7 @@ static Display::Settings ds{
 };
 
 int main() {
-    auto platform = new P2DPlatform();
-    auto display = (Display *) new P2DDisplay(ds);
-    platform->setDisplay(display);
+    auto platform = new P2DPlatform(ds);
     platform->getDisplay()->setClearColor(Display::Color::Red);
 
     auto bounds = platform->getDisplay()->getSize();
