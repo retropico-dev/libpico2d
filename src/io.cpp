@@ -485,7 +485,14 @@ bool Io::FatFs::file_exists(const std::string &path) {
 }
 
 bool Io::FatFs::remove_file(const std::string &path) {
-    return f_unlink(path.c_str()) == FR_OK;
+    bool core1_pause_needed = Utility::startWith(path, "flash:");
+    if (core1_pause_needed) p2d_display_pause();
+
+    auto res = f_unlink(path.c_str());
+
+    if (core1_pause_needed) p2d_display_resume();
+
+    return res == FR_OK;
 }
 
 bool Io::FatFs::is_files_open() {
