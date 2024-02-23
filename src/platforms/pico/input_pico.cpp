@@ -6,7 +6,9 @@
 #include "pinout.h"
 
 #if defined(BTN_PIN_SLEEP)
+
 #include "sleep.h"
+
 #endif
 
 using namespace p2d;
@@ -21,13 +23,15 @@ PicoInput::PicoInput() : Input() {
     m_mapping[5] = {Input::Button::RIGHT, BTN_PIN_RIGHT, "RIGHT"};
     m_mapping[6] = {Input::Button::UP, BTN_PIN_UP, "UP"};
     m_mapping[7] = {Input::Button::DOWN, BTN_PIN_DOWN, "DOWN"};
+#if defined(BTN_PIN_VOL_U) && defined(BTN_PIN_VOL_D)
     m_mapping[8] = {Input::Button::VOL_UP, BTN_PIN_VOL_U, "VOL_UP"};
     m_mapping[9] = {Input::Button::VOL_DOWN, BTN_PIN_VOL_D, "VOL_DOWN"};
+#endif
 
     for (const auto &map: m_mapping) {
         if (map.pin != -1) {
             gpio_set_function(map.pin, GPIO_FUNC_SIO);
-            gpio_set_dir(map.pin, false);
+            gpio_set_dir(map.pin, GPIO_IN);
             gpio_pull_up(map.pin);
             printf("PicoInput: setting up pin %i as %s (pull-up: %i)\r\n",
                    map.pin, map.name.c_str(), gpio_is_pulled_up(map.pin));
