@@ -66,10 +66,6 @@
 #define SD_PIN_MISO     27
 
 // AUDIO PINOUT (I2S)
-///
-/// WARNING: speaker is 500 mW max
-/// be sure to lower the volume via software or the speaker will fry !
-///
 #define AUDIO_PIO       pio1
 #define AUDIO_SM        1
 #define AUDIO_PIN_DATA  20  // DIN
@@ -88,7 +84,6 @@
 #define PSRAM_PIN_D3    22
 #endif
 
-#define BTN_PIN_VBAT    (28)    // battery "monitor"
 #define BTN_PIN_VOL_U   (6)     // volume up
 #define BTN_PIN_VOL_D   (7)     // volume down
 #define BTN_PIN_UP      (8)
@@ -100,12 +95,12 @@
 #define BTN_PIN_A       (15)
 #define BTN_PIN_B       (14)
 
-#if defined(NDEBUG) && !defined(PICO_DEBUG_UART)
+#if !defined(PICO_DEBUG_UART)
 #define BTN_PIN_SLEEP   (17)    // sleep (dormant) mode
 #endif
 
 // UART (PICOPROBE)
-#if !defined(NDEBUG) && defined(PICO_DEBUG_UART)
+#if defined(PICO_DEBUG_UART)
 #define UART_TX         16
 #define UART_RX         17
 #endif

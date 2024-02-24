@@ -24,13 +24,13 @@ namespace p2d {
 
         virtual void volumeUp() {
             if (m_volume <= m_volume_max) {
-                m_volume += 5;
+                m_volume += 10;
             }
         }
 
         virtual void volumeDown() {
-            if (m_volume >= 5) {
-                m_volume -= 5;
+            if (m_volume >= 10) {
+                m_volume -= 10;
             }
         }
 
