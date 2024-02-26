@@ -96,6 +96,9 @@ bool Io::create(const std::string &path) {
     const char *p;
     char *temp;
 
+    bool core1_pause_needed = Utility::startWith(path, "flash:");
+    if (core1_pause_needed) p2d_display_pause();
+
     // add "/"
     std::string newPath = path;
     if (newPath[newPath.size() - 1] != '/') {
@@ -120,6 +123,8 @@ bool Io::create(const std::string &path) {
     }
 
     free(temp);
+
+    if (core1_pause_needed) p2d_display_resume();
 
     return fr == FR_OK || fr == FR_EXIST;
 }
@@ -330,6 +335,7 @@ bool Io::File::open(const std::string &path, int mode) {
 
     p_fh = Io::FatFs::open_file(path, mode);
 
+#ifndef LINUX
     // allow accessing raw flash file at correct offset when opened in read mode
     if (!(mode & OpenMode::Write) && Utility::startWith(path, "flash:")) {
         FIL *fp = (FIL *) p_fh;
@@ -337,6 +343,7 @@ bool Io::File::open(const std::string &path, int mode) {
         buf = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET_FATFS + (sector * FLASH_SECTOR_SIZE));
         buf_len = fp->obj.objsize;
     }
+#endif
 
     return p_fh != nullptr;
 }
