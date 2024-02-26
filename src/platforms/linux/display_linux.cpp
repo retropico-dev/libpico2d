@@ -31,7 +31,7 @@ LinuxDisplay::LinuxDisplay(const Utility::Vec2i &displaySize, const Utility::Vec
     }
 
     if (m_renderSize != Utility::Vec2i(m_renderBounds.w, m_renderBounds.h)) {
-        SDL_RenderSetLogicalSize(p_renderer, m_renderSize.x, m_renderSize.y);
+        //SDL_RenderSetLogicalSize(p_renderer, m_renderSize.x, m_renderSize.y);
     }
 
     p_surfaces[0] = new Surface(m_renderSize);
@@ -100,33 +100,18 @@ void LinuxDisplay::flip() {
         return;
     }
 
-    if (surfaceSize == Utility::Vec2i(m_renderBounds.w, m_renderBounds.h)) {
+    if (surfaceSize == Utility::Vec2i(m_renderBounds.w, m_renderBounds.h)
+        || (m_renderBounds.w / surfaceSize.x == 2 && m_renderBounds.h / surfaceSize.y == 2)) {
+        if (m_renderBounds.w / surfaceSize.x == 2 && m_renderBounds.h / surfaceSize.y == 2) {
+            // scale2x
+            SDL_RenderSetLogicalSize(p_renderer, m_renderSize.x, m_renderSize.y);
+        }
+
         // surface size is equal to render size, draw without scaling  (fastest)
         for (int y = 0; y < maxHeight; y++) {
             for (int x = 0; x < maxWidth; x++) {
                 renderPutPixel(x + m_renderBounds.x, y + m_renderBounds.y,
                                *(uint16_t *) (p_surfaces[0]->getPixels() + y * m_pitch + x * m_bpp));
-            }
-        }
-
-        SDL_RenderPresent(p_renderer);
-        return;
-    }
-
-    if (m_renderBounds.w / surfaceSize.x == 2 && m_renderBounds.h / surfaceSize.y == 2) {
-        // scale2x
-        for (int y = 0; y < maxHeight; y++) {
-            for (int i = 0; i < 2; i++) {
-                for (int x = 0; x < maxWidth; x += 2) {
-                    // line 1
-                    auto p1 = *(uint16_t *) (pixels + y * pitch + x * bpp);
-                    renderPutPixel(x, y, p1);
-                    renderPutPixel(x + 1, y, p1);
-                    // line 2
-                    auto p2 = *(uint16_t *) (pixels + y * pitch + (x + 1) * bpp);
-                    renderPutPixel(x, y + 1, p2);
-                    renderPutPixel(x + 1, y + 1, p2);
-                }
             }
         }
 
