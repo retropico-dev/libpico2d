@@ -2,8 +2,8 @@
 // Created by cpasjuste on 30/03/23.
 //
 
-#ifndef U_MICROBOY_RECTANGLE_H
-#define U_MICROBOY_RECTANGLE_H
+#ifndef P2D_RECTANGLE_H
+#define P2D_RECTANGLE_H
 
 #include "widget.h"
 
@@ -26,4 +26,4 @@ namespace p2d {
     };
 }
 
-#endif //U_MICROBOY_RECTANGLE_H
+#endif //P2D_RECTANGLE_H

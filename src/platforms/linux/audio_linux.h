@@ -2,8 +2,8 @@
 // Created by cpasjuste on 31/05/23.
 //
 
-#ifndef MICROBOY_AUDIO_LINUX_H
-#define MICROBOY_AUDIO_LINUX_H
+#ifndef P2D_AUDIO_LINUX_H
+#define P2D_AUDIO_LINUX_H
 
 namespace p2d {
     class LinuxAudio : public Audio {
@@ -21,4 +21,4 @@ namespace p2d {
     };
 }
 
-#endif //MICROBOY_AUDIO_LINUX_H
+#endif //P2D_AUDIO_LINUX_H

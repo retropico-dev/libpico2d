@@ -2,8 +2,8 @@
 // Created by cpasjuste on 30/05/23.
 //
 
-#ifndef MICROBOY_PLATFORM_LINUX_H
-#define MICROBOY_PLATFORM_LINUX_H
+#ifndef P2D_PLATFORM_LINUX_H
+#define P2D_PLATFORM_LINUX_H
 
 #include <SDL2/SDL.h>
 #include "display_linux.h"
@@ -20,4 +20,4 @@ class LinuxPlatform : public Platform {
     };
 }
 
-#endif //MICROBOY_PLATFORM_LINUX_H
+#endif //P2D_PLATFORM_LINUX_H

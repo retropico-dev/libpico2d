@@ -2,8 +2,8 @@
 // Created by cpasjuste on 08/06/23.
 //
 
-#ifndef MICROBOY_ST7789_H
-#define MICROBOY_ST7789_H
+#ifndef P2D_ST7789_H
+#define P2D_ST7789_H
 
 #define TEST_LINE_BUFFER 1
 
@@ -99,4 +99,4 @@ void st7789_clear(uint16_t color = 0);
 
 void st7789_flush();
 
-#endif //MICROBOY_ST7789_H
+#endif //P2D_ST7789_H

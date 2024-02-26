@@ -2,8 +2,8 @@
 // Created by cpasjuste on 30/05/23.
 //
 
-#ifndef MICROBOY_PLATFORM_PICO_H
-#define MICROBOY_PLATFORM_PICO_H
+#ifndef P2D_PLATFORM_PICO_H
+#define P2D_PLATFORM_PICO_H
 
 #include <pico/stdio.h>
 #include <pico/bootrom.h>
@@ -32,4 +32,4 @@ namespace p2d {
     };
 }
 
-#endif //MICROBOY_PLATFORM_PICO_H
+#endif //P2D_PLATFORM_PICO_H

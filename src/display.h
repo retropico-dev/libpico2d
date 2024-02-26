@@ -2,8 +2,8 @@
 // Created by cpasjuste on 30/05/23.
 //
 
-#ifndef MICROBOY_DISPLAY_H
-#define MICROBOY_DISPLAY_H
+#ifndef P2D_DISPLAY_H
+#define P2D_DISPLAY_H
 
 #ifndef ARDUINO
 #define ARDUINO 123
@@ -182,4 +182,4 @@ namespace p2d {
     };
 }
 
-#endif //MICROBOY_DISPLAY_H
+#endif //P2D_DISPLAY_H

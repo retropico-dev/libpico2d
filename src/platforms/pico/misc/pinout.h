@@ -2,10 +2,10 @@
 // Created by cpasjuste on 14/06/23.
 //
 
-#ifndef MICROBOY_PINOUT_H
-#define MICROBOY_PINOUT_H
+#ifndef P2D_PINOUT_H
+#define P2D_PINOUT_H
 
-#if defined(MICROBOY_10)
+#if defined(RETROPICO_10)
 // SPI LCD PINS         GPIO                        FEATHER RP2040
 #define LCD_PIN_DC      8   // SPI1 RX              6
 #define LCD_PIN_CS      9   // SPI1 CSn             9
@@ -45,7 +45,7 @@
 #define BTN_PIN_UP      (7)     //                  5
 #define BTN_PIN_DOWN    (2)     //                  SDA
 #endif
-#elif defined(MICROBOY_11)
+#elif defined(RETROPICO_11)
 
 // SPI LCD PINOUT
 #define LCD_PIO         pio0
@@ -106,7 +106,7 @@
 #endif
 
 #else
-#error "microboy device version not defined"
+#error "pinout.h: target device not defined"
 #endif
 
-#endif //MICROBOY_PINOUT_H
+#endif //P2D_PINOUT_H

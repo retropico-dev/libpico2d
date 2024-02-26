@@ -2,8 +2,8 @@
 // Created by cpasjuste on 30/03/23.
 //
 
-#ifndef U_MICROBOY_BITMAP_H
-#define U_MICROBOY_BITMAP_H
+#ifndef P2D_BITMAP_H
+#define P2D_BITMAP_H
 
 #include "widget.h"
 
@@ -32,4 +32,4 @@ namespace p2d {
     };
 }
 
-#endif //U_MICROBOY_BITMAP_H
+#endif //P2D_BITMAP_H

@@ -2,8 +2,8 @@
 // Created by cpasjuste on 05/06/23.
 //
 
-#ifndef MICROBOY_SURFACE_H
-#define MICROBOY_SURFACE_H
+#ifndef P2D_SURFACE_H
+#define P2D_SURFACE_H
 
 #include <cstring>
 #include <cstdlib>
@@ -133,4 +133,4 @@ namespace p2d {
     };
 }
 
-#endif //MICROBOY_SURFACE_H
+#endif //P2D_SURFACE_H

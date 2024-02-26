@@ -2,8 +2,8 @@
 // Created by cpasjuste on 06/06/23.
 //
 
-#ifndef MICROBOY_ARDUINO_H
-#define MICROBOY_ARDUINO_H
+#ifndef P2D_ARDUINO_H
+#define P2D_ARDUINO_H
 
 /* Arduino to STL C++ */
 #include <cstring>
@@ -20,4 +20,4 @@ typedef bool boolean;
 typedef std::string String;
 typedef std::string __FlashStringHelper;
 
-#endif //MICROBOY_ARDUINO_H
+#endif //P2D_ARDUINO_H

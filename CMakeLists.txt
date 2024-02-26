@@ -133,11 +133,11 @@ if (PICO_BOARD)
         list(APPEND PLATFORM_LIBS aps6404)
     endif ()
 
-    # microboy board revision pinout definition
+    # retropico board revision pinout definition
     if (PICO_BOARD STREQUAL "adafruit_feather_rp2040")
-        list(APPEND PLATFORM_FLAGS -DMICROBOY_10)
+        list(APPEND PLATFORM_FLAGS -DRETROPICO_10)
     else ()
-        list(APPEND PLATFORM_FLAGS -DMICROBOY_11) # Waveshare rp2040 plus
+        list(APPEND PLATFORM_FLAGS -DRETROPICO_11) # Waveshare rp2040 plus
     endif ()
 
     # picoprobe debug

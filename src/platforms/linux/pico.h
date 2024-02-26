@@ -2,8 +2,8 @@
 // Created by cpasjuste on 07/06/23.
 //
 
-#ifndef MICROBOY_PICO_H
-#define MICROBOY_PICO_H
+#ifndef P2D_PICO_H
+#define P2D_PICO_H
 
 #include <cstdint>
 #include <unistd.h>
@@ -22,4 +22,4 @@ uint32_t multicore_fifo_pop_blocking();
 
 void multicore_fifo_push_blocking(uint32_t data);
 
-#endif //MICROBOY_PICO_H
+#endif //P2D_PICO_H

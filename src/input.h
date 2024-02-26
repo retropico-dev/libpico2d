@@ -2,8 +2,8 @@
 // Created by cpasjuste on 31/05/23.
 //
 
-#ifndef MICROBOY_INPUT_H
-#define MICROBOY_INPUT_H
+#ifndef P2D_INPUT_H
+#define P2D_INPUT_H
 
 #include <cstdint>
 #include <string>
@@ -59,4 +59,4 @@ namespace p2d {
     };
 }
 
-#endif //MICROBOY_INPUT_H
+#endif //P2D_INPUT_H

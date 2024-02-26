@@ -2,8 +2,8 @@
 // Created by cpasjuste on 30/05/23.
 //
 
-#ifndef MICROBOY_UTILITY_H
-#define MICROBOY_UTILITY_H
+#ifndef P2D_UTILITY_H
+#define P2D_UTILITY_H
 
 #include <cstdint>
 #include <string>
@@ -119,4 +119,4 @@ namespace p2d {
     };
 }
 
-#endif //MICROBOY_UTILITY_H
+#endif //P2D_UTILITY_H

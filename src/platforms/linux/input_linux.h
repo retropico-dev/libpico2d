@@ -2,8 +2,8 @@
 // Created by cpasjuste on 31/05/23.
 //
 
-#ifndef MICROBOY_INPUT_LINUX_H
-#define MICROBOY_INPUT_LINUX_H
+#ifndef P2D_INPUT_LINUX_H
+#define P2D_INPUT_LINUX_H
 
 namespace p2d {
     class LinuxInput : public Input {
@@ -12,4 +12,4 @@ namespace p2d {
     };
 }
 
-#endif //MICROBOY_INPUT_LINUX_H
+#endif //P2D_INPUT_LINUX_H
