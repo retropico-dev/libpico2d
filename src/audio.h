@@ -22,19 +22,17 @@ namespace p2d {
 
         virtual void play(const void *data, int samples) {};
 
-        virtual void volumeUp() {
-            if (m_volume <= m_volume_max) {
-                m_volume += 10;
-            }
-        }
-
-        virtual void volumeDown() {
-            if (m_volume >= 10) {
-                m_volume -= 10;
-            }
-        }
-
+        // range: 0 - 100
         virtual uint8_t getVolume() { return m_volume; }
+
+        // range: 0 - 100
+        virtual void setVolume(uint8_t volume) {
+            if (volume > m_volume_max) volume = m_volume_max;
+            m_volume = volume;
+        }
+
+        // range: 0 - x
+        virtual uint8_t getVolumeMax() { return m_volume_max; }
 
     protected:
         uint16_t m_rate = 44100;
