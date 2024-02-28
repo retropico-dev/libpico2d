@@ -90,8 +90,8 @@
 #define BTN_PIN_LEFT    (9)
 #define BTN_PIN_DOWN    (10)
 #define BTN_PIN_RIGHT   (11)
-#define BTN_PIN_START   (12)
-#define BTN_PIN_SELECT  (13)
+#define BTN_PIN_SELECT  (12)
+#define BTN_PIN_START   (13)
 #define BTN_PIN_A       (15)
 #define BTN_PIN_B       (14)
 
