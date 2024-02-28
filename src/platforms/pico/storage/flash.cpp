@@ -12,6 +12,10 @@
 static const uint32_t flash_offset = FLASH_TARGET_OFFSET_FATFS;
 static const uint32_t flash_size = PICO_FLASH_SIZE_BYTES - FLASH_TARGET_OFFSET_FATFS;
 
+extern void p2d_display_pause();
+
+extern void p2d_display_resume();
+
 bool p2d::io_flash_init() {
     bi_decl(bi_block_device(
             BINARY_INFO_MAKE_TAG('P', '2'),
@@ -48,50 +52,30 @@ int32_t p2d::io_flash_read_sector(uint32_t offset, void *buffer) {
     return (int32_t) FLASH_SECTOR_SIZE;
 }
 
-int32_t __not_in_flash_func(p2d::io_flash_write)(uint32_t sector, uint32_t offset, const uint8_t *buffer, uint32_t size_bytes) {
+int32_t p2d::io_flash_write(uint32_t sector, uint32_t offset, const uint8_t *buffer, uint32_t size_bytes) {
     //printf("io_flash_write: sector: %lu, offset: %lu, size: %lu (flash offset: 0x%08lx)\r\n",
-      //     sector, offset, size_bytes, flash_offset + sector * FLASH_SECTOR_SIZE);
+    //     sector, offset, size_bytes, flash_offset + sector * FLASH_SECTOR_SIZE);
+    p2d_display_pause();
     auto status = save_and_disable_interrupts();
-
-    /*
-    if(multicore_lockout_victim_is_initialized(1)) {
-        multicore_lockout_start_blocking();
-    }
-    */
 
     if (offset == 0) flash_range_erase(flash_offset + sector * FLASH_SECTOR_SIZE, FLASH_SECTOR_SIZE);
     flash_range_program(flash_offset + sector * FLASH_SECTOR_SIZE + offset, buffer, size_bytes);
 
-    /*
-    if(multicore_lockout_victim_is_initialized(1)) {
-        multicore_lockout_end_blocking();
-    }
-    */
-
     restore_interrupts(status);
+    p2d_display_resume();
 
     return (int32_t) size_bytes;
 }
 
-void __not_in_flash_func(p2d::io_flash_write_sector)(uint32_t offset, const uint8_t *buffer) {
+void p2d::io_flash_write_sector(uint32_t offset, const uint8_t *buffer) {
+    p2d_display_pause();
     auto status = save_and_disable_interrupts();
-
-    /*
-    if(multicore_lockout_victim_is_initialized(1)) {
-        multicore_lockout_start_blocking();
-    }
-    */
 
     flash_range_erase(offset, FLASH_SECTOR_SIZE);
     flash_range_program(offset, buffer, FLASH_SECTOR_SIZE);
 
-    /*
-    if(multicore_lockout_victim_is_initialized(1)) {
-        multicore_lockout_end_blocking();
-    }
-    */
-
     restore_interrupts(status);
+    p2d_display_resume();
 }
 
 void p2d::io_flash_exit() {}

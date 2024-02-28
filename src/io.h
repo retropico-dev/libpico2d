@@ -13,6 +13,9 @@
 #include "flash.h"
 #include "sdcard.h"
 #include "romfs.h"
+#ifdef LINUX
+#include <cstring>
+#endif
 
 // 16MB flash: 6MB for bootloader/apps/cache, 10MB for fatfs "user" data/cache
 #define FLASH_TARGET_OFFSET_CACHE ((1024 * 1024) * 5)   // 1MB flash cache (raw)
@@ -43,9 +46,29 @@ namespace p2d {
             uint8_t *data = nullptr;
             uint32_t data_size = 0;
             uint16_t count = 0;
+#ifdef LINUX
+            char data_list[4096][IO_MAX_PATH]{};
+#endif
+
+            void copy(ListBuffer *listBuffer) {
+#ifdef LINUX
+                memcpy(listBuffer->data_list, data_list, sizeof(data_list));
+                listBuffer->data = (uint8_t *) &listBuffer->data_list;
+                listBuffer->data_size = data_size;
+                listBuffer->count = count;
+#else
+                listBuffer->data = data;
+                listBuffer->data_size = data_size;
+                listBuffer->count = count;
+#endif
+            }
 
             [[nodiscard]] char *at(int idx) const {
+#ifdef LINUX
+                return (char *) data_list[idx];
+#else
                 return (char *) &data[idx * IO_MAX_PATH];
+#endif
             }
         };
 

@@ -7,6 +7,8 @@
 #include "platform.h"
 #include "ff.h"
 #include "diskio.h"
+#include "io.h"
+
 
 #ifndef FLASH_SECTOR_SIZE
 #define FLASH_SECTOR_SIZE 4096
@@ -24,11 +26,6 @@ static bool io_initialised = false;
 static bool sd_initialised = false;
 static std::vector<void *> open_files;
 std::map<std::string, Io::FileBuffer> buf_files; // TODO: refactor/remove this
-
-// hacky/crappy core1 "fix"
-extern void p2d_display_pause();
-
-extern void p2d_display_resume();
 
 void Io::init() {
     if (io_initialised) return;
@@ -96,9 +93,6 @@ bool Io::create(const std::string &path) {
     const char *p;
     char *temp;
 
-    bool core1_pause_needed = Utility::startWith(path, "flash:");
-    if (core1_pause_needed) p2d_display_pause();
-
     // add "/"
     std::string newPath = path;
     if (newPath[newPath.size() - 1] != '/') {
@@ -124,7 +118,7 @@ bool Io::create(const std::string &path) {
 
     free(temp);
 
-    if (core1_pause_needed) p2d_display_resume();
+    //if (core1_pause_needed) p2d_display_resume();
 
     return fr == FR_OK || fr == FR_EXIST;
 }
@@ -178,7 +172,7 @@ bool Io::format(const Io::Device &device) {
                io_flash_get_size_string().c_str());
     } else {
         printf("Io: mounted sdcard fs on \"sd:\" (%s)\r\n",
-               io_flash_get_size_string().c_str());
+               io_sdcard_get_size_string().c_str());
     }
 
     return true;
@@ -199,7 +193,6 @@ bool Io::copy(const File &src, const File &dst) {
         return false;
     }
 
-    // TODO: fix this "randomly" not working
     // use a contiguous region for flash for later raw access
     if (Utility::startWith(dst.getPath(), "flash:")) {
         auto r = f_expand((FIL *) dst.getHandler(), src.getLength(), 0);
@@ -217,20 +210,14 @@ bool Io::copy(const File &src, const File &dst) {
 
     free(read_buffer);
 
-    printf("Io::copy: copied %i bytes\r\n", offset);
+    printf("Io::copy: copied %li bytes\r\n", offset);
     return true;
 }
 
 bool Io::copy(const std::string &src, const std::string &dst) {
-    bool core1_pause_needed = Utility::startWith(dst, "flash:");
-    if (core1_pause_needed) p2d_display_pause();
-
     const File srcFile = File{src, File::OpenMode::Read};
     const File dstFile = File{dst, File::OpenMode::Write};
     auto res = copy(srcFile, dstFile);
-
-    if (core1_pause_needed) p2d_display_resume();
-
     return res;
 }
 
@@ -268,13 +255,26 @@ std::vector<Io::File::Info> Io::getList(
 
 // TODO: handle directories ?
 Io::ListBuffer in_ram(Io::getBufferedList)(const std::string &path, uint32_t flashOffset) {
+#ifdef LINUX
+    Io::ListBuffer listBuffer;
+
+    auto list = Io::getList(path);
+    for (auto &file: list) {
+        if (file.flags & Io::File::Flags::Directory) continue;
+        strncpy(listBuffer.data_list[listBuffer.count], file.name.c_str(), IO_MAX_PATH - 1);
+        listBuffer.data_size += IO_MAX_PATH;
+        listBuffer.count++;
+    }
+
+    listBuffer.data = (uint8_t *) &listBuffer.data_list;
+
+    return listBuffer;
+#else
     char buffer[FLASH_SECTOR_SIZE / IO_MAX_PATH][IO_MAX_PATH];
     uint32_t maxFilesPerWrite = FLASH_SECTOR_SIZE / IO_MAX_PATH;
     uint32_t offset = flashOffset;
     uint32_t count = 0, currentFile = 0;
     Io::ListBuffer listBuffer;
-
-    p2d_display_pause();
 
     FatFs::list_files(path, [&count, &currentFile, &offset, &maxFilesPerWrite, &buffer](File::Info &file) {
         if (!(file.flags & File::Flags::Directory)) {
@@ -299,9 +299,8 @@ Io::ListBuffer in_ram(Io::getBufferedList)(const std::string &path, uint32_t fla
     listBuffer.data = (uint8_t *) (XIP_BASE + flashOffset);
     listBuffer.count = (int) count;
 
-    p2d_display_resume();
-
     return listBuffer;
+#endif
 }
 
 ///
@@ -492,14 +491,7 @@ bool Io::FatFs::file_exists(const std::string &path) {
 }
 
 bool Io::FatFs::remove_file(const std::string &path) {
-    bool core1_pause_needed = Utility::startWith(path, "flash:");
-    if (core1_pause_needed) p2d_display_pause();
-
-    auto res = f_unlink(path.c_str());
-
-    if (core1_pause_needed) p2d_display_resume();
-
-    return res == FR_OK;
+    return f_unlink(path.c_str()) == FR_OK;
 }
 
 bool Io::FatFs::is_files_open() {

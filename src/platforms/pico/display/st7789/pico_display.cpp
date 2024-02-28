@@ -34,6 +34,7 @@ union core_cmd {
 static core_cmd cmd_flip{.cmd = CORE1_CMD_FLIP};
 static core_cmd cmd_exit{.cmd = CORE1_CMD_EXIT};
 static int core1_busy = 0;
+static bool s_core1_started = false;
 
 static void in_ram(core1_main)();
 
@@ -124,9 +125,7 @@ __always_inline void PicoDisplay::clear() {
 void in_ram(PicoDisplay::flip)() {
     if (m_buffering == Buffering::Double) {
         // wait for previous buffer flip if needed
-        while (__atomic_load_n(&core1_busy, __ATOMIC_SEQ_CST)) {
-            //printf("PicoDisplay::flip: waiting for rendering done...\r\n");
-        }
+        while (__atomic_load_n(&core1_busy, __ATOMIC_SEQ_CST)) {}
 
         // flush dma buffer before next flip
         st7789_flush();
@@ -144,55 +143,46 @@ void in_ram(PicoDisplay::flip)() {
     }
 }
 
-// crappy hack to pause core1 while writing to flash,
-// I was not able to use "multicore_lockout_victim_init" without random crashes
-static bool core1_stop = false;
-static bool core1_stopped = true;
+// crappy hack to "pause" core1 while writing to flash,
+// I was not able to use "multicore_lockout_*" without problems
 
 void p2d_display_pause() {
     //printf("p2d_display_pause\r\n");
-
-    if (!core1_stopped) {
-        core1_stop = true;
+    if (s_core1_started) {
+        while (__atomic_load_n(&core1_busy, __ATOMIC_SEQ_CST)) {}
+        __atomic_store_n(&core1_busy, 1, __ATOMIC_SEQ_CST);
         multicore_fifo_push_blocking(cmd_exit.full);
-        while (!core1_stopped) tight_loop_contents();
+        while (__atomic_load_n(&core1_busy, __ATOMIC_SEQ_CST)) {}
     }
-
-    sleep_ms(20);
-
     //printf("p2d_display_pause: true\r\n");
 }
 
 void p2d_display_resume() {
     //printf("p2d_display_resume\r\n");
-
-    if (core1_stop) {
+    if (s_core1_started) {
         multicore_reset_core1();
         multicore_launch_core1(core1_main);
     }
-
-    sleep_ms(20);
-
     //printf("p2d_display_resume: true\r\n");
 }
 
 static void in_ram(core1_main)() {
     core_cmd cmd{};
+    s_core1_started = true;
 
-    //multicore_lockout_victim_init();
-    core1_stop = false;
-    core1_stopped = false;
-
-    while (!core1_stop) {
+    while (true) {
         cmd.full = multicore_fifo_pop_blocking();
         if (cmd.cmd == CORE1_CMD_FLIP) {
             draw(s_surfaces[cmd.fb], true);
+        } else {
+            break;
         }
 
         __atomic_store_n(&core1_busy, 0, __ATOMIC_SEQ_CST);
     }
 
-    core1_stopped = true;
+    st7789_flush();
+    __atomic_store_n(&core1_busy, 0, __ATOMIC_SEQ_CST);
 }
 
 static void in_ram(draw)(Surface *surface, bool doubleBuffering) {
