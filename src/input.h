@@ -42,7 +42,11 @@ namespace p2d {
 
         virtual void onUpdate();
 
+        // get buttons state with delay handling
         virtual uint16_t getButtons() { return m_buttons; }
+
+        // get buttons state without delay handling
+        virtual uint16_t getRawButtons() { return m_raw_buttons; }
 
         uint16_t getRepeatDelay() { return m_repeatDelayMs; };
 
@@ -53,6 +57,7 @@ namespace p2d {
     protected:
         Clock m_repeatClock{};
         uint16_t m_buttons{0};
+        uint16_t m_raw_buttons{0};
         uint16_t m_buttons_prev{0};
         uint16_t m_repeatDelayMs = 0;
         Mapping m_mapping[MAX_BUTTONS];

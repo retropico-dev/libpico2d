@@ -7,6 +7,9 @@
 using namespace p2d;
 
 void Input::onUpdate() {
+    // save "raw" buttons state
+    m_raw_buttons = m_buttons;
+
     // handle auto-repeat
     if (m_repeatClock.getElapsedTime().asMilliseconds() >= m_repeatDelayMs) {
         m_repeatClock.restart();
