@@ -13,6 +13,14 @@
 using namespace p2d;
 
 PicoPlatform::PicoPlatform(const Display::Settings &displaySettings) : Platform(displaySettings) {
+    // first thing to do (reboot bootloader on key down)
+    p_input = new PicoInput();
+    p_input->onUpdate();
+    if (p_input->getRawButtons() & Input::Button::DOWN) {
+        reset_usb_boot(0, 0);
+        while (true) tight_loop_contents();
+    }
+
     // overclock
     vreg_set_voltage(VREG_VOLTAGE_DEFAULT);
     sleep_ms(2);
@@ -37,7 +45,6 @@ PicoPlatform::PicoPlatform(const Display::Settings &displaySettings) : Platform(
     Io::init();
     p_battery = new PicoBattery();
     p_audio = new PicoAudio();
-    p_input = new PicoInput();
     if (displaySettings.bufferingMode == Display::Buffering::None) {
         p_display = new PicoDisplayDirectDraw(displaySettings);
     } else {
