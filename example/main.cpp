@@ -22,19 +22,21 @@
 #include "tweeny.h"
 #include "bitmap.h"
 
+#define SPRITES_COUNT 10
+
 using namespace p2d;
 
 static Display::Settings ds{
-        .displaySize = {240, 240},          // real display size (hardware size)
-        .renderSize = {240, 240},           // rendering size (framebuffer size)
-        .renderBounds = {0, 0, 240, 240},   // rendering bounds, used for scaling (if renderSize != renderBounds.w/h)
-        .bufferingMode = Display::Buffering::Single,
-        .format = Display::Format::RGB565
+    .displaySize = {240, 240}, // real display size (hardware size)
+    .renderSize = {240, 240}, // rendering size (framebuffer size)
+    .renderBounds = {0, 0, 240, 240}, // rendering bounds, used for scaling (if renderSize != renderBounds.w/h)
+    .bufferingMode = Display::Buffering::Double,
+    .format = Display::Format::RGB565
 };
 
 int main() {
     auto platform = new P2DPlatform(ds);
-    platform->getDisplay()->setClearColor(Display::Color::Red);
+    platform->getDisplay()->setClearColor(Display::Color::Black);
 
     auto bounds = platform->getDisplay()->getSize();
     auto center = Utility::Vec2i((int16_t) (bounds.x / 2), (int16_t) (bounds.y / 2));
@@ -42,18 +44,11 @@ int main() {
     // load bitmap resources
     auto girl = new Bitmap(Io::File{"res:/romfs/girl_120x120.bmp"});
     girl->setAlphaEnabled(false);
-    //girl->setOrigin(Widget::Origin::Center);
-    platform->add(girl);
-    /*
-    platform->add(girl);
-    platform->add(girl);
-    platform->add(girl);
-    platform->add(girl);
-    platform->add(girl);
-    platform->add(girl);
-    platform->add(girl);
-    platform->add(girl);
-    */
+    for (int i = 0; i < SPRITES_COUNT; i++) {
+        auto g = girl;
+        g->setPosition(static_cast<int16_t>(i * 8), static_cast<int16_t>(i * 8));
+        platform->add(g);
+    }
 
     auto star = new Bitmap(Io::File{"res:/romfs/star.bmp"}, center);
     star->setOrigin(Widget::Origin::Center);

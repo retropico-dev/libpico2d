@@ -19,6 +19,7 @@ if (DEFINED ENV{PICO_SDK_PATH})
     if (NOT PICO_BOARD)
         #set(PICO_BOARD "adafruit_feather_rp2040" CACHE STRING "" FORCE) # v1.0 rev board
         set(PICO_BOARD "waveshare_rp2040_plus_16mb" CACHE STRING "" FORCE) # v1.1 rev board
+        #set(PICO_BOARD "pimoroni_pico_plus2_rp2350" CACHE STRING "" FORCE) # v2.0 rev board
     endif ()
     # initialize the SDK based on PICO_SDK_PATH
     # note: this must happen before project()
@@ -111,13 +112,16 @@ if (PICO_BOARD)
             pico_stdlib
             pico_multicore
             pico_audio_i2s
-            hardware_sleep
             hardware_pio
             hardware_dma
             hardware_flash
             hardware_pwm
             hardware_adc
     )
+
+    if (PICO_PLATFORM STREQUAL "rp2040")
+        list(APPEND PLATFORM_LIBS hardware_sleep)
+    endif ()
 
     # display driver
     if (PICO_DISPLAY_ST7789_PIO)

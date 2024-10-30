@@ -2,6 +2,10 @@
 // Created by cpasjuste on 26/05/23.
 //
 
+#ifdef PICO_RP2350
+#undef PICO_BUILD
+#endif
+
 #include <cstdio>
 
 #ifdef PICO_BUILD
@@ -123,3 +127,7 @@ void Sleep::sleep() {
     printf("Sleep::sleep: not enabled...\n");
 #endif
 }
+
+#ifdef PICO_RP2350
+#define PICO_BUILD
+#endif
