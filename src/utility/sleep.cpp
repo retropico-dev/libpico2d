@@ -14,7 +14,7 @@
 #include <pico/sleep.h>
 #include <hardware/rosc.h>
 #include <hardware/clocks.h>
-#include <hardware/structs/scb.h>
+#include <pico/runtime_init.h>
 #include "pinout.h"
 
 #endif
@@ -81,7 +81,7 @@ static void rosc_reset() {
 #endif
 
 void Sleep::sleep() {
-#if defined(PICO_BUILD) && defined(BTN_PIN_SLEEP)
+#if defined(PICO_BUILD) && defined(BTN_PIN_SLEEP) && BTN_PIN_SLEEP > -1
     // be sure sleep button is released
     while (!gpio_get(BTN_PIN_SLEEP)) tight_loop_contents();
 
@@ -124,7 +124,7 @@ void Sleep::sleep() {
     sleep_ms(5);
 #endif
 #else
-    printf("Sleep::sleep: not enabled...\n");
+    //printf("Sleep::sleep: not enabled...\n");
 #endif
 }
 

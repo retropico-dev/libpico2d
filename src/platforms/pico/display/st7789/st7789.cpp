@@ -38,30 +38,50 @@ st7789_dma_irq_handler() {
     */
 }
 
+// https://github.com/32blit/32blit-sdk/blob/5849a3c84ec690229c282e7146192e70a7e9cf60/32blit-pico/st7789.cpp
+enum MADCTL : uint8_t {
+    // writing to internal memory
+    ROW_ORDER = 0b10000000, // MY / y flip
+    COL_ORDER = 0b01000000, // MX / x flip
+    SWAP_XY = 0b00100000, // AKA "MV"
+
+    // scanning out from internal memory
+    SCAN_ORDER = 0b00010000,
+    RGB = 0b00001000,
+    HORIZ_ORDER = 0b00000100
+};
+
+static constexpr uint8_t rotations[]{
+    0, // 0
+    HORIZ_ORDER | SWAP_XY | COL_ORDER, // 90
+    HORIZ_ORDER | SCAN_ORDER | COL_ORDER | ROW_ORDER, // 180
+    SCAN_ORDER | SWAP_XY | ROW_ORDER // 270
+};
+
 // Format: cmd length (including cmd byte), post delay in units of 5 ms, then cmd payload
 // Note the delays have been shortened a little
 static uint8_t st7789_init_seq[] = {
-        1, 20, ST7789_SWRESET,      // Software reset
-        1, 10, ST7789_SLPOUT,       // Exit sleep mode
-        2, 2, ST7789_COLMOD, ST7789_COLOR_MODE_16BIT,  // Set colour mode to 16 bit (RGB565)
-        2, 0, ST7789_MADCTL, ST7789_MADCTL_RGB,  // Set MADCTL
-        5, 0, ST7789_CASET, 0x00, 0x00, DISPLAY_WIDTH >> 8, DISPLAY_WIDTH & 0xff,   // CASET: column addresses
-        5, 0, ST7789_RASET, 0x00, 0x00, DISPLAY_HEIGHT >> 8, DISPLAY_HEIGHT & 0xff, // RASET: row addresses
-        6, 1, ST7789_PORCTRL, 0x0c, 0x0c, 0x00, 0x33, 0x33,
-        2, 1, ST7789_GCTRL, 0x14,
-        2, 1, ST7789_VCOMS, 0x37,
-        2, 1, ST7789_LCMCTRL, 0x2c,
-        2, 1, ST7789_VDVVRHEN, 0x01,
-        2, 1, ST7789_VRHS, 0x12,
-        2, 1, ST7789_VDVS, 0x20,
-        15, 1, ST7789_PVGAMCTRL, 0xD0, 0x08, 0x11, 0x08, 0x0c, 0x15, 0x39, 0x33, 0x50, 0x36, 0x13, 0x14, 0x29, 0x2d,
-        15, 1, ST7789_NVGAMCTRL, 0xD0, 0x08, 0x10, 0x08, 0x06, 0x06, 0x39, 0x44, 0x51, 0x0b, 0x16, 0x14, 0x2f, 0x31,
-        3, 1, ST7789_PWCTRL1, 0xa4, 0xa1, // Power Control 1 -> VDS = 2.3V, AVCL = -4.8V, AVDD = 6.8v ?
-        //2, 1, ST7789_FRCTRL2, 0xf, // 0x15 -> 50Hz ? 0xf -> 60hz ?
-        1, 2, ST7789_INVON,         // Inversion on, then 10 ms delay (supposedly a hack?)
-        1, 2, ST7789_NORON,         // Normal display on, then 10 ms delay
-        1, 2, ST7789_DISPON,        // Main screen turn on, then wait 500 ms
-        0                           // Terminate list
+    1, 20, ST7789_SWRESET, // Software reset
+    1, 10, ST7789_SLPOUT, // Exit sleep mode
+    2, 2, ST7789_COLMOD, ST7789_COLOR_MODE_16BIT, // Set colour mode to 16 bit (RGB565)
+    2, 0, ST7789_MADCTL, static_cast<uint8_t>((ST7789_MADCTL_RGB | rotations[PICO_DISPLAY_ROTATION / 90])), // Set MADCTL
+    5, 0, ST7789_CASET, 0x00, 0x00, DISPLAY_WIDTH >> 8, DISPLAY_WIDTH & 0xff, // CASET: column addresses
+    5, 0, ST7789_RASET, 0x00, 0x00, DISPLAY_HEIGHT >> 8, DISPLAY_HEIGHT & 0xff, // RASET: row addresses
+    6, 1, ST7789_PORCTRL, 0x0c, 0x0c, 0x00, 0x33, 0x33,
+    2, 1, ST7789_GCTRL, 0x14,
+    2, 1, ST7789_VCOMS, 0x37,
+    2, 1, ST7789_LCMCTRL, 0x2c,
+    2, 1, ST7789_VDVVRHEN, 0x01,
+    2, 1, ST7789_VRHS, 0x12,
+    2, 1, ST7789_VDVS, 0x20,
+    15, 1, ST7789_PVGAMCTRL, 0xD0, 0x08, 0x11, 0x08, 0x0c, 0x15, 0x39, 0x33, 0x50, 0x36, 0x13, 0x14, 0x29, 0x2d,
+    15, 1, ST7789_NVGAMCTRL, 0xD0, 0x08, 0x10, 0x08, 0x06, 0x06, 0x39, 0x44, 0x51, 0x0b, 0x16, 0x14, 0x2f, 0x31,
+    3, 1, ST7789_PWCTRL1, 0xa4, 0xa1, // Power Control 1 -> VDS = 2.3V, AVCL = -4.8V, AVDD = 6.8v ?
+    //2, 1, ST7789_FRCTRL2, 0xf, // 0x15 -> 50Hz ? 0xf -> 60hz ?
+    1, 2, ST7789_INVON, // Inversion on, then 10 ms delay (supposedly a hack?)
+    1, 2, ST7789_NORON, // Normal display on, then 10 ms delay
+    1, 2, ST7789_DISPON, // Main screen turn on, then wait 500 ms
+    0 // Terminate list
 };
 
 static inline void st7789_lcd_set_dc_cs(bool dc, bool cs) {
@@ -112,11 +132,11 @@ static inline void st7789_lcd_init(const uint8_t *init_seq) {
 
 static inline void st7789_lcd_set_cursor(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
     const uint8_t st7789_cursor_seq[] = {
-            5, 0, ST7789_CASET, (uint8_t) (x >> 8), (uint8_t) (x & 0xff),
-            (uint8_t) ((x + w - 1) >> 8), (uint8_t) ((x + w - 1) & 0xff),
-            5, 0, ST7789_RASET, (uint8_t) (y >> 8), (uint8_t) (y & 0xff),
-            (uint8_t) ((y + h - 1) >> 8), (uint8_t) ((y + h - 1) & 0xff),
-            0
+        5, 0, ST7789_CASET, (uint8_t) (x >> 8), (uint8_t) (x & 0xff),
+        (uint8_t) ((x + w - 1) >> 8), (uint8_t) ((x + w - 1) & 0xff),
+        5, 0, ST7789_RASET, (uint8_t) (y >> 8), (uint8_t) (y & 0xff),
+        (uint8_t) ((y + h - 1) >> 8), (uint8_t) ((y + h - 1) & 0xff),
+        0
     };
 
     const uint8_t *cmd = st7789_cursor_seq;
@@ -299,5 +319,6 @@ void st7789_clear(uint16_t color) {
 }
 
 void st7789_flush() {
-    while (dma_channel_is_busy(dma_channel)) {}
+    while (dma_channel_is_busy(dma_channel)) {
+    }
 }

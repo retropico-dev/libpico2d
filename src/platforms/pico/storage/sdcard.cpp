@@ -96,12 +96,12 @@ static void sd_end() {
 
 static void sd_write_command(uint8_t cmd, uint32_t param, uint8_t crc) {
     uint8_t buf[]{
-            uint8_t(0x40 | cmd),
-            uint8_t(param >> 24),
-            uint8_t(param >> 16),
-            uint8_t(param >> 8),
-            uint8_t(param),
-            crc
+        uint8_t(0x40 | cmd),
+        uint8_t(param >> 24),
+        uint8_t(param >> 16),
+        uint8_t(param >> 8),
+        uint8_t(param),
+        crc
     };
 
     spi_write(buf, sizeof(buf));
@@ -259,6 +259,9 @@ static uint8_t sd_command_write_block(uint8_t cmd, uint32_t addr, const uint8_t 
 }
 
 bool p2d::io_sdcard_init(float spiMhz) {
+#if GPIO_PIN_SD_CS < 0 || GPIO_PIN_SD_CLK < 0 || GPIO_PIN_SD_MOSI < 0 || GPIO_PIN_SD_MISO < 0
+    return false;
+#else
     bi_decl(bi_4pins_with_names(SD_PIN_MISO, "SD RX", SD_PIN_MOSI, "SD TX", SD_PIN_CLK, "SD SCK", SD_PIN_CS, "SD CS"));
 
     // this will be called again if it fails
@@ -406,6 +409,7 @@ bool p2d::io_sdcard_init(float spiMhz) {
            is_v2 ? (is_hcs ? "SDHC" : "SDv2") : "SDv1", (uint16_t) spiMhz);
 
     return true;
+#endif
 }
 
 void p2d::io_sdcard_get_size(uint16_t &block_size, uint32_t &num_blocks) {
@@ -461,4 +465,5 @@ int32_t p2d::io_sdcard_write(uint32_t sector, uint32_t offset, const uint8_t *bu
     return written;
 }
 
-void p2d::io_sdcard_exit() {}
+void p2d::io_sdcard_exit() {
+}

@@ -59,22 +59,6 @@
 #define ST7789_COLOR_MODE_16BIT 0x55    //  RGB565 (16bit)
 //#define ST7789_COLOR_MODE_18bit 0x66    //  RGB666 (18bit)
 
-#define ST7789_ROTATION 2
-
-#if ST7789_ROTATION == 0
-#define X_SHIFT 0
-#define Y_SHIFT 80
-#elif ST7789_ROTATION == 1
-#define X_SHIFT 80
-#define Y_SHIFT 0
-#elif ST7789_ROTATION == 2
-#define X_SHIFT 0
-#define Y_SHIFT 0
-#elif ST7789_ROTATION == 3
-#define X_SHIFT 0
-#define Y_SHIFT 0
-#endif
-
 extern uint16_t *frame_buffer;
 
 void st7789_init(uint8_t format, float clock_div);

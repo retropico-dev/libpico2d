@@ -13,7 +13,14 @@
 
 using namespace p2d;
 
+static uint32_t dummy_frame_start;
+
 void PicoAudio::setup(uint16_t rate, uint16_t samples, uint8_t channels) {
+#if AUDIO_PIN_DATA < 0 || AUDIO_PIN_CLOCK < 0 || AUDIO_PIN_RESET < 0
+    Audio::setup(rate, samples, channels);
+    printf("PicoAudio::setup(DUMMY): rate: %i, samples: %i, channels: %i\r\n",
+           m_rate, m_samples, m_channels);
+#else
     Audio::setup(rate, samples, channels);
     printf("PicoAudio::setup: rate: %i, samples: %i, channels: %i\r\n",
            m_rate, m_samples, m_channels);
@@ -57,9 +64,22 @@ void PicoAudio::setup(uint16_t rate, uint16_t samples, uint8_t channels) {
     audio_i2s_set_enabled(true);
 
     printf("\r\n");
+#endif
 }
 
 void in_ram(PicoAudio::play)(const void *data, int samples) {
+#if AUDIO_PIN_DATA < 0 || AUDIO_PIN_CLOCK < 0 || AUDIO_PIN_RESET < 0
+    // sync on audio
+    const uint32_t frame_time = time_us_32() - dummy_frame_start;
+    // target frame time
+    uint32_t target_frame_time = (samples * 1000000) / (m_rate);
+    // if we completed the frame too quickly, sleep for the remaining time
+    if (frame_time < target_frame_time) {
+        sleep_us(target_frame_time - frame_time);
+    }
+    //
+    dummy_frame_start = time_us_32();
+#else
     auto buffer = take_audio_buffer(p_producer_pool, true);
     auto sampleBuffer = (int16_t *) buffer->buffer->bytes;
     if (m_volume == 100) {
@@ -73,4 +93,5 @@ void in_ram(PicoAudio::play)(const void *data, int samples) {
 
     buffer->sample_count = samples;
     give_audio_buffer(p_producer_pool, buffer);
+#endif
 }

@@ -7,6 +7,7 @@ option(BUILD_EXAMPLE "Build example project" OFF)
 option(PICO_DEBUG_UART "Pico uart debug" OFF)
 option(PICO_DEBUG_USB "Pico usb debug" OFF)
 option(PICO_DISPLAY_ST7789_PIO "Pico ST7789 display driver (pio)" ON)
+set(PICO_DISPLAY_ROTATION "90" CACHE STRING "Pico display rotation (0, 90, 180, 270)")
 
 # too many "problems" to handles
 # - requires 6 pins
@@ -44,8 +45,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 # TODO: why ?
 set(CMAKE_FLAGS_RELEASE_FIX "-fno-move-loop-invariants -fno-devirtualize -fno-devirtualize-speculatively")
-set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -O3 ${CMAKE_FLAGS_RELEASE_FIX}" CACHE STRING "" FORCE)
-set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3 ${CMAKE_FLAGS_RELEASE_FIX}" CACHE STRING "" FORCE)
+set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -O3 -ffast-math -ffunction-sections -fdata-sections ${CMAKE_FLAGS_RELEASE_FIX}" CACHE STRING "" FORCE)
+set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3 -ffast-math -ffunction-sections -fdata-sections ${CMAKE_FLAGS_RELEASE_FIX}" CACHE STRING "" FORCE)
 
 # set source files
 file(GLOB PLATFORM_SOURCES
@@ -66,7 +67,7 @@ set(PLATFORM_INCLUDES
         ${CMAKE_CURRENT_SOURCE_DIR}/external/Adafruit-GFX-Library
 )
 
-set(PLATFORM_FLAGS "-DARDUINO=123 -ffast-math -ffunction-sections -fdata-sections")
+list(APPEND PLATFORM_FLAGS -DPICO_DISPLAY_ROTATION=${PICO_DISPLAY_ROTATION} -DARDUINO=123)
 #-DNO_PICO_LED
 
 # tweeny
@@ -81,6 +82,9 @@ function(target_add_resources target)
     target_link_libraries(${target} ${target}-resources)
     target_sources(${target} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/romfs/romfs.cpp)
 endfunction()
+
+# gpio pinout configuration
+include(cmake/GpioConfig.cmake)
 
 if (PICO_BOARD)
     file(GLOB TEMP
@@ -176,6 +180,35 @@ if (PICO_BOARD)
         set_linker_script(${TARGET}
                 "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/platforms/pico/misc/memmap_16mb.ld")
     endfunction()
+
+    # LCD GPIO
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_LCD_CLK" "5")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_LCD_DIN" "4")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_LCD_DC" "2")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_LCD_CS" "1")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_LCD_RST" "3")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_LCD_BL" "0")
+    # SD GPIO
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_SD_CS" "26")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_SD_CLK" "22")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_SD_MOSI" "21")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_SD_MISO" "27")
+    # AUDIO GPIO
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_AUDIO_DATA" "20")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_AUDIO_CLOCK" "18")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_AUDIO_LRC" "19")
+    # INPUTS GPIO
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_VOL_UP" "6")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_VOL_DOWN" "7")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_UP" "8")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_LEFT" "9")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_DOWN" "10")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_RIGHT" "11")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_SELECT" "12")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_START" "13")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_A" "15")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_B" "14")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_SLEEP" "17")
 else ()
     file(GLOB_RECURSE TEMP
             ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/linux/*.c*

@@ -50,27 +50,27 @@
 // SPI LCD PINOUT
 #define LCD_PIO         pio0
 #define LCD_SM          0
-#define LCD_PIN_CLK     5   // SCK
-#define LCD_PIN_DIN     4   // MOSI
-#define LCD_PIN_DC      2
-#define LCD_PIN_CS      1
-#define LCD_PIN_RESET   3
-#define LCD_PIN_BL      0
+#define LCD_PIN_CLK     (GPIO_PIN_LCD_CLK)   // SCK
+#define LCD_PIN_DIN     (GPIO_PIN_LCD_DIN)   // MOSI
+#define LCD_PIN_DC      (GPIO_PIN_LCD_DC)
+#define LCD_PIN_CS      (GPIO_PIN_LCD_CS)
+#define LCD_PIN_RESET   (GPIO_PIN_LCD_RST)
+#define LCD_PIN_BL      (GPIO_PIN_LCD_BL)
 
 // SPI SDCARD PINOUT
 #define SD_PIO          pio1
 #define SD_SM           0
-#define SD_PIN_CS       26
-#define SD_PIN_CLK      22
-#define SD_PIN_MOSI     21
-#define SD_PIN_MISO     27
+#define SD_PIN_CS       (GPIO_PIN_SD_CS)
+#define SD_PIN_CLK      (GPIO_PIN_SD_CLK)
+#define SD_PIN_MOSI     (GPIO_PIN_SD_MOSI)
+#define SD_PIN_MISO     (GPIO_PIN_SD_MISO)
 
 // AUDIO PINOUT (I2S)
 #define AUDIO_PIO       pio1
 #define AUDIO_SM        1
-#define AUDIO_PIN_DATA  20  // DIN
-#define AUDIO_PIN_CLOCK 18  // BCLK
-#define AUDIO_PIN_LRC   19  // LRC (CLOCK + 1)
+#define AUDIO_PIN_DATA  (GPIO_PIN_AUDIO_DATA)  // DIN
+#define AUDIO_PIN_CLOCK (GPIO_PIN_AUDIO_CLOCK)  // BCLK
+#define AUDIO_PIN_LRC   (GPIO_PIN_AUDIO_LRC)  // LRC (CLOCK + 1)
 
 #if PICO_PSRAM
 // PSRAM PINOUT
@@ -84,19 +84,19 @@
 #define PSRAM_PIN_D3    22
 #endif
 
-#define BTN_PIN_VOL_U   (6)     // volume up
-#define BTN_PIN_VOL_D   (7)     // volume down
-#define BTN_PIN_UP      (8)
-#define BTN_PIN_LEFT    (9)
-#define BTN_PIN_DOWN    (10)
-#define BTN_PIN_RIGHT   (11)
-#define BTN_PIN_SELECT  (12)
-#define BTN_PIN_START   (13)
-#define BTN_PIN_A       (15)
-#define BTN_PIN_B       (14)
+#define BTN_PIN_VOL_U   (GPIO_PIN_BTN_VOL_UP)     // volume up
+#define BTN_PIN_VOL_D   (GPIO_PIN_BTN_VOL_DOWN)     // volume down
+#define BTN_PIN_UP      (GPIO_PIN_BTN_UP)
+#define BTN_PIN_LEFT    (GPIO_PIN_BTN_LEFT)
+#define BTN_PIN_DOWN    (GPIO_PIN_BTN_DOWN)
+#define BTN_PIN_RIGHT   (GPIO_PIN_BTN_RIGHT)
+#define BTN_PIN_SELECT  (GPIO_PIN_BTN_SELECT)
+#define BTN_PIN_START   (GPIO_PIN_BTN_START)
+#define BTN_PIN_A       (GPIO_PIN_BTN_A)
+#define BTN_PIN_B       (GPIO_PIN_BTN_B)
 
 #if !defined(PICO_DEBUG_UART)
-#define BTN_PIN_SLEEP   (17)    // sleep (dormant) mode
+#define BTN_PIN_SLEEP   (GPIO_PIN_BTN_SLEEP)    // sleep (dormant) mode
 #endif
 
 // UART (PICOPROBE)

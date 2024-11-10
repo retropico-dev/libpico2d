@@ -15,17 +15,17 @@ using namespace p2d;
 
 PicoInput::PicoInput() : Input() {
     // setup buttons pins
-    m_mapping[0] = {Input::Button::B1, BTN_PIN_A, "B1"};
-    m_mapping[1] = {Input::Button::B2, BTN_PIN_B, "B2"};
-    m_mapping[2] = {Input::Button::START, BTN_PIN_START, "START"};
-    m_mapping[3] = {Input::Button::SELECT, BTN_PIN_SELECT, "SELECT"};
-    m_mapping[4] = {Input::Button::LEFT, BTN_PIN_LEFT, "LEFT"};
-    m_mapping[5] = {Input::Button::RIGHT, BTN_PIN_RIGHT, "RIGHT"};
-    m_mapping[6] = {Input::Button::UP, BTN_PIN_UP, "UP"};
-    m_mapping[7] = {Input::Button::DOWN, BTN_PIN_DOWN, "DOWN"};
+    m_mapping[0] = {B1, BTN_PIN_A, "B1"};
+    m_mapping[1] = {B2, BTN_PIN_B, "B2"};
+    m_mapping[2] = {START, BTN_PIN_START, "START"};
+    m_mapping[3] = {SELECT, BTN_PIN_SELECT, "SELECT"};
+    m_mapping[4] = {LEFT, BTN_PIN_LEFT, "LEFT"};
+    m_mapping[5] = {RIGHT, BTN_PIN_RIGHT, "RIGHT"};
+    m_mapping[6] = {UP, BTN_PIN_UP, "UP"};
+    m_mapping[7] = {DOWN, BTN_PIN_DOWN, "DOWN"};
 #if defined(BTN_PIN_VOL_U) && defined(BTN_PIN_VOL_D)
-    m_mapping[8] = {Input::Button::VOL_UP, BTN_PIN_VOL_U, "VOL_UP"};
-    m_mapping[9] = {Input::Button::VOL_DOWN, BTN_PIN_VOL_D, "VOL_DOWN"};
+    m_mapping[8] = {VOL_UP, BTN_PIN_VOL_U, "VOL_UP"};
+    m_mapping[9] = {VOL_DOWN, BTN_PIN_VOL_D, "VOL_DOWN"};
 #endif
 
     for (const auto &map: m_mapping) {
