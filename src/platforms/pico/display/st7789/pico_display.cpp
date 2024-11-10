@@ -6,6 +6,7 @@
 
 #include <cstdio>
 #include <hardware/clocks.h>
+//#include <hardware/interp.h>
 #include "platform.h"
 #include "pico_display.h"
 
@@ -18,6 +19,8 @@ static PicoDisplay *s_display;
 static Surface **s_surfaces;
 static Utility::Vec2i s_display_size;
 static Utility::Vec4i s_render_bounds;
+// TODO: free scale_row_buffer ?
+static uint16_t * __attribute__((aligned(4))) scale_row_buffer;
 
 // core1 stuff
 #define CORE1_CMD_FLIP 0
@@ -28,6 +31,7 @@ union core_cmd {
         uint8_t cmd;
         uint8_t fb;
     };
+
     uint32_t full;
 };
 
@@ -40,13 +44,20 @@ static void in_ram(core1_main)();
 
 static void in_ram(draw)(Surface *surface, bool doubleBuffering);
 
+static void in_ram(scale_buffer)(uint16_t *pixels, uint32_t pitch, uint32_t bpp,
+                                 uint16_t src_w, uint16_t src_h,
+                                 uint16_t dst_w, uint16_t dst_h);
+
+static void in_ram(scale_buffer_bilinear)(uint16_t *pixels, uint32_t pitch, uint32_t bpp,
+                                          uint16_t src_w, uint16_t src_h,
+                                          uint16_t dst_w, uint16_t dst_h);
+
 PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i &renderSize,
                          const Utility::Vec4i &renderBounds, const Buffering &buffering,
                          const Format &format, float spiSpeedMhz)
-        : Display(displaySize, renderSize, renderBounds, buffering, format, spiSpeedMhz) {
+    : Display(displaySize, renderSize, renderBounds, buffering, format, spiSpeedMhz) {
     // init st7789 display
-    st7789_init(m_format == Format::RGB565 ?
-                ST7789_COLOR_MODE_16BIT : ST7789_COLOR_MODE_12BIT, spiSpeedMhz);
+    st7789_init(m_format == Format::RGB565 ? ST7789_COLOR_MODE_16BIT : ST7789_COLOR_MODE_12BIT, spiSpeedMhz);
 
     // handle alpha channel removal (st7789 support rgb444)
     if (m_format == Format::ARGB444) m_bit_shift = 4;
@@ -125,7 +136,8 @@ __always_inline void PicoDisplay::clear() {
 void in_ram(PicoDisplay::flip)() {
     if (m_buffering == Buffering::Double) {
         // wait for previous buffer flip if needed
-        while (__atomic_load_n(&core1_busy, __ATOMIC_SEQ_CST)) {}
+        while (__atomic_load_n(&core1_busy, __ATOMIC_SEQ_CST)) {
+        }
 
         // flush dma buffer before next flip
         st7789_flush();
@@ -149,10 +161,12 @@ void in_ram(PicoDisplay::flip)() {
 void p2d_display_pause() {
     //printf("p2d_display_pause\r\n");
     if (s_core1_started) {
-        while (__atomic_load_n(&core1_busy, __ATOMIC_SEQ_CST)) {}
+        while (__atomic_load_n(&core1_busy, __ATOMIC_SEQ_CST)) {
+        }
         __atomic_store_n(&core1_busy, 1, __ATOMIC_SEQ_CST);
         multicore_fifo_push_blocking(cmd_exit.full);
-        while (__atomic_load_n(&core1_busy, __ATOMIC_SEQ_CST)) {}
+        while (__atomic_load_n(&core1_busy, __ATOMIC_SEQ_CST)) {
+        }
     }
     //printf("p2d_display_pause: true\r\n");
 }
@@ -231,6 +245,12 @@ static void in_ram(draw)(Surface *surface, bool doubleBuffering) {
         return;
     }
 
+#if 0
+    // bilinear scaling
+    scale_buffer_bilinear((uint16_t *) pixels, pitch, bpp,
+                          surfaceSize.x, surfaceSize.y,
+                          s_render_bounds.w, s_render_bounds.h);
+#else
     // nearest-neighbor scaling
     uint_fast16_t x, y;
     uint_fast16_t xRatio = (surfaceSize.x << 16) / s_render_bounds.w + 1;
@@ -242,6 +262,87 @@ static void in_ram(draw)(Surface *surface, bool doubleBuffering) {
             y = (i * yRatio) >> 16;
             st7789_put16(*(uint16_t *) (pixels + y * pitch + x * bpp));
         }
+    }
+#endif
+}
+
+// bilinear interpolation scaling
+void in_ram(scale_buffer_bilinear)(uint16_t *pixels, uint32_t pitch, uint32_t bpp,
+                                   uint16_t src_w, uint16_t src_h,
+                                   uint16_t dst_w, uint16_t dst_h) {
+    const uint32_t x_ratio = ((src_w - 1) << 16) / dst_w;
+    const uint32_t y_ratio = ((src_h - 1) << 16) / dst_h;
+    const uint32_t pixels_per_row = pitch / bpp; // Convert pitch to pixel units
+
+    // Allocate row buffer for batch writing
+    if (!scale_row_buffer) {
+        scale_row_buffer = static_cast<uint16_t *>(malloc(dst_w * sizeof(uint16_t)));
+    }
+
+    if (!scale_row_buffer) return;
+
+    st7789_set_cursor(0, 0);
+
+    for (uint16_t i = 0; i < dst_h; i++) {
+        uint32_t y = (i * y_ratio) >> 16;
+        uint32_t y_diff = (i * y_ratio) & 0xFFFF;
+        uint32_t y_next = (y + 1 < src_h) ? y + 1 : y;
+
+        // calculate row offsets in pixels
+        const uint32_t offset_y1 = y * pixels_per_row;
+        const uint32_t offset_y2 = y_next * pixels_per_row;
+
+        for (uint16_t j = 0; j < dst_w; j++) {
+            uint32_t x = (j * x_ratio) >> 16;
+            uint32_t x_diff = (j * x_ratio) & 0xFFFF;
+            uint32_t x_next = (x + 1 < src_w) ? x + 1 : x;
+
+            // get the four surrounding pixels using proper array indexing
+            uint16_t p1 = pixels[offset_y1 + x];
+            uint16_t p2 = pixels[offset_y1 + x_next];
+            uint16_t p3 = pixels[offset_y2 + x];
+            uint16_t p4 = pixels[offset_y2 + x_next];
+
+            // extract RGB components (RGB565 format)
+            uint32_t r1 = (p1 >> 11) & 0x1F;
+            uint32_t g1 = (p1 >> 5) & 0x3F;
+            uint32_t b1 = p1 & 0x1F;
+
+            uint32_t r2 = (p2 >> 11) & 0x1F;
+            uint32_t g2 = (p2 >> 5) & 0x3F;
+            uint32_t b2 = p2 & 0x1F;
+
+            uint32_t r3 = (p3 >> 11) & 0x1F;
+            uint32_t g3 = (p3 >> 5) & 0x3F;
+            uint32_t b3 = p3 & 0x1F;
+
+            uint32_t r4 = (p4 >> 11) & 0x1F;
+            uint32_t g4 = (p4 >> 5) & 0x3F;
+            uint32_t b4 = p4 & 0x1F;
+
+            // calculate interpolation weights (0-256)
+            uint32_t x_weight = (x_diff >> 8);
+            uint32_t y_weight = (y_diff >> 8);
+            uint32_t x_weight_inv = 256 - x_weight;
+            uint32_t y_weight_inv = 256 - y_weight;
+
+            // interpolate each color component with fixed-point math
+            uint32_t r = ((r1 * x_weight_inv + r2 * x_weight) * y_weight_inv +
+                          (r3 * x_weight_inv + r4 * x_weight) * y_weight) >> 16;
+
+            uint32_t g = ((g1 * x_weight_inv + g2 * x_weight) * y_weight_inv +
+                          (g3 * x_weight_inv + g4 * x_weight) * y_weight) >> 16;
+
+            uint32_t b = ((b1 * x_weight_inv + b2 * x_weight) * y_weight_inv +
+                          (b3 * x_weight_inv + b4 * x_weight) * y_weight) >> 16;
+
+            // pack RGB components back into RGB565
+            scale_row_buffer[j] = ((r & 0x1F) << 11) | ((g & 0x3F) << 5) | (b & 0x1F);
+            //st7789_put16(((r & 0x1F) << 11) | ((g & 0x3F) << 5) | (b & 0x1F));
+        }
+
+        // write the entire row
+        st7789_push(scale_row_buffer, dst_w);
     }
 }
 

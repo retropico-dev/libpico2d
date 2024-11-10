@@ -7,7 +7,7 @@ option(BUILD_EXAMPLE "Build example project" OFF)
 option(PICO_DEBUG_UART "Pico uart debug" OFF)
 option(PICO_DEBUG_USB "Pico usb debug" OFF)
 option(PICO_DISPLAY_ST7789_PIO "Pico ST7789 display driver (pio)" ON)
-set(PICO_DISPLAY_ROTATION "90" CACHE STRING "Pico display rotation (0, 90, 180, 270)")
+set(PICO_DISPLAY_ROTATION "0" CACHE STRING "Pico display rotation (0, 90, 180, 270)")
 
 # too many "problems" to handles
 # - requires 6 pins
@@ -121,6 +121,7 @@ if (PICO_BOARD)
             hardware_flash
             hardware_pwm
             hardware_adc
+            #hardware_interp
     )
 
     if (PICO_PLATFORM STREQUAL "rp2040")
