@@ -7,7 +7,7 @@ option(BUILD_EXAMPLE "Build example project" OFF)
 option(PICO_DEBUG_UART "Pico uart debug" OFF)
 option(PICO_DEBUG_USB "Pico usb debug" OFF)
 option(PICO_PSRAM "Pico psram support (rp2040 spi / rp2350 qspi)" OFF)
-option(PICO_DISPLAY_ST7789_PIO "Pico ST7789 display support (pio)" ON)
+option(PICO_DISPLAY_ST7789 "Pico ST7789 display support (pio)" ON)
 set(PICO_DISPLAY_ROTATION "0" CACHE STRING "Pico display rotation (0, 90, 180, 270)")
 
 # libpico2d default board is adafruit feather rp2040
@@ -158,7 +158,7 @@ if (PICO_BOARD)
     endif ()
 
     # display driver
-    if (PICO_DISPLAY_ST7789_PIO)
+    if (PICO_DISPLAY_ST7789)
         file(GLOB TEMP ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/*.c*)
         list(APPEND PLATFORM_SOURCES ${TEMP})
         list(APPEND PLATFORM_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789)
@@ -294,7 +294,7 @@ if (PICO_BOARD)
     endif ()
 
     # ST7789 pio
-    if (PICO_DISPLAY_ST7789_PIO)
+    if (PICO_DISPLAY_ST7789)
         pico_generate_pio_header(pico2d-skeleton
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/st7789-spi.pio
         )
