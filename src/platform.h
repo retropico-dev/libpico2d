@@ -36,7 +36,8 @@ namespace p2d {
 
         void onDraw(const Utility::Vec2i &pos, bool draw = true) override;
 
-        virtual void reboot(uint32_t watchdog_scratch = 0) {};
+        virtual void reboot(uint32_t watchdog_scratch = 0) {
+        };
 
         void add(Widget *widget) override { Widget::add(widget); }
 
@@ -65,17 +66,23 @@ namespace p2d {
 }
 
 #ifdef LINUX
-
 #include "platform_linux.h"
-
 #define P2DPlatform p2d::LinuxPlatform
 #define P2DDisplay p2d::LinuxDisplay
+#define IN_RAM
+#define IN_FLASH
+#define IN_PSRAM
 #else
-
 #include "platform_pico.h"
-
 #define P2DPlatform p2d::PicoPlatform
 #define P2DDisplay p2d::PicoDisplay
+#define IN_RAM __attribute__((section(".time_critical.")))
+#define IN_FLASH __attribute__((section(".flashdata.")))
+#ifdef GPIO_PIN_PSRAM_CS
+#define IN_PSRAM __attribute__((section(".psramdata.")))
+#else
+#define IN_PSRAM
+#endif
 #endif
 
 #endif //PICO2D_PLATFORM_H
