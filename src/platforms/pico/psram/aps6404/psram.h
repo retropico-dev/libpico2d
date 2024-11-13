@@ -5,7 +5,7 @@
 #ifndef PICO2D_SKELETON_PSRAM_H
 #define PICO2D_SKELETON_PSRAM_H
 
-#ifdef PICO_PSRAM
+#ifdef PICO_PSRAM_RP2040
 
 #include "aps6404.hpp"
 

@@ -2,9 +2,10 @@
 // Created by cpasjuste on 30/05/23.
 //
 
-#ifndef PICO_PSRAM
+#ifndef PICO_PSRAM_RP2040
 
 #include <cstdio>
+#include <pico/multicore.h>
 #include <hardware/clocks.h>
 //#include <hardware/interp.h>
 #include "platform.h"

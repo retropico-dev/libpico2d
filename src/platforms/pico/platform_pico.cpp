@@ -4,6 +4,7 @@
 
 #include <pico/time.h>
 #include <pico/stdlib.h>
+#include <pico/bootrom.h>
 #include <hardware/vreg.h>
 #include <hardware/clocks.h>
 #include <hardware/watchdog.h>
@@ -21,11 +22,19 @@ PicoPlatform::PicoPlatform(const Display::Settings &displaySettings) : Platform(
         while (true) tight_loop_contents();
     }
 
-    // overclock
     vreg_set_voltage(VREG_VOLTAGE_DEFAULT);
     sleep_ms(2);
+
+    // overclock
+#ifdef GPIO_PIN_PSRAM_CS
+    set_sys_clock_khz(250000, false);
+    sleep_ms(2);
+    psram_reinit_timing();
+    sleep_ms(2);
+#else
     set_sys_clock_khz(280000, false);
     sleep_ms(2);
+#endif
 
 #if defined(PICO_DEBUG_UART) || defined(PICO_DEBUG_USB)
     // initialise USB serial connection for debugging
@@ -38,8 +47,10 @@ PicoPlatform::PicoPlatform(const Display::Settings &displaySettings) : Platform(
 
     printf("\r\nPicoPlatform: %s @ %lu MHz\r\n", PICO_BOARD, clock_get_hz(clk_sys) / 1000000);
 
-#ifdef PICO_PSRAM
+#ifdef PICO_PSRAM_RP2040
     PSram::init();
+#elif GPIO_PIN_PSRAM_CS
+    printf("PicoPlatform: psram size: %i, used: %i\r\n", __psram_size, __psram_total_used());
 #endif
 
     Io::init();

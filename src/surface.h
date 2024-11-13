@@ -24,9 +24,17 @@ namespace p2d {
             m_size = size;
             if (bufferSize > 0) {
                 p_buffer = (uint8_t *) malloc(bufferSize);
+                if (p_buffer == nullptr) {
+                    printf("Surface: could not allocate memory...\r\n");
+                    return;
+                }
                 memset(p_buffer, 0, bufferSize);
             } else {
                 p_buffer = (uint8_t *) malloc(m_size.x * m_size.y * m_bpp);
+                if (p_buffer == nullptr) {
+                    printf("Surface: could not allocate memory...\r\n");
+                    return;
+                }
                 memset(p_buffer, 0, m_size.x * m_size.y * m_bpp);
             }
             m_pitch = m_size.x * m_bpp;

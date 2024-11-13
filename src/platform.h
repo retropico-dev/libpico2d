@@ -15,7 +15,7 @@
 #include "widget.h"
 #include "battery.h"
 
-#ifdef PICO_PSRAM
+#ifdef PICO_PSRAM_RP2040
 
 #include "psram.h"
 

@@ -2,7 +2,7 @@
 // Created by cpasjuste on 30/05/23.
 //
 
-#ifdef PICO_PSRAM
+#ifdef PICO_PSRAM_RP2040
 
 #include <cstdio>
 #include <hardware/clocks.h>

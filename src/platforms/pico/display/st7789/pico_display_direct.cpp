@@ -2,7 +2,7 @@
 // Created by cpasjuste on 30/05/23.
 //
 
-#ifndef PICO_PSRAM
+#ifndef PICO_PSRAM_RP2040
 
 #include <cstdio>
 #include "platform.h"

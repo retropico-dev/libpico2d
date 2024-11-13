@@ -2,6 +2,8 @@
 // Created by cpasjuste on 31/05/23.
 //
 
+#include <pico/stdio.h>
+#include <hardware/gpio.h>
 #include "platform.h"
 #include "pinout.h"
 

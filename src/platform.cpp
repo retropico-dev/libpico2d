@@ -44,9 +44,14 @@ void Platform::onUpdate(Time delta) {
         m_frames = 0;
         m_fps_clock.restart();
         if (m_stats_print) {
-            auto percent = (uint16_t) (((float) Utility::getUsedHeap() / (float) Utility::getTotalHeap()) * 100);
-            printf("fps: %i, heap: %i/%i (%i%%), battery: %i%% (%.02fv), runtime: %lu minutes\r\n",
-                   m_fps, Utility::getUsedHeap(), Utility::getTotalHeap(), percent,
+            auto heapPercent = (uint16_t) (((float) Utility::getUsedHeap()
+                                            / (float) Utility::getTotalHeap()) * 100);
+            auto psramPercent = (uint16_t) (((float) Utility::getUsedPSRAMHeap()
+                                             / (float) Utility::getTotalPSRAMHeap()) * 100);
+            printf("fps: %i, heap: %i/%i (%i%%), psram: %i/%i (%i%%), battery: %i%% (%.02fv), runtime: %lu minutes\r\n",
+                   m_fps,
+                   Utility::getUsedHeap(), Utility::getTotalHeap(), heapPercent,
+                   Utility::getUsedPSRAMHeap(), Utility::getTotalPSRAMHeap(), psramPercent,
                    p_battery->getPercent(), p_battery->getVoltage(), m_runtime_minutes);
         }
     }

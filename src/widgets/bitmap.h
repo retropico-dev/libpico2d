@@ -18,6 +18,8 @@ namespace p2d {
 
         void onDraw(const Utility::Vec2i &pos, bool draw) override;
 
+        Surface *getSurface() { return m_surface; }
+
         [[nodiscard]] bool isAlphaEnabled() const {
             if (m_surface) return m_surface->isAlphaEnabled();
             return false;
@@ -29,6 +31,7 @@ namespace p2d {
 
     private:
         Surface *m_surface = nullptr;
+        bool m_read_only = false;
     };
 }
 

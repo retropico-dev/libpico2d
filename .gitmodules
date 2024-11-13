@@ -7,3 +7,6 @@
 [submodule "external/rp2040-psram"]
 	path = external/rp2040-psram
 	url = https://github.com/polpo/rp2040-psram.git
+[submodule "external/tlsf"]
+	path = external/tlsf
+	url = https://github.com/espressif/tlsf.git

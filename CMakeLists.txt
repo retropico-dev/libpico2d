@@ -6,28 +6,29 @@ option(BUILD_EXAMPLE "Build example project" OFF)
 # pico options
 option(PICO_DEBUG_UART "Pico uart debug" OFF)
 option(PICO_DEBUG_USB "Pico usb debug" OFF)
-option(PICO_DISPLAY_ST7789_PIO "Pico ST7789 display driver (pio)" ON)
+option(PICO_PSRAM "Pico psram support (rp2040 spi / rp2350 qspi)" OFF)
+option(PICO_DISPLAY_ST7789_PIO "Pico ST7789 display support (pio)" ON)
 set(PICO_DISPLAY_ROTATION "0" CACHE STRING "Pico display rotation (0, 90, 180, 270)")
-
-# too many "problems" to handles
-# - requires 6 pins
-# - ADC + resistors or shift register for buttons
-# - very (very) fast for large read/write, but slow for "pixel drawing"
-option(PICO_SPI_PSRAM "Pico psram spi driver (pio)" OFF)
 
 # libpico2d default board is adafruit feather rp2040
 if (DEFINED ENV{PICO_SDK_PATH})
     if (NOT PICO_BOARD)
         #set(PICO_BOARD "adafruit_feather_rp2040" CACHE STRING "" FORCE) # v1.0 rev board
         set(PICO_BOARD "waveshare_rp2040_plus_16mb" CACHE STRING "" FORCE) # v1.1 rev board
-        #set(PICO_BOARD "pimoroni_pico_plus2_rp2350" CACHE STRING "" FORCE) # v2.0 rev board
     endif ()
+    if (PICO_PSRAM OR PICO_BOARD STREQUAL "pimoroni_pico_plus2_rp2350")
+        # use a custom malloc wrapper
+        set(SKIP_PICO_MALLOC 1 CACHE BOOL "" FORCE)
+    endif ()
+
     # initialize the SDK based on PICO_SDK_PATH
     # note: this must happen before project()
     include(${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/cmake/pico_sdk_import.cmake)
 
     # for pico_audio_i2s, hardware_sleep
     include(${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/cmake/pico_extras_import.cmake)
+else ()
+    message(FATAL_ERROR "PICO_SDK_PATH not variable not set: https://github.com/raspberrypi/pico-sdk")
 endif ()
 
 project(pico2d-skeleton)
@@ -48,7 +49,7 @@ set(CMAKE_FLAGS_RELEASE_FIX "-fno-move-loop-invariants -fno-devirtualize -fno-de
 set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -O3 -ffast-math -ffunction-sections -fdata-sections ${CMAKE_FLAGS_RELEASE_FIX}" CACHE STRING "" FORCE)
 set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3 -ffast-math -ffunction-sections -fdata-sections ${CMAKE_FLAGS_RELEASE_FIX}" CACHE STRING "" FORCE)
 
-# set source files
+# common source files
 file(GLOB PLATFORM_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c*
         ${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/*.c*
@@ -68,7 +69,6 @@ set(PLATFORM_INCLUDES
 )
 
 list(APPEND PLATFORM_FLAGS -DPICO_DISPLAY_ROTATION=${PICO_DISPLAY_ROTATION} -DARDUINO=123)
-#-DNO_PICO_LED
 
 # tweeny
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/tweeny tweeny)
@@ -124,64 +124,6 @@ if (PICO_BOARD)
             #hardware_interp
     )
 
-    if (PICO_PLATFORM STREQUAL "rp2040")
-        list(APPEND PLATFORM_LIBS hardware_sleep)
-    endif ()
-
-    # display driver
-    if (PICO_DISPLAY_ST7789_PIO)
-        file(GLOB TEMP ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/*.c*)
-        list(APPEND PLATFORM_SOURCES ${TEMP})
-        list(APPEND PLATFORM_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789)
-    endif ()
-
-    if (PICO_SPI_PSRAM)
-        # psram module
-        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/aps6404)
-        list(APPEND PLATFORM_FLAGS -DPICO_PSRAM=1)
-        list(APPEND PLATFORM_LIBS aps6404)
-    endif ()
-
-    # retropico board revision pinout definition
-    if (PICO_BOARD STREQUAL "adafruit_feather_rp2040")
-        list(APPEND PLATFORM_FLAGS -DRETROPICO_10)
-    else ()
-        list(APPEND PLATFORM_FLAGS -DRETROPICO_11) # Waveshare rp2040 plus
-    endif ()
-
-    # picoprobe debug
-    if (PICO_DEBUG_UART)
-        list(APPEND PLATFORM_FLAGS -DPICO_DEBUG_UART)
-    elseif (PICO_DEBUG_USB)
-        list(APPEND PLATFORM_FLAGS -DPICO_DEBUG_USB)
-    endif ()
-
-    # custom linker script
-    function(set_linker_script TARGET script)
-        get_filename_component(SCRIPT_PATH ${script} DIRECTORY)
-        target_link_directories(${TARGET} PRIVATE ${SCRIPT_PATH})
-        pico_set_linker_script(${TARGET} ${script})
-        # Add dependencies on the 'included' linker script
-        # so that the target gets rebuilt on changes
-        pico_add_link_depend(${TARGET} ${script})
-    endfunction()
-
-    # custom linker script (easy version)
-    function(set_linker_flash_size_4 TARGET)
-        set_linker_script(${TARGET}
-                "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/platforms/pico/misc/memmap_4mb.ld")
-    endfunction()
-    # custom linker script (easy version)
-    function(set_linker_flash_size_8 TARGET)
-        set_linker_script(${TARGET}
-                "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/platforms/pico/misc/memmap_8mb.ld")
-    endfunction()
-    # custom linker script (easy version)
-    function(set_linker_flash_size_16 TARGET)
-        set_linker_script(${TARGET}
-                "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/platforms/pico/misc/memmap_16mb.ld")
-    endfunction()
-
     # LCD GPIO
     add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_LCD_CLK" "5")
     add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_LCD_DIN" "4")
@@ -210,6 +152,111 @@ if (PICO_BOARD)
     add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_A" "15")
     add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_B" "14")
     add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_SLEEP" "17")
+
+    if (PICO_PLATFORM STREQUAL "rp2040")
+        list(APPEND PLATFORM_LIBS hardware_sleep)
+    endif ()
+
+    # display driver
+    if (PICO_DISPLAY_ST7789_PIO)
+        file(GLOB TEMP ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/*.c*)
+        list(APPEND PLATFORM_SOURCES ${TEMP})
+        list(APPEND PLATFORM_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789)
+    endif ()
+
+    if (PICO_BOARD STREQUAL "pimoroni_pico_plus2_rp2350")
+        set(PICO_PSRAM ON)
+    endif ()
+
+    # psram module
+    # TODO: rp2350 PIMORONI_PICO_PLUS2_PSRAM_CS_PIN 47
+    if (PICO_PSRAM)
+        if (PICO_PLATFORM STREQUAL "rp2040")
+            message(FATAL_ERROR "TODO: enable rp2040 psram code back")
+            add_subdirectory(src/platforms/pico/psram/aps6404)
+            list(APPEND PLATFORM_FLAGS -DPICO_PSRAM_RP2040=1)
+            list(APPEND PLATFORM_LIBS aps6404)
+        else ()
+            list(APPEND PLATFORM_SOURCES
+                    ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/psram/psram.c
+                    ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/psram/malloc-wrapper.c
+                    ${CMAKE_CURRENT_SOURCE_DIR}/external/tlsf/tlsf.c
+            )
+            list(APPEND PLATFORM_INCLUDES
+                    ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/psram
+                    ${CMAKE_CURRENT_SOURCE_DIR}/external/tlsf/include
+            )
+            add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_PSRAM_CS" "47")
+        endif ()
+    endif ()
+
+    # picoprobe debug
+    if (PICO_DEBUG_UART)
+        list(APPEND PLATFORM_FLAGS -DPICO_DEBUG_UART)
+    elseif (PICO_DEBUG_USB)
+        list(APPEND PLATFORM_FLAGS -DPICO_DEBUG_USB)
+    endif ()
+
+    # pico2d stuff (custom linker script, ...)
+    if (NOT PICO_FLASH_SIZE_BYTES)
+        if (PICO_DEFAULT_FLASH_SIZE_BYTES)
+            set(PICO_FLASH_SIZE_BYTES ${PICO_DEFAULT_FLASH_SIZE_BYTES})
+        else ()
+            set(PICO_FLASH_SIZE_BYTES "2 * 1024 * 1024")
+            message(WARNING "PICO_FLASH_SIZE_BYTES not set, using defaults (${PICO_FLASH_SIZE_BYTES})")
+        endif ()
+    endif ()
+    function(target_set_pico2d_stuff TARGET)
+        if (PICO_BOARD)
+            set(PICO_FLASH_SIZE_BYTES_STRING "${PICO_FLASH_SIZE_BYTES}")
+            set(PICO_PSRAM_SIZE_BYTES_STRING "(8 * 1024 * 1024)")
+            if (PICO_PLATFORM STREQUAL "rp2040")
+                configure_file(
+                        ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/platforms/pico/misc/memmap_rp2040.ld
+                        ${CMAKE_BINARY_DIR}/memmap.ld
+                )
+            else () # rp2350
+                if (PICO_PSRAM)
+                    configure_file(
+                            ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/platforms/pico/misc/memmap_rp2350_psram.ld
+                            ${CMAKE_BINARY_DIR}/memmap.ld
+                    )
+                else ()
+                    configure_file(
+                            ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/platforms/pico/misc/memmap_rp2350.ld
+                            ${CMAKE_BINARY_DIR}/memmap.ld
+                    )
+                endif ()
+            endif ()
+            # add include path for linker scripts
+            target_link_options(${TARGET} INTERFACE "LINKER:-L${CMAKE_BINARY_DIR}")
+            pico_set_linker_script(${TARGET} ${CMAKE_BINARY_DIR}/memmap.ld)
+            # add dependencies on the 'included' linker script
+            # so that the target gets rebuilt on changes
+            pico_add_link_depend(${TARGET} ${CMAKE_BINARY_DIR}/memmap.ld)
+
+            # psram
+            if (PICO_PSRAM)
+                pico_wrap_function(${TARGET} malloc)
+                pico_wrap_function(${TARGET} calloc)
+                pico_wrap_function(${TARGET} realloc)
+                pico_wrap_function(${TARGET} free)
+            endif ()
+
+            # debug
+            pico_add_uf2_output(${TARGET})
+            if (PICO_DEBUG_UART)
+                pico_enable_stdio_usb(${TARGET} 0)
+                pico_enable_stdio_uart(${TARGET} 1)
+            elseif (PICO_DEBUG_USB)
+                pico_enable_stdio_usb(${TARGET} 1)
+                pico_enable_stdio_uart(${TARGET} 0)
+            else ()
+                pico_enable_stdio_usb(${TARGET} 0)
+                pico_enable_stdio_uart(${TARGET} 0)
+            endif ()
+        endif ()
+    endfunction()
 else ()
     file(GLOB_RECURSE TEMP
             ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/linux/*.c*
@@ -231,12 +278,21 @@ endif ()
 ####################
 # skeleton library
 ####################
-add_library(pico2d-skeleton ${PLATFORM_SOURCES})
-target_include_directories(pico2d-skeleton PUBLIC ${PLATFORM_INCLUDES})
-target_compile_definitions(pico2d-skeleton PUBLIC ${PLATFORM_FLAGS})
-target_link_libraries(pico2d-skeleton PUBLIC ${PLATFORM_LIBS})
+add_library(pico2d-skeleton INTERFACE)
+target_sources(pico2d-skeleton INTERFACE ${PLATFORM_SOURCES})
+target_include_directories(pico2d-skeleton INTERFACE ${PLATFORM_INCLUDES})
+target_compile_definitions(pico2d-skeleton INTERFACE ${PLATFORM_FLAGS})
+target_link_libraries(pico2d-skeleton INTERFACE ${PLATFORM_LIBS})
 
 if (PICO_BOARD)
+    # psram
+    if (PICO_PSRAM)
+        pico_wrap_function(pico2d-skeleton malloc)
+        pico_wrap_function(pico2d-skeleton calloc)
+        pico_wrap_function(pico2d-skeleton realloc)
+        pico_wrap_function(pico2d-skeleton free)
+    endif ()
+
     # ST7789 pio
     if (PICO_DISPLAY_ST7789_PIO)
         pico_generate_pio_header(pico2d-skeleton
@@ -247,18 +303,6 @@ if (PICO_BOARD)
     # sdcard
     pico_generate_pio_header(pico2d-skeleton
             ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/storage/spi.pio)
-
-    # debug
-    if (PICO_DEBUG_UART)
-        pico_enable_stdio_usb(pico2d-skeleton 0)
-        pico_enable_stdio_uart(pico2d-skeleton 1)
-    elseif (PICO_DEBUG_USB)
-        pico_enable_stdio_usb(pico2d-skeleton 1)
-        pico_enable_stdio_uart(pico2d-skeleton 0)
-    else ()
-        pico_enable_stdio_usb(pico2d-skeleton 0)
-        pico_enable_stdio_uart(pico2d-skeleton 0)
-    endif ()
 endif ()
 
 ####################

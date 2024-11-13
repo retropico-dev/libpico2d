@@ -5,19 +5,16 @@
 #ifndef P2D_PLATFORM_PICO_H
 #define P2D_PLATFORM_PICO_H
 
-#include <pico/stdio.h>
-#include <pico/bootrom.h>
-#include <pico/multicore.h>
-#include <pico/stdio.h>
-#include <hardware/gpio.h>
-#include <hardware/sync.h>
-#include <hardware/flash.h>
-
+#include <pico.h>
 #include "pico_display.h"
 #include "pico_display_direct.h"
 #include "input_pico.h"
 #include "audio_pico.h"
 #include "pico_battery.h"
+
+#ifdef GPIO_PIN_PSRAM_CS
+#include "psram.h"
+#endif
 
 #define in_ram __not_in_flash_func
 
