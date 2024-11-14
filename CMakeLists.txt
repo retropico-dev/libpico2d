@@ -165,7 +165,7 @@ if (PICO_BOARD)
     endif ()
 
     if (PICO_BOARD STREQUAL "pimoroni_pico_plus2_rp2350")
-        set(PICO_PSRAM ON)
+        set(PICO_PSRAM ON CACHE BOOL "" FORCE)
     endif ()
 
     # psram module
