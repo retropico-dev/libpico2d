@@ -28,7 +28,8 @@ if (DEFINED ENV{PICO_SDK_PATH})
     # for pico_audio_i2s, hardware_sleep
     include(${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/cmake/pico_extras_import.cmake)
 else ()
-    message(FATAL_ERROR "PICO_SDK_PATH not variable not set: https://github.com/raspberrypi/pico-sdk")
+    # TODO: handle linux
+    #message(FATAL_ERROR "PICO_SDK_PATH not variable not set: https://github.com/raspberrypi/pico-sdk")
 endif ()
 
 project(pico2d-skeleton)
@@ -282,6 +283,8 @@ else ()
     list(APPEND PLATFORM_INCLUDES ${SDL2_INCLUDE_DIRS})
     list(APPEND PLATFORM_FLAGS -DLINUX)
     list(APPEND PLATFORM_LIBS ${SDL2_LIBRARIES})
+    function(target_set_pico2d_stuff TARGET)
+    endfunction()
 endif ()
 
 ####################

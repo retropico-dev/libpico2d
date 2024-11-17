@@ -10,6 +10,8 @@ static Platform *s_platform = nullptr;
 
 Platform::Platform(const Display::Settings &displaySettings) : Widget() {
     s_platform = this;
+    Platform::setPosition(0, 0);
+    Platform::setSize(displaySettings.displaySize.x, displaySettings.displaySize.y);
 }
 
 bool Platform::loop() {
