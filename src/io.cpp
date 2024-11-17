@@ -89,7 +89,7 @@ bool Io::isAvailable(const Io::Device &device) {
 }
 
 bool Io::create(const std::string &path) {
-    FRESULT fr;
+    FRESULT fr = {};
     const char *p;
     char *temp;
 
@@ -178,10 +178,9 @@ bool Io::format(const Io::Device &device) {
     return true;
 }
 
-bool Io::copy(const File &src, const File &dst) {
+bool Io::copy(const File &src, const File &dst, const CopyProgressCallback &callback) {
     int32_t read;
     int32_t offset = 0;
-    char *read_buffer;
 
     if (!src.isOpen()) {
         printf("Io::copy: could not open source file\r\n");
@@ -195,26 +194,30 @@ bool Io::copy(const File &src, const File &dst) {
 
     // use a contiguous region for flash for later raw access
     if (Utility::startWith(dst.getPath(), "flash:")) {
-        auto r = f_expand((FIL *) dst.getHandler(), src.getLength(), 0);
-        if (r != FRESULT::FR_OK) {
+        if (const auto r =
+                f_expand(static_cast<FIL *>(dst.getHandler()), src.getLength(), 0); r != FR_OK) {
             printf("Io::copy: WARNING: could not put file in contiguous data area in flash\r\n");
         }
     }
 
-    read_buffer = (char *) malloc(4096);
-
-    while ((read = src.read(offset, 4096, read_buffer)) > 0) {
-        dst.write(offset, read, read_buffer);
-        offset += read;
+    const auto srcSize = src.getLength();
+    const auto read_buffer = static_cast<char *>(malloc(FLASH_SECTOR_SIZE));
+    while ((read = src.read(offset, FLASH_SECTOR_SIZE, read_buffer)) > 0) {
+        offset += dst.write(offset, read, read_buffer);
+        if (callback && offset > 0) {
+            const auto progress = static_cast<uint8_t>(
+                static_cast<float>(offset) / static_cast<float>(srcSize) * 100.0f);
+            callback(progress);
+        }
     }
 
     free(read_buffer);
 
-    printf("Io::copy: copied %li bytes\r\n", offset);
+    printf("Io::copy: copied %d bytes\r\n", offset);
     return true;
 }
 
-bool Io::copy(const std::string &src, const std::string &dst) {
+bool Io::copy(const std::string &src, const std::string &dst, const CopyProgressCallback &callback) {
     const auto srcFile = File{src, File::OpenMode::Read};
     if (!srcFile.isOpen()) {
         printf("Io::copy: could not open file for reading: %s\r\n", srcFile.getPath().c_str());
@@ -227,7 +230,7 @@ bool Io::copy(const std::string &src, const std::string &dst) {
         return false;
     }
 
-    return copy(srcFile, dstFile);
+    return copy(srcFile, dstFile, callback);
 }
 
 std::vector<Io::File::Info> Io::getList(
@@ -283,7 +286,7 @@ Io::ListBuffer in_ram(Io::getBufferedList)(const std::string &path, uint32_t fla
     uint32_t maxFilesPerWrite = FLASH_SECTOR_SIZE / IO_MAX_PATH;
     uint32_t offset = flashOffset;
     uint32_t count = 0, currentFile = 0;
-    Io::ListBuffer listBuffer;
+    ListBuffer listBuffer;
 
     FatFs::list_files(path, [&count, &currentFile, &offset, &maxFilesPerWrite, &buffer](File::Info &file) {
         if (!(file.flags & File::Flags::Directory)) {
@@ -381,7 +384,7 @@ void Io::File::close() {
 
 uint32_t Io::File::getLength() const {
     if (buf) return buf_len;
-    return Io::FatFs::get_file_length(p_fh);
+    return FatFs::get_file_length(p_fh);
 }
 
 void Io::File::addBufferFile(const std::string &path, const uint8_t *ptr, uint32_t len) {
@@ -467,7 +470,8 @@ int32_t Io::FatFs::close_file(void *fh) {
 }
 
 uint32_t Io::FatFs::get_file_length(void *fh) {
-    return f_size((FIL *) fh);
+    const auto f = static_cast<FIL *>(fh);
+    return f_size(f);
 }
 
 void Io::FatFs::list_files(const std::string &path, std::function<void(File::Info &)> callback) {

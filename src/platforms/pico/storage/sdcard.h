@@ -6,7 +6,7 @@
 #define PICO2D_SKELETON_SDCARD_H
 
 namespace p2d {
-    bool io_sdcard_init(float spiMhz = 20.0f); // TODO: bump speed on real hardware
+    bool io_sdcard_init(float spiMhz = 25.0f); // TODO: bump speed on real hardware
 
     uint64_t io_sdcard_get_size();
 

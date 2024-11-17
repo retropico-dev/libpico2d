@@ -31,6 +31,8 @@
 namespace p2d {
     class Io {
     public:
+        using CopyProgressCallback = std::function<void(uint8_t)>;
+
         enum Device {
             Sd = 0,
             Flash = 1,
@@ -170,12 +172,14 @@ namespace p2d {
 
         static bool directoryExists(const std::string &path);
 
-        static bool copy(const File &src, const File &dst);
+        static bool copy(const File &src, const File &dst,
+                         const CopyProgressCallback &callback = nullptr);
 
-        static bool copy(const std::string &src, const std::string &dst);
+        static bool copy(const std::string &src, const std::string &dst,
+                         const CopyProgressCallback &callback = nullptr);
 
         static std::vector<File::Info> getList(
-                const std::string &path, std::function<bool(const File::Info &)> const &filter = nullptr);
+            const std::string &path, std::function<bool(const File::Info &)> const &filter = nullptr);
 
         static ListBuffer getBufferedList(const std::string &path, uint32_t flashOffset);
 

@@ -52,29 +52,31 @@ namespace p2d {
 
         virtual void setSize(const Utility::Vec2i &size);
 
-        virtual Utility::Vec2i getSize() { return m_size; };
+        virtual Utility::Vec2i getSize() { return m_size; }
 
         virtual Utility::Vec4i getBounds();
 
-        virtual void setOrigin(const Origin &origin) { m_origin = origin; };
+        virtual void setOrigin(const Origin &origin) { m_origin = origin; }
 
-        virtual Origin getOrigin() { return m_origin; };
+        virtual Origin getOrigin() { return m_origin; }
 
-        virtual void setColor(uint16_t color) { m_color = color; };
+        virtual void setColor(uint16_t color) { m_color = color; }
 
-        virtual uint16_t getColor() { return m_color; };
+        virtual uint16_t getColor() { return m_color; }
 
-        virtual void setOutlineColor(uint16_t color) { m_outline_color = color; };
+        virtual void setOutlineColor(uint16_t color) { m_outline_color = color; }
 
-        virtual uint16_t getOutlineColor() { return m_outline_color; };
+        virtual uint16_t getOutlineColor() { return m_outline_color; }
 
-        virtual void setOutlineThickness(uint16_t size) { m_outline_thickness = size; };
+        virtual void setOutlineThickness(uint16_t size) { m_outline_thickness = size; }
 
-        virtual uint16_t getOutlineThickness() { return m_outline_thickness; };
+        virtual uint16_t getOutlineThickness() { return m_outline_thickness; }
 
-        virtual bool isVisible() { return m_visibility == Visibility::Visible; };
+        virtual bool isVisible() { return m_visibility == Visibility::Visible; }
 
-        virtual void setVisibility(Visibility visibility) { m_visibility = visibility; };
+        virtual void setVisibility(Visibility visibility) { m_visibility = visibility; }
+
+        virtual Widget *getParent() { return p_parent; }
 
         virtual void onUpdate(Time delta);
 
