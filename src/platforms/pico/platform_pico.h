@@ -6,6 +6,7 @@
 #define P2D_PLATFORM_PICO_H
 
 #include <pico.h>
+#include <pico/multicore.h>
 #include "pico_display.h"
 #include "pico_display_direct.h"
 #include "input_pico.h"

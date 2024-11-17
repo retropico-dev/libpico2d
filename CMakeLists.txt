@@ -153,6 +153,7 @@ if (PICO_BOARD)
     add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_B" "14")
     add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_SLEEP" "17")
 
+    message(STATUS "platform: ${PICO_PLATFORM}")
     if (PICO_PLATFORM STREQUAL "rp2040")
         list(APPEND PLATFORM_LIBS hardware_sleep)
     endif ()
@@ -207,33 +208,41 @@ if (PICO_BOARD)
         endif ()
     endif ()
     function(target_set_pico2d_stuff TARGET)
+        # check if custom ld script is passed as optional argument
+        set(custom_ld_script "")
+        if (ARGN)
+            list(GET ARGN 0 custom_ld_script)
+        endif ()
+
         if (PICO_BOARD)
-            set(PICO_FLASH_SIZE_BYTES_STRING "${PICO_FLASH_SIZE_BYTES}")
-            set(PICO_PSRAM_SIZE_BYTES_STRING "(8 * 1024 * 1024)")
-            if (PICO_PLATFORM STREQUAL "rp2040")
-                configure_file(
-                        ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/platforms/pico/misc/memmap_rp2040.ld
-                        ${CMAKE_BINARY_DIR}/memmap.ld
-                )
-            else () # rp2350
-                if (PICO_PSRAM)
-                    configure_file(
-                            ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/platforms/pico/misc/memmap_rp2350_psram.ld
-                            ${CMAKE_BINARY_DIR}/memmap.ld
-                    )
-                else ()
-                    configure_file(
-                            ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/platforms/pico/misc/memmap_rp2350.ld
-                            ${CMAKE_BINARY_DIR}/memmap.ld
-                    )
+            if (ARGN)
+                set(SRC_LD "${custom_ld_script}")
+                configure_file("${SRC_LD}" "${CMAKE_CURRENT_BINARY_DIR}/memmap.ld" COPYONLY)
+            else ()
+                # set flash size
+                set(PICO_FLASH_SIZE_BYTES_STRING " ${PICO_FLASH_SIZE_BYTES}")
+                set(PICO_PSRAM_SIZE_BYTES_STRING " (8 * 1024 * 1024) ")
+                if (PICO_PLATFORM STREQUAL "rp2040")
+                    set(SRC_LD "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/platforms/pico/misc/memmap_rp2040.ld")
+                else () # rp2350
+                    if (PICO_PSRAM)
+                        set(SRC_LD "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/platforms/pico/misc/memmap_rp2350_psram.ld")
+                    else ()
+                        set(SRC_LD "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/platforms/pico/misc/memmap_rp2350.ld")
+                    endif ()
                 endif ()
+                configure_file("${SRC_LD}" "${CMAKE_CURRENT_BINARY_DIR}/memmap.ld")
             endif ()
+
+            message(STATUS "${TARGET} ld script: ${SRC_LD}, flash size:${PICO_FLASH_SIZE_BYTES_STRING}")
+
             # add include path for linker scripts
-            target_link_options(${TARGET} INTERFACE "LINKER:-L${CMAKE_BINARY_DIR}")
-            pico_set_linker_script(${TARGET} ${CMAKE_BINARY_DIR}/memmap.ld)
+            target_link_options(${TARGET} PRIVATE "LINKER:-L${CMAKE_CURRENT_BINARY_DIR}")
+            pico_set_linker_script(${TARGET} "${CMAKE_CURRENT_BINARY_DIR}/memmap.ld")
+
             # add dependencies on the 'included' linker script
             # so that the target gets rebuilt on changes
-            pico_add_link_depend(${TARGET} ${CMAKE_BINARY_DIR}/memmap.ld)
+            pico_add_link_depend(${TARGET} "${SRC_LD}")
 
             # psram
             if (PICO_PSRAM)
