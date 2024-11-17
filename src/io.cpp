@@ -148,7 +148,7 @@ bool Io::fileExists(const std::string &path) {
 
 bool Io::format(const Io::Device &device) {
     FRESULT res;
-    MKFS_PARM opts{.fmt =  FM_ANY | FM_SFD};
+    MKFS_PARM opts{.fmt = FM_ANY | FM_SFD};
     std::string path = device == Device::Flash ? "flash:" : "sd:";
     uint32_t sector_size = device == Device::Flash ? FLASH_SECTOR_SIZE : FF_MIN_SS;
     auto fs = device == Device::Flash ? &flash_fs : &sd_fs;
@@ -215,14 +215,23 @@ bool Io::copy(const File &src, const File &dst) {
 }
 
 bool Io::copy(const std::string &src, const std::string &dst) {
-    const File srcFile = File{src, File::OpenMode::Read};
-    const File dstFile = File{dst, File::OpenMode::Write};
-    auto res = copy(srcFile, dstFile);
-    return res;
+    const auto srcFile = File{src, File::OpenMode::Read};
+    if (!srcFile.isOpen()) {
+        printf("Io::copy: could not open file for reading: %s\r\n", srcFile.getPath().c_str());
+        return false;
+    }
+
+    const auto dstFile = File{dst, File::OpenMode::Write};
+    if (!dstFile.isOpen()) {
+        printf("Io::copy: could not open file for writing: %s\r\n", dstFile.getPath().c_str());
+        return false;
+    }
+
+    return copy(srcFile, dstFile);
 }
 
 std::vector<Io::File::Info> Io::getList(
-        const std::string &path, std::function<bool(const File::Info &)> const &filter) {
+    const std::string &path, std::function<bool(const File::Info &)> const &filter) {
     std::vector<File::Info> ret;
     FatFs::list_files(path, [&ret, &filter](File::Info &file) {
         if (!filter || filter(file))
@@ -471,9 +480,9 @@ void Io::FatFs::list_files(const std::string &path, std::function<void(File::Inf
 
     while (f_readdir(&dir, &ent) == FR_OK && ent.fname[0]) {
         File::Info info{
-                .name = ent.fname,
-                .flags = 0,
-                .size = ent.fsize
+            .name = ent.fname,
+            .flags = 0,
+            .size = ent.fsize
         };
 
         if (ent.fattrib & AM_DIR)
@@ -533,11 +542,15 @@ DRESULT disk_read(BYTE drv, BYTE *buff, LBA_t sector, UINT count) {
     //printf("disk_read: %i\r\n", drv);
     if (drv == Io::Device::Sd) {
         return io_sdcard_read(sector, 0, buff, FF_MIN_SS * count)
-               == int32_t(FF_MIN_SS * count) ? RES_OK : RES_ERROR;
+               == int32_t(FF_MIN_SS * count)
+                   ? RES_OK
+                   : RES_ERROR;
     }
 
     return io_flash_read(sector, 0, buff, FLASH_SECTOR_SIZE * count)
-           == int32_t(FLASH_SECTOR_SIZE * count) ? RES_OK : RES_ERROR;
+           == int32_t(FLASH_SECTOR_SIZE * count)
+               ? RES_OK
+               : RES_ERROR;
 }
 
 DRESULT disk_write(BYTE drv, const BYTE *buff, LBA_t sector, UINT count) {
@@ -547,11 +560,15 @@ DRESULT disk_write(BYTE drv, const BYTE *buff, LBA_t sector, UINT count) {
 #endif
     if (drv == Io::Device::Sd) {
         return io_sdcard_write(sector, 0, buff, FF_MIN_SS * count)
-               == int32_t(FF_MIN_SS * count) ? RES_OK : RES_ERROR;
+               == int32_t(FF_MIN_SS * count)
+                   ? RES_OK
+                   : RES_ERROR;
     }
 
     return io_flash_write(sector, 0, buff, FLASH_SECTOR_SIZE * count)
-           == int32_t(FLASH_SECTOR_SIZE * count) ? RES_OK : RES_ERROR;
+           == int32_t(FLASH_SECTOR_SIZE * count)
+               ? RES_OK
+               : RES_ERROR;
 }
 
 DRESULT disk_ioctl(BYTE drv, BYTE cmd, void *buff) {
