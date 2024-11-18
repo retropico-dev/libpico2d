@@ -12,11 +12,13 @@
 #include "pico.h"
 
 namespace p2d {
-class LinuxPlatform : public Platform {
+    class LinuxPlatform : public Platform {
     public:
         explicit LinuxPlatform(const Display::Settings &displaySettings);
 
         ~LinuxPlatform() override;
+
+        void sleep(uint32_t ms) override;
     };
 }
 

@@ -27,6 +27,8 @@ namespace p2d {
         ~PicoPlatform() override;
 
         void reboot(uint32_t watchdog_scratch = 0) override;
+
+        void sleep(uint32_t ms) override;
     };
 }
 

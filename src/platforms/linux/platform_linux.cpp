@@ -18,3 +18,7 @@ LinuxPlatform::~LinuxPlatform() {
     printf("~LinuxPlatform()\n");
     SDL_Quit();
 }
+
+void LinuxPlatform::sleep(const uint32_t ms) {
+    usleep(ms * 1000);
+}

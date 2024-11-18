@@ -24,11 +24,10 @@ namespace p2d {
 
         void setString(const std::string &str);
 
-        void onDraw(const Utility::Vec2i &pos, bool draw) override;
+        void onDraw(bool draw) override;
 
     private:
-        std::string m_text;
-        Utility::Vec4i m_bounds{};
+        std::string m_text{};
     };
 }
 

@@ -30,14 +30,17 @@ namespace p2d {
 
         virtual bool loop();
 
+        virtual void reboot(uint32_t watchdog_scratch = 0) {
+        }
+
+        virtual void sleep(uint32_t ms) {
+        }
+
         void onUpdate(Time delta) override;
 
         bool onInput(const uint16_t &buttons) override;
 
-        void onDraw(const Utility::Vec2i &pos, bool draw = true) override;
-
-        virtual void reboot(uint32_t watchdog_scratch = 0) {
-        };
+        void onDraw(bool draw = true) override;
 
         void add(Widget *widget) override { Widget::add(widget); }
 

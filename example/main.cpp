@@ -35,27 +35,27 @@ static Display::Settings ds{
 };
 
 int main() {
-    auto platform = new P2DPlatform(ds);
+    const auto platform = new P2DPlatform(ds);
     platform->getDisplay()->setClearColor(Display::Color::Black);
 
-    auto bounds = platform->getDisplay()->getSize();
-    auto center = Utility::Vec2i((int16_t) (bounds.x / 2), (int16_t) (bounds.y / 2));
+    const auto size = platform->getDisplay()->getSize();
+    const auto center = Utility::Vec2i((int16_t) (size.x / 2), (int16_t) (size.y / 2));
 
     // load bitmap resources
-    auto surface = new Surface(Io::File{"res:/romfs/girl_120x120.bmp"});
-    auto girl = new Bitmap(surface);
-    girl->setAlphaEnabled(false);
-    for (int i = 0; i < SPRITES_COUNT; i++) {
-        auto g = new Bitmap(surface);
+    const auto surface = new Surface(Io::File{"res:/romfs/girl_120x120.bmp"});
+    const auto girl = new Bitmap(surface);
+    platform->add(girl);
+    for (int i = 1; i < SPRITES_COUNT + 1; i++) {
+        const auto g = new Bitmap(surface);
         g->setPosition(static_cast<int16_t>(i * 8), static_cast<int16_t>(i * 8));
         platform->add(g);
     }
 
-    auto star = new Bitmap(Io::File{"res:/romfs/star.bmp"}, center);
+    const auto star = new Bitmap(Io::File{"res:/romfs/star.bmp"}, center);
     star->setOrigin(Widget::Origin::Center);
     platform->add(star);
 
-    auto text = new Text((int16_t) (bounds.x - 2), (int16_t) (bounds.y - 2), "Hello MicroBoy");
+    const auto text = new Text((int16_t) (size.x - 2), (int16_t) (size.y - 2), "Hello MicroBoy");
     text->setColor(Display::Color::Red);
     text->setOrigin(Widget::Origin::BottomRight);
     platform->add(text);

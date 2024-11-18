@@ -11,6 +11,8 @@
 #include "platform.h"
 #include "platform_pico.h"
 
+#include <sys/unistd.h>
+
 using namespace p2d;
 
 PicoPlatform::PicoPlatform(const Display::Settings &displaySettings) : Platform(displaySettings) {
@@ -79,6 +81,10 @@ void PicoPlatform::reboot(uint32_t watchdog_scratch) {
 
     // wait for the reset
     while (true) tight_loop_contents();
+}
+
+void PicoPlatform::sleep(const uint32_t ms) {
+    sleep_ms(ms);
 }
 
 PicoPlatform::~PicoPlatform() {

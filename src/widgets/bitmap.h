@@ -8,15 +8,15 @@
 #include "widget.h"
 
 namespace p2d {
-    class Bitmap : public Widget {
+    class Bitmap final : public Widget {
     public:
         explicit Bitmap(Surface *surface, const Utility::Vec2i &pos = {});
 
         explicit Bitmap(const Io::File &file, const Utility::Vec2i &pos = {});
 
-        ~Bitmap();
+        ~Bitmap() override;
 
-        void onDraw(const Utility::Vec2i &pos, bool draw) override;
+        void onDraw(bool draw) override;
 
         Surface *getSurface() { return m_surface; }
 
@@ -25,7 +25,7 @@ namespace p2d {
             return false;
         }
 
-        void setAlphaEnabled(bool value) {
+        void setAlphaEnabled(const bool value) const {
             if (m_surface) m_surface->setAlphaEnabled(value);
         }
 

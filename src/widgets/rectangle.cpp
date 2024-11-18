@@ -30,23 +30,22 @@ Rectangle::Rectangle(const Utility::Vec4i &bounds, uint16_t color, int16_t radiu
     m_radius = radius;
 }
 
-void Rectangle::onDraw(const Utility::Vec2i &pos, bool draw) {
+void Rectangle::onDraw(const bool draw) {
     if (!draw) return;
 
     // first draw outline if needed
     if (m_outline_thickness > 0 && m_outline_color != Display::Color::Transparent) {
         for (uint16_t i = 1; i < m_outline_thickness + 1; i++) {
+            const Utility::Vec4i b = {
+                static_cast<int16_t>(m_bounds.x - 1 * i),
+                static_cast<int16_t>(m_bounds.y - 1 * i),
+                static_cast<int16_t>(m_size.x + 2 * i),
+                static_cast<int16_t>(m_size.y + 2 * i)
+            };
             if (m_radius > 0) {
-                Platform::instance()->getDisplay()->drawRoundRect((int16_t) (pos.x - (1 * i)),
-                                                                  (int16_t) (pos.y - (1 * i)),
-                                                                  (int16_t) (m_size.x + (2 * i)),
-                                                                  (int16_t) (m_size.y + (2 * i)),
-                                                                  m_radius, m_outline_color);
+                Platform::instance()->getDisplay()->drawRoundRect(b.x, b.y, b.w, b.h, m_radius, m_outline_color);
             } else {
-                Platform::instance()->getDisplay()->drawRect((int16_t) (pos.x - (1 * i)), (int16_t) (pos.y - (1 * i)),
-                                                             (int16_t) (m_size.x + (2 * i)),
-                                                             (int16_t) (m_size.y + (2 * i)),
-                                                             m_outline_color);
+                Platform::instance()->getDisplay()->drawRect(b.x, b.y, b.w, b.h, m_outline_color);
             }
         }
     }
@@ -54,12 +53,14 @@ void Rectangle::onDraw(const Utility::Vec2i &pos, bool draw) {
     // now fill rectangle if needed
     if (m_color != Display::Color::Transparent) {
         if (m_radius > 0) {
-            Platform::instance()->getDisplay()->fillRoundRect(pos.x, pos.y, m_size.x, m_size.y, m_radius, m_color);
+            Platform::instance()->getDisplay()->fillRoundRect(
+                m_bounds.x, m_bounds.y, m_size.x, m_size.y, m_radius, m_color);
         } else {
-            Platform::instance()->getDisplay()->fillRect(pos.x, pos.y, m_size.x, m_size.y, m_color);
+            Platform::instance()->getDisplay()->fillRect(
+                m_bounds.x, m_bounds.y, m_size.x, m_size.y, m_color);
         }
     }
 
     // draw child's
-    Widget::onDraw(pos, draw);
+    Widget::onDraw(draw);
 }

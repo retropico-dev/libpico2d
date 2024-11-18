@@ -12,7 +12,9 @@
 namespace p2d {
     class Battery {
     public:
-        explicit Battery(float vMin = 3.0f, float vMax = 4.2f) {
+        virtual ~Battery() = default;
+
+        explicit Battery(const float vMin = 3.0f, const float vMax = 4.2f) {
             m_v_max = vMax;
             m_v_min = vMin;
             m_v_range = vMax - vMin;
