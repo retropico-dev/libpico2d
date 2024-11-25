@@ -80,6 +80,9 @@ namespace p2d {
         // clear the display
         virtual void clear();
 
+        // flush display
+        virtual void flush() {}
+
         // put a pixel at current cursor position
         virtual void put(uint16_t color) {};
 

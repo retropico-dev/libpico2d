@@ -70,9 +70,9 @@ PicoDisplay::PicoDisplay(const Utility::Vec2i &displaySize, const Utility::Vec2i
     s_surfaces = p_surfaces;
 
     // alloc frames buffers
-    p_surfaces[0] = new Surface(PicoDisplay::getSize());
+    p_surfaces[0] = new Surface(getSize());
     if (m_buffering == Buffering::Double) {
-        p_surfaces[1] = new Surface(PicoDisplay::getSize());
+        p_surfaces[1] = new Surface(getSize());
         // launch core1
 #if defined(PICO_DEBUG_UART)
         multicore_reset_core1(); // seems to be needed for "picoprobe" debugging
@@ -116,6 +116,10 @@ __always_inline void PicoDisplay::put(uint16_t color) {
 
 __always_inline void PicoDisplay::putFast(const uint16_t *buffer, uint32_t count) {
     memcpy(p_surfaces[m_bufferIndex]->getPixels() + m_cursor.y * m_pitch + m_cursor.x * m_bpp, buffer, count * m_bpp);
+}
+
+__always_inline void PicoDisplay::flush() {
+    st7789_flush();
 }
 
 __always_inline void PicoDisplay::clear() {
@@ -247,7 +251,7 @@ static void in_ram(draw)(Surface *surface, bool doubleBuffering) {
     }
 
 #if 0
-    // bilinear scaling
+    // bilinear scaling (rp2350)
     scale_buffer_bilinear((uint16_t *) pixels, pitch, bpp,
                           surfaceSize.x, surfaceSize.y,
                           s_render_bounds.w, s_render_bounds.h);

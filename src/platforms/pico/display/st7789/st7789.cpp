@@ -64,7 +64,8 @@ static uint8_t st7789_init_seq[] = {
     1, 20, ST7789_SWRESET, // Software reset
     1, 10, ST7789_SLPOUT, // Exit sleep mode
     2, 2, ST7789_COLMOD, ST7789_COLOR_MODE_16BIT, // Set colour mode to 16 bit (RGB565)
-    2, 0, ST7789_MADCTL, static_cast<uint8_t>((ST7789_MADCTL_RGB | rotations[PICO_DISPLAY_ROTATION / 90])), // Set MADCTL
+    2, 0, ST7789_MADCTL, static_cast<uint8_t>((ST7789_MADCTL_RGB | rotations[PICO_DISPLAY_ROTATION / 90])),
+    // Set MADCTL
     5, 0, ST7789_CASET, 0x00, 0x00, DISPLAY_WIDTH >> 8, DISPLAY_WIDTH & 0xff, // CASET: column addresses
     5, 0, ST7789_RASET, 0x00, 0x00, DISPLAY_HEIGHT >> 8, DISPLAY_HEIGHT & 0xff, // RASET: row addresses
     6, 1, ST7789_PORCTRL, 0x0c, 0x0c, 0x00, 0x33, 0x33,
@@ -304,6 +305,7 @@ void st7789_push(const uint16_t *data, uint32_t size, bool dont_block) {
         dma_channel_set_trans_count(dma_channel, size, false);
     }
     */
+
     dma_channel_set_trans_count(dma_channel, size, false);
     dma_channel_set_read_addr(dma_channel, data, true);
 }
@@ -319,6 +321,5 @@ void st7789_clear(uint16_t color) {
 }
 
 void st7789_flush() {
-    while (dma_channel_is_busy(dma_channel)) {
-    }
+    dma_channel_wait_for_finish_blocking(dma_channel);
 }

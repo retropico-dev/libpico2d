@@ -152,7 +152,7 @@ if (PICO_BOARD)
     add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_START" "13")
     add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_A" "15")
     add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_B" "14")
-    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_SLEEP" "17")
+    add_gpio_definition(PLATFORM_FLAGS "GPIO_PIN_BTN_SLEEP" "-1")
 
     message(STATUS "platform: ${PICO_PLATFORM}")
     if (PICO_PLATFORM STREQUAL "rp2040")

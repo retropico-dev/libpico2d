@@ -18,11 +18,13 @@ namespace p2d {
                              const Utility::Vec4i &renderBounds = {0, 0, 240, 240},
                              const Buffering &buffering = Buffering::Double,
                              const Format &format = Format::RGB565,
-                             float spiSpeedMhz = 70.0f);
+                             float spiSpeedMhz = 80.0f);
 
         void clear() override;
 
         void flip() override;
+
+        void flush() override;
 
         void setDisplayBounds(int16_t x, int16_t y, uint16_t w, uint16_t h) override;
 

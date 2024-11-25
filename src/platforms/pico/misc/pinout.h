@@ -54,7 +54,9 @@
 #define BTN_PIN_B       (GPIO_PIN_BTN_B)
 
 #if !defined(PICO_DEBUG_UART)
+#if GPIO_PIN_BTN_SLEEP > -1
 #define BTN_PIN_SLEEP   (GPIO_PIN_BTN_SLEEP)    // sleep (dormant) mode
+#endif
 #endif
 
 // UART (PICOPROBE)
