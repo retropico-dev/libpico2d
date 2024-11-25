@@ -52,7 +52,7 @@ void Text::onDraw(const bool draw) {
 
     // now draw the text
     Platform::instance()->getDisplay()->setTextColor(m_color);
-    Platform::instance()->getDisplay()->setClipArea({m_bounds.x, m_bounds.y, m_bounds.w, m_bounds.y});
+    Platform::instance()->getDisplay()->setClipArea({m_bounds.x, m_bounds.y, m_bounds.w, m_bounds.h});
     Platform::instance()->getDisplay()->drawText(m_bounds.x, m_bounds.y, m_text);
     Platform::instance()->getDisplay()->setClipArea(
         {

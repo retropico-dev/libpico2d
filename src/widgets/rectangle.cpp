@@ -9,23 +9,20 @@ using namespace p2d;
 
 Rectangle::Rectangle(int16_t x, int16_t y, int16_t w, int16_t h,
                      uint16_t color, int16_t radius) : Widget() {
-    Widget::setPosition(x, y);
-    Widget::setSize(w, h);
+    Widget::setPositionAndSize(x, y, w, h);
     m_color = color;
     m_radius = radius;
 }
 
 Rectangle::Rectangle(const Utility::Vec2i &pos, const Utility::Vec2i &size,
                      uint16_t color, int16_t radius) : Widget() {
-    Widget::setPosition(pos);
-    Widget::setSize(size);
+    Widget::setPositionAndSize(pos.x, pos.y, size.x, size.y);
     m_color = color;
     m_radius = radius;
 }
 
 Rectangle::Rectangle(const Utility::Vec4i &bounds, uint16_t color, int16_t radius) {
-    Widget::setPosition({bounds.x, bounds.y});
-    Widget::setSize({bounds.w, bounds.h});
+    Widget::setPositionAndSize(bounds.x, bounds.y, bounds.w, bounds.h);
     m_color = color;
     m_radius = radius;
 }

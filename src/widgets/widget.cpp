@@ -26,8 +26,8 @@ void Widget::remove(Widget *widget) {
 void Widget::setPositionAndSize(const int16_t x, const int16_t y, const int16_t w, const int16_t h) {
     m_position.x = x;
     m_position.y = y;
-    m_size.x = x;
-    m_size.y = y;
+    m_size.x = w;
+    m_size.y = h;
     updateBounds();
 }
 
