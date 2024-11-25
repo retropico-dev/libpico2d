@@ -24,7 +24,7 @@ namespace p2d {
 
         void setString(const std::string &str);
 
-        void onDraw(bool draw) override;
+        void onDraw(const Utility::Vec4i &bounds) override;
 
     private:
         std::string m_text{};

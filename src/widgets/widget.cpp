@@ -11,7 +11,6 @@ using namespace p2d;
 void Widget::add(Widget *widget) {
     if (widget) {
         widget->p_parent = this;
-        widget->updateBounds();
         p_childs.push_back(widget);
     }
 }
@@ -24,17 +23,15 @@ void Widget::remove(Widget *widget) {
 }
 
 void Widget::setPositionAndSize(const int16_t x, const int16_t y, const int16_t w, const int16_t h) {
-    m_position.x = x;
-    m_position.y = y;
-    m_size.x = w;
-    m_size.y = h;
-    updateBounds();
+    m_position.x = m_bounds.x = x;
+    m_position.y = m_bounds.y = y;
+    m_size.x = m_bounds.w = w;
+    m_size.y = m_bounds.h = h;
 }
 
 void Widget::setPosition(const int16_t x, const int16_t y) {
-    m_position.x = x;
-    m_position.y = y;
-    updateBounds();
+    m_position.x = m_bounds.x = x;
+    m_position.y = m_bounds.y = y;
 }
 
 void Widget::setPosition(const Utility::Vec2i &pos) {
@@ -46,59 +43,12 @@ Utility::Vec2i Widget::getPosition() {
 }
 
 void Widget::setSize(const int16_t x, const int16_t y) {
-    m_size.x = x;
-    m_size.y = y;
-    updateBounds();
+    m_size.x = m_bounds.w = x;
+    m_size.y = m_bounds.h = y;
 }
 
 void Widget::setSize(const Utility::Vec2i &size) {
     setSize(size.x, size.y);
-}
-
-void Widget::updateBounds() {
-    const Utility::Vec4i bounds =
-            p_parent
-                ? p_parent->m_bounds
-                : Utility::Vec4i{0, 0, m_size.x, m_size.y};
-    m_bounds = {
-        static_cast<int16_t>(bounds.x + m_position.x),
-        static_cast<int16_t>(bounds.y + m_position.y),
-        m_size.x, m_size.y
-    };
-
-    switch (m_origin) {
-        case Origin::Left:
-            m_bounds.y -= m_size.y / 2;
-            break;
-        case Origin::Top:
-            m_bounds.x -= m_size.x / 2;
-            break;
-        case Origin::TopRight:
-            m_bounds.x -= m_size.x;
-            break;
-        case Origin::Right:
-            m_bounds.x -= m_size.x;
-            m_bounds.y -= m_size.y / 2;
-            break;
-        case Origin::BottomRight:
-            m_bounds.x -= m_size.x;
-            m_bounds.y -= m_size.y;
-            break;
-        case Origin::Bottom:
-            m_bounds.x -= m_size.x / 2;
-            m_bounds.y -= m_size.y;
-            break;
-        case Origin::BottomLeft:
-            m_bounds.y -= m_size.y;
-            break;
-        case Origin::Center:
-            m_bounds.x -= m_size.x / 2;
-            m_bounds.y -= m_size.y / 2;
-            break;
-        case Origin::TopLeft:
-        default:
-            break;
-    }
 }
 
 void Widget::onUpdate(Time delta) {
@@ -121,14 +71,55 @@ bool Widget::onInput(const uint16_t &buttons) {
     return false;
 }
 
-void Widget::onDraw(const bool draw) {
-    if (!draw || m_visibility == Visibility::Hidden) {
+void Widget::onDraw(const Utility::Vec4i &bounds) {
+    if (m_visibility == Visibility::Hidden) {
         return;
     }
 
     for (const auto &widget: p_childs) {
         if (!widget->isVisible()) continue;
-        widget->onDraw(draw);
+
+        Utility::Vec4i b = {
+            static_cast<int16_t>(bounds.x + widget->m_position.x),
+            static_cast<int16_t>(bounds.y + widget->m_position.y),
+            widget->m_bounds.w, widget->m_bounds.h
+        };
+
+        switch (widget->m_origin) {
+            case Origin::Left:
+                b.y -= widget->m_size.y / 2;
+                break;
+            case Origin::Top:
+                b.x -= widget->m_size.x / 2;
+                break;
+            case Origin::TopRight:
+                b.x -= widget->m_size.x;
+                break;
+            case Origin::Right:
+                b.x -= widget->m_size.x;
+                b.y -= widget->m_size.y / 2;
+                break;
+            case Origin::BottomRight:
+                b.x -= widget->m_size.x;
+                b.y -= widget->m_size.y;
+                break;
+            case Origin::Bottom:
+                b.x -= widget->m_size.x / 2;
+                b.y -= widget->m_size.y;
+                break;
+            case Origin::BottomLeft:
+                b.y -= widget->m_size.y;
+                break;
+            case Origin::Center:
+                b.x -= widget->m_size.x / 2;
+                b.y -= widget->m_size.y / 2;
+                break;
+            case Origin::TopLeft:
+            default:
+                break;
+        }
+
+        widget->onDraw(b);
     }
 }
 

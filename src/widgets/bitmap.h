@@ -16,7 +16,7 @@ namespace p2d {
 
         ~Bitmap() override;
 
-        void onDraw(bool draw) override;
+        void onDraw(const Utility::Vec4i &bounds) override;
 
         Surface *getSurface() { return m_surface; }
 

@@ -19,7 +19,7 @@ namespace p2d {
         explicit Rectangle(const Utility::Vec4i &bounds,
                            uint16_t color = Display::Color::White, int16_t radius = 0);
 
-        void onDraw(bool draw) override;
+        void onDraw(const Utility::Vec4i &bounds) override;
 
     private:
         int16_t m_radius = 0;

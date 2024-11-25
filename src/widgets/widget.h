@@ -28,14 +28,12 @@ namespace p2d {
             m_position = pos;
             m_size = size;
             m_color = Display::Color::Black;
-            updateBounds();
         }
 
         explicit Widget(const Utility::Vec4i &bounds) {
             m_position = {bounds.x, bounds.y};
             m_size = {bounds.w, bounds.h};
             m_color = Display::Color::Black;
-            updateBounds();
         }
 
         virtual ~Widget();
@@ -62,7 +60,6 @@ namespace p2d {
 
         virtual void setOrigin(const Origin &origin) {
             m_origin = origin;
-            updateBounds();
         }
 
         virtual Origin getOrigin() { return m_origin; }
@@ -89,7 +86,7 @@ namespace p2d {
 
         virtual bool onInput(const uint16_t &buttons);
 
-        virtual void onDraw(bool draw = true);
+        virtual void onDraw(const Utility::Vec4i &bounds);
 
     protected:
         Widget *p_parent = nullptr;
@@ -97,14 +94,13 @@ namespace p2d {
         Visibility m_visibility = Visibility::Visible;
         Utility::Vec2i m_position{};
         Utility::Vec2i m_size{};
-        Utility::Vec4i m_bounds{};
         Origin m_origin = Origin::TopLeft;
         uint16_t m_color = Display::Color::White;
         uint16_t m_outline_color = Display::Color::Red;
         uint16_t m_outline_thickness = 0;
 
     private:
-        void updateBounds();
+        Utility::Vec4i m_bounds{};
     };
 }
 

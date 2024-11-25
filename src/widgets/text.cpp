@@ -47,13 +47,11 @@ void Text::setString(const std::string &str) {
     setSize(bounds.w, bounds.h);
 }
 
-void Text::onDraw(const bool draw) {
-    if (!draw) return;
-
+void Text::onDraw(const Utility::Vec4i &bounds) {
     // now draw the text
     Platform::instance()->getDisplay()->setTextColor(m_color);
-    Platform::instance()->getDisplay()->setClipArea({m_bounds.x, m_bounds.y, m_bounds.w, m_bounds.h});
-    Platform::instance()->getDisplay()->drawText(m_bounds.x, m_bounds.y, m_text);
+    Platform::instance()->getDisplay()->setClipArea({bounds.x, bounds.y, bounds.w, bounds.h});
+    Platform::instance()->getDisplay()->drawText(bounds.x, bounds.y, m_text);
     Platform::instance()->getDisplay()->setClipArea(
         {
             0, 0,
@@ -62,5 +60,5 @@ void Text::onDraw(const bool draw) {
         });
 
     // draw child's
-    Widget::onDraw(draw);
+    Widget::onDraw(bounds);
 }

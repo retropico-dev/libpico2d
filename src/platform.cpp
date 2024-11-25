@@ -25,7 +25,7 @@ bool Platform::loop() {
     onUpdate(m_delta_clock.restart());
 
     // drawing
-    onDraw(true);
+    onDraw({0, 0, getSize().x, getSize().y});
 
     return true;
 }
@@ -76,13 +76,13 @@ bool Platform::onInput(const uint16_t &dummy) {
     return false;
 }
 
-void Platform::onDraw(const bool draw) {
-    if (p_display && draw) {
+void Platform::onDraw(const Utility::Vec4i &bounds) {
+    if (p_display) {
         // clear screen
         p_display->clear();
 
         // draw child's
-        Widget::onDraw(draw);
+        Widget::onDraw(bounds);
 
         // flip screen
         p_display->flip();

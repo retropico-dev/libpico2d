@@ -40,7 +40,7 @@ namespace p2d {
 
         bool onInput(const uint16_t &buttons) override;
 
-        void onDraw(bool draw = true) override;
+        void onDraw(const Utility::Vec4i &bounds) override;
 
         void add(Widget *widget) override { Widget::add(widget); }
 

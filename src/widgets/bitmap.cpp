@@ -23,14 +23,12 @@ Bitmap::Bitmap(const Io::File &file, const Utility::Vec2i &pos) {
            m_surface->getSize().x, m_surface->getSize().y, m_surface->getPixelsSize());
 }
 
-void Bitmap::onDraw(bool draw) {
-    if (!draw) return;
-
-    const Utility::Vec2i p = {m_bounds.x, m_bounds.y};
+void Bitmap::onDraw(const Utility::Vec4i &bounds) {
+    const Utility::Vec2i p = {bounds.x, bounds.y};
     Platform::instance()->getDisplay()->drawSurface(m_surface, p);
 
     // draw child's
-    Widget::onDraw(draw);
+    Widget::onDraw(bounds);
 }
 
 Bitmap::~Bitmap() {
