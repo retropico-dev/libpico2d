@@ -56,13 +56,13 @@ void Widget::setSize(const Utility::Vec2i &size) {
 }
 
 void Widget::updateBounds() {
-    const Utility::Vec4i parentBounds =
-            getParent()
-                ? getParent()->getBounds()
-                : Utility::Vec4i{m_position.x, m_position.y, m_size.x, m_size.y};
+    const Utility::Vec4i bounds =
+            p_parent
+                ? p_parent->m_bounds
+                : Utility::Vec4i{0, 0, m_size.x, m_size.y};
     m_bounds = {
-        static_cast<int16_t>(parentBounds.x + m_position.x),
-        static_cast<int16_t>(parentBounds.y + m_position.y),
+        static_cast<int16_t>(bounds.x + m_position.x),
+        static_cast<int16_t>(bounds.y + m_position.y),
         m_size.x, m_size.y
     };
 
