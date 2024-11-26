@@ -233,9 +233,10 @@ bool Io::copy(const std::string &src, const std::string &dst, const CopyProgress
     return copy(srcFile, dstFile, callback);
 }
 
-std::vector<Io::File::Info> Io::getList(
-    const std::string &path, std::function<bool(const File::Info &)> const &filter) {
+std::vector<Io::File::Info>
+Io::getList(const std::string &path, std::function<bool(const File::Info &)> const &filter) {
     std::vector<File::Info> ret;
+
     FatFs::list_files(path, [&ret, &filter](File::Info &file) {
         if (!filter || filter(file))
             ret.push_back(file);
@@ -287,6 +288,8 @@ Io::ListBuffer in_ram(Io::getBufferedList)(const std::string &path, uint32_t fla
     uint32_t offset = flashOffset;
     uint32_t count = 0, currentFile = 0;
     ListBuffer listBuffer;
+
+    // TODO: when in release mode (-O3, etc...) there is a bug on the first write, not sure why but data is corrupted...
 
     FatFs::list_files(path, [&count, &currentFile, &offset, &maxFilesPerWrite, &buffer](File::Info &file) {
         if (!(file.flags & File::Flags::Directory)) {

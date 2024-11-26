@@ -6,6 +6,8 @@
 #include <pico/binary_info.h>
 #include <pico/multicore.h>
 #include <hardware/sync.h>
+#include <pico/flash.h>
+
 #include "utility.h"
 #include "io.h"
 
@@ -18,12 +20,12 @@ extern void p2d_display_resume();
 
 bool p2d::io_flash_init() {
     bi_decl(bi_block_device(
-            BINARY_INFO_MAKE_TAG('P', '2'),
-            "flash",
-            XIP_BASE + flash_offset,
-            flash_size,
-            nullptr,
-            BINARY_INFO_BLOCK_DEV_FLAG_READ | BINARY_INFO_BLOCK_DEV_FLAG_WRITE | BINARY_INFO_BLOCK_DEV_FLAG_PT_NONE))
+        BINARY_INFO_MAKE_TAG('P', '2'),
+        "flash",
+        XIP_BASE + flash_offset,
+        flash_size,
+        nullptr,
+        BINARY_INFO_BLOCK_DEV_FLAG_READ | BINARY_INFO_BLOCK_DEV_FLAG_WRITE | BINARY_INFO_BLOCK_DEV_FLAG_PT_NONE))
 
     return true;
 }
@@ -52,9 +54,49 @@ int32_t p2d::io_flash_read_sector(uint32_t offset, void *buffer) {
     return (int32_t) FLASH_SECTOR_SIZE;
 }
 
+// https://github.com/raspberrypi/pico-sdk/blob/master/src/rp2_common/pico_btstack/btstack_flash_bank.c
+typedef struct {
+    bool op_is_erase;
+    uintptr_t offset;
+    uintptr_t buffer;
+    uintptr_t size;
+} mutation_operation_t;
+
+static void io_flash_bank_perform_flash_mutation_operation(void *param) {
+    auto mop = static_cast<const mutation_operation_t *>(param);
+    if (mop->op_is_erase) {
+        flash_range_erase(mop->offset, mop->size);
+    } else {
+        flash_range_program(mop->offset, (const uint8_t *) mop->buffer, mop->size);
+    }
+}
+
 int32_t p2d::io_flash_write(uint32_t sector, uint32_t offset, const uint8_t *buffer, uint32_t size_bytes) {
     //printf("io_flash_write: sector: %lu, offset: %lu, size: %lu (flash offset: 0x%08lx)\r\n",
     //     sector, offset, size_bytes, flash_offset + sector * FLASH_SECTOR_SIZE);
+#if 0
+    p2d_display_pause();
+    mutation_operation_t mop{};
+
+    if (offset == 0) {
+        mop = {
+            .op_is_erase = true,
+            .offset = flash_offset + sector * FLASH_SECTOR_SIZE,
+            .size = FLASH_SECTOR_SIZE
+        };
+
+        flash_safe_execute(io_flash_bank_perform_flash_mutation_operation, &mop, UINT32_MAX);
+    }
+
+    mop = {
+        .op_is_erase = false,
+        .offset = flash_offset + sector * FLASH_SECTOR_SIZE + offset,
+        .buffer = reinterpret_cast<uintptr_t>(buffer),
+        .size = size_bytes
+    };
+
+    flash_safe_execute(io_flash_bank_perform_flash_mutation_operation, &mop, UINT32_MAX);
+#else
     p2d_display_pause();
     auto status = save_and_disable_interrupts();
 
@@ -63,11 +105,31 @@ int32_t p2d::io_flash_write(uint32_t sector, uint32_t offset, const uint8_t *buf
 
     restore_interrupts(status);
     p2d_display_resume();
+#endif
 
     return (int32_t) size_bytes;
 }
 
 void p2d::io_flash_write_sector(uint32_t offset, const uint8_t *buffer) {
+#if 0
+    p2d_display_pause();
+    mutation_operation_t mop = {
+        .op_is_erase = true,
+        .offset = offset,
+        .size = FLASH_SECTOR_SIZE
+    };
+
+    flash_safe_execute(io_flash_bank_perform_flash_mutation_operation, &mop, UINT32_MAX);
+
+    mop = {
+        .op_is_erase = false,
+        .offset = offset,
+        .buffer = reinterpret_cast<uintptr_t>(buffer),
+        .size = FLASH_SECTOR_SIZE
+    };
+
+    flash_safe_execute(io_flash_bank_perform_flash_mutation_operation, &mop, UINT32_MAX);
+#else
     p2d_display_pause();
     auto status = save_and_disable_interrupts();
 
@@ -76,6 +138,18 @@ void p2d::io_flash_write_sector(uint32_t offset, const uint8_t *buffer) {
 
     restore_interrupts(status);
     p2d_display_resume();
+#endif
 }
 
-void p2d::io_flash_exit() {}
+void p2d::io_flash_erase_sector(uint32_t offset) {
+    p2d_display_pause();
+    auto status = save_and_disable_interrupts();
+
+    flash_range_erase(offset, FLASH_SECTOR_SIZE);
+
+    restore_interrupts(status);
+    p2d_display_resume();
+}
+
+void p2d::io_flash_exit() {
+}

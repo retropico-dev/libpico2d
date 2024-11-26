@@ -28,6 +28,8 @@ namespace p2d {
     // write a sector (4096 bytes) anywhere in flash
     void io_flash_write_sector(uint32_t offset, const uint8_t *buffer);
 
+    void io_flash_erase_sector(uint32_t offset);
+
     void io_flash_exit();
 }
 
