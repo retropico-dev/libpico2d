@@ -120,7 +120,6 @@ if (PICO_BOARD)
             hardware_pio
             hardware_dma
             hardware_flash
-            hardware_pwm
             hardware_adc
             #hardware_interp
     )
