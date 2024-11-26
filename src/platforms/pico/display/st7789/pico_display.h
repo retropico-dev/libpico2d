@@ -18,7 +18,7 @@ namespace p2d {
                              const Utility::Vec4i &renderBounds = {0, 0, 240, 240},
                              const Buffering &buffering = Buffering::Double,
                              const Format &format = Format::RGB565,
-                             float spiSpeedMhz = 80.0f);
+                             float spiSpeedMhz = 70.0f);
 
         void clear() override;
 
