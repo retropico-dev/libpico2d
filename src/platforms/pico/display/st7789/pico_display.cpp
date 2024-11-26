@@ -7,7 +7,6 @@
 #include <cstdio>
 #include <pico/multicore.h>
 #include <hardware/clocks.h>
-//#include <hardware/interp.h>
 #include "platform.h"
 #include "pico_display.h"
 
@@ -43,11 +42,7 @@ static bool s_core1_started = false;
 
 static void in_ram(core1_main)();
 
-static void in_ram(draw)(Surface *surface, bool doubleBuffering);
-
-static void in_ram(scale_buffer)(uint16_t *pixels, uint32_t pitch, uint32_t bpp,
-                                 uint16_t src_w, uint16_t src_h,
-                                 uint16_t dst_w, uint16_t dst_h);
+static void in_ram(draw)(Surface *surface);
 
 static void in_ram(scale_buffer_bilinear)(uint16_t *pixels, uint32_t pitch, uint32_t bpp,
                                           uint16_t src_w, uint16_t src_h,
@@ -123,17 +118,17 @@ __always_inline void PicoDisplay::flush() {
 }
 
 __always_inline void PicoDisplay::clear() {
-    auto buffer = p_surfaces[m_bufferIndex]->getPixels();
-    if (m_clearColor == Color::Black || m_clearColor == Color::White) {
-        memset((uint16_t *) buffer, m_clearColor, p_surfaces[m_bufferIndex]->getPixelsSize());
+    const auto buffer = p_surfaces[m_bufferIndex]->getPixels();
+    if (m_clearColor == Black || m_clearColor == White) {
+        memset(buffer, m_clearColor, p_surfaces[m_bufferIndex]->getPixelsSize());
     } else {
-        int size = m_pitch * m_renderBounds.h;
-        uint64_t color64 = (uint64_t) m_clearColor << 48;
-        color64 |= (uint64_t) m_clearColor << 32;
-        color64 |= (uint64_t) m_clearColor << 16;
+        const int size = m_pitch * m_renderBounds.h;
+        uint64_t color64 = static_cast<uint64_t>(m_clearColor) << 48;
+        color64 |= static_cast<uint64_t>(m_clearColor) << 32;
+        color64 |= static_cast<uint64_t>(m_clearColor) << 16;
         color64 |= m_clearColor;
         for (uint_fast16_t i = 0; i < size; i += 8) {
-            *(uint64_t *) (buffer + i) = color64;
+            *reinterpret_cast<uint64_t *>(buffer + i) = color64;
         }
     }
 }
@@ -144,9 +139,6 @@ void in_ram(PicoDisplay::flip)() {
         while (__atomic_load_n(&core1_busy, __ATOMIC_SEQ_CST)) {
         }
 
-        // flush dma buffer before next flip
-        st7789_flush();
-
         // send core1 flip "cmd"
         cmd_flip.fb = m_bufferIndex;
         __atomic_store_n(&core1_busy, 1, __ATOMIC_SEQ_CST);
@@ -156,14 +148,15 @@ void in_ram(PicoDisplay::flip)() {
         m_bufferIndex = !m_bufferIndex;
     } else {
         // slow...
-        draw(p_surfaces[m_bufferIndex], false);
+        draw(p_surfaces[m_bufferIndex]);
+        st7789_flush();
     }
 }
 
 // crappy hack to "pause" core1 while writing to flash,
 // I was not able to use "multicore_lockout_*" without problems
 
-void p2d_display_pause() {
+void in_ram(p2d_display_pause)() {
     //printf("p2d_display_pause\r\n");
     if (s_core1_started) {
         while (__atomic_load_n(&core1_busy, __ATOMIC_SEQ_CST)) {
@@ -176,7 +169,7 @@ void p2d_display_pause() {
     //printf("p2d_display_pause: true\r\n");
 }
 
-void p2d_display_resume() {
+void in_ram(p2d_display_resume)() {
     //printf("p2d_display_resume\r\n");
     if (s_core1_started) {
         multicore_reset_core1();
@@ -192,7 +185,8 @@ static void in_ram(core1_main)() {
     while (true) {
         cmd.full = multicore_fifo_pop_blocking();
         if (cmd.cmd == CORE1_CMD_FLIP) {
-            draw(s_surfaces[cmd.fb], true);
+            st7789_flush();
+            draw(s_surfaces[cmd.fb]);
         } else {
             break;
         }
@@ -204,20 +198,19 @@ static void in_ram(core1_main)() {
     __atomic_store_n(&core1_busy, 0, __ATOMIC_SEQ_CST);
 }
 
-static void in_ram(draw)(Surface *surface, bool doubleBuffering) {
-    auto surfaceSize = surface->getSize();
-    auto pixels = surface->getPixels();
-    auto pitch = s_display->getPitch();
-    auto bpp = s_display->getBpp();
-    auto maxWidth = std::min(surfaceSize.x, (int16_t) (s_display_size.x - s_render_bounds.x));
-    auto maxHeight = std::min(surfaceSize.y, (int16_t) (s_display_size.y - s_render_bounds.y));
+static void in_ram(draw)(Surface *surface) {
+    const auto surfaceSize = surface->getSize();
+    const auto pixels = surface->getPixels();
+    const auto pitch = s_display->getPitch();
+    const auto bpp = s_display->getBpp();
+    const auto maxWidth = std::min(surfaceSize.x, (int16_t) (s_display_size.x - s_render_bounds.x));
+    const auto maxHeight = std::min(surfaceSize.y, (int16_t) (s_display_size.y - s_render_bounds.y));
     if (maxWidth <= 0 || maxHeight <= 0) return;
 
     if (surfaceSize == s_display_size) {
         // render size is equal to display size (fastest)
         st7789_set_cursor(0, 0, s_display_size.x, s_display_size.y);
         st7789_push(reinterpret_cast<const uint16_t *>(pixels), s_display_size.x * s_display_size.y);
-        if (!doubleBuffering) st7789_flush();
         return;
     }
 
@@ -225,7 +218,6 @@ static void in_ram(draw)(Surface *surface, bool doubleBuffering) {
         // surface size is equal to render size, draw without scaling  (fastest)
         st7789_set_cursor(s_render_bounds.x, s_render_bounds.y, maxWidth, maxHeight);
         st7789_push(reinterpret_cast<const uint16_t *>(pixels), maxWidth * maxHeight);
-        if (!doubleBuffering) st7789_flush();
         return;
     }
 
@@ -236,11 +228,11 @@ static void in_ram(draw)(Surface *surface, bool doubleBuffering) {
             for (uint_fast16_t i = 0; i < 2; i++) {
                 for (uint_fast16_t x = 0; x < maxWidth; x += 2) {
                     // line 1
-                    auto p1 = *(uint16_t *) (pixels + y * pitch + x * bpp);
+                    const auto p1 = *reinterpret_cast<uint16_t *>(pixels + y * pitch + x * bpp);
                     st7789_put16(p1);
                     st7789_put16(p1);
                     // line 2
-                    auto p2 = *(uint16_t *) (pixels + y * pitch + (x + 1) * bpp);
+                    const auto p2 = *reinterpret_cast<uint16_t *>(pixels + y * pitch + (x + 1) * bpp);
                     st7789_put16(p2);
                     st7789_put16(p2);
                 }

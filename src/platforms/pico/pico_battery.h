@@ -8,7 +8,7 @@
 namespace p2d {
     class PicoBattery : public Battery {
     public:
-        explicit PicoBattery(float vMin = 3.0f, float vMax = 4.2f);
+        explicit PicoBattery(float vMin = 2.5f, float vMax = 3.7f);
 
     private:
         [[nodiscard]] float getVoltageRaw() const override;
