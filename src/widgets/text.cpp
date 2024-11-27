@@ -21,6 +21,7 @@ Text::Text(const int16_t x, const int16_t y, const int16_t w, const int16_t h,
     // default stuff
     Platform::instance()->getDisplay()->setTextWrap(false);
     Widget::setPositionAndSize(x, y, w, h);
+    m_max_size = {w, h};
     m_color = color;
     setString(str);
 }
@@ -30,6 +31,7 @@ Text::Text(const Utility::Vec2i &pos, const Utility::Vec2i &size,
     // default stuff
     Platform::instance()->getDisplay()->setTextWrap(false);
     Widget::setPositionAndSize(pos.x, pos.y, size.x, size.y);
+    m_max_size = size;
     m_color = color;
     setString(str);
 }
@@ -40,18 +42,50 @@ std::string Text::getString() const {
 
 void Text::setString(const std::string &str) {
     m_text = str;
-    Utility::Vec4i bounds{};
     Platform::instance()->getDisplay()->getTextBounds(
-        m_text.c_str(), 0, 0, &bounds.x, &bounds.y,
-        reinterpret_cast<uint16_t *>(&bounds.w), reinterpret_cast<uint16_t *>(&bounds.h));
-    setSize(bounds.w, bounds.h);
+        m_text.c_str(), 0, 0, &m_text_bounds.x, &m_text_bounds.y,
+        reinterpret_cast<uint16_t *>(&m_text_bounds.w), reinterpret_cast<uint16_t *>(&m_text_bounds.h));
+    if (m_max_size.x != 0 || m_max_size.y != 0) {
+        setSize(m_text_bounds.w, m_text_bounds.h);
+    } else {
+        setSize(m_max_size);
+    }
+}
+
+void Text::onUpdate(const Time delta) {
+    if (m_do_tween && m_max_size.x < m_text_bounds.w) {
+        const auto progress = m_tween.progress();
+        m_tween_elapsed_ms += delta.asMilliseconds();
+
+        if (m_tween_elapsed_ms > m_tween_start_delay_ms) {
+            if (m_tween_pos_x == 0) {
+                // start tween
+                const auto diff = m_text_bounds.w - m_max_size.x;
+                const auto dst_x = static_cast<int16_t>(diff - m_position.x + 2);
+                m_tween = tweeny::from(m_position.x).to(dst_x).during(3 * 1000);
+                m_tween_pos_x = m_tween.step(delta.asMilliseconds(), true);
+            } else if (progress <= 0.0f || progress >= 1.0f) {
+                if (m_tween_elapsed_ms > m_tween.duration() + m_tween_start_delay_ms + 2000) {
+                    // restart tween
+                    m_tween.seek(0);
+                    m_tween_pos_x = 0;
+                    m_tween_elapsed_ms = 0.0f;
+                }
+            } else {
+                // step tween
+                m_tween_pos_x = m_tween.step(delta.asMilliseconds(), true);
+            }
+        }
+    }
+
+    Widget::onUpdate(delta);
 }
 
 void Text::onDraw(const Utility::Vec4i &bounds) {
     // now draw the text
     Platform::instance()->getDisplay()->setTextColor(m_color);
-    Platform::instance()->getDisplay()->setClipArea({bounds.x, bounds.y, bounds.w, bounds.h});
-    Platform::instance()->getDisplay()->drawText(bounds.x, bounds.y, m_text);
+    Platform::instance()->getDisplay()->setClipArea({bounds.x, bounds.y, m_max_size.x, m_max_size.y});
+    Platform::instance()->getDisplay()->drawText(static_cast<int16_t>(bounds.x - m_tween_pos_x), bounds.y, m_text);
     Platform::instance()->getDisplay()->setClipArea(
         {
             0, 0,
