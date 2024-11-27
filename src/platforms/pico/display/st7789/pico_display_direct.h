@@ -32,6 +32,8 @@ namespace p2d {
 
         void clear() override;
 
+        void flush() override;
+
     private:
         uint8_t m_bit_shift = 0;
 

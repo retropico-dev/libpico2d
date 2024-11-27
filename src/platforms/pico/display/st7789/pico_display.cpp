@@ -113,7 +113,7 @@ __always_inline void PicoDisplay::putFast(const uint16_t *buffer, uint32_t count
     memcpy(p_surfaces[m_bufferIndex]->getPixels() + m_cursor.y * m_pitch + m_cursor.x * m_bpp, buffer, count * m_bpp);
 }
 
-__always_inline void PicoDisplay::flush() {
+__always_inline void in_ram(PicoDisplay::flush)() {
     st7789_flush();
 }
 
