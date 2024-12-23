@@ -67,7 +67,7 @@ void Text::onUpdate(const Time delta) {
             } else if (progress <= 0.0f || progress >= 1.0f) {
                 if (m_tween_elapsed_ms > m_tween.duration() + m_tween_start_delay_ms + 2000) {
                     // restart tween
-                    m_tween.seek(0);
+                    m_tween.seek((int32_t) 0);
                     m_tween_pos_x = 0;
                     m_tween_elapsed_ms = 0.0f;
                 }
