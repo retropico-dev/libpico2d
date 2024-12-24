@@ -11,9 +11,10 @@
 #include "platform.h"
 #include "platform_pico.h"
 
-#include <sys/unistd.h>
-
 using namespace p2d;
+
+// ??!!
+extern bool stdio_usb_connected();
 
 PicoPlatform::PicoPlatform(const Display::Settings &displaySettings) : Platform(displaySettings) {
     // first thing to do (reboot bootloader on key down)
@@ -24,7 +25,7 @@ PicoPlatform::PicoPlatform(const Display::Settings &displaySettings) : Platform(
         while (true) tight_loop_contents();
     }
 
-    vreg_set_voltage(VREG_VOLTAGE_DEFAULT);
+    vreg_set_voltage(VREG_VOLTAGE_1_15);
     sleep_ms(2);
 
     // overclock
