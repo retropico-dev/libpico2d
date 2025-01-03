@@ -196,7 +196,8 @@ bool Io::copy(const File &src, const File &dst, const CopyProgressCallback &call
     if (Utility::startWith(dst.getPath(), "flash:")) {
         if (const auto r =
                 f_expand(static_cast<FIL *>(dst.getHandler()), src.getLength(), 0); r != FR_OK) {
-            printf("Io::copy: WARNING: could not put file in contiguous data area in flash\r\n");
+            printf("Io::copy: ERROR: could not put file in contiguous data area in flash (FRESULT: %i)\r\n", r);
+            return false;
         }
     }
 
