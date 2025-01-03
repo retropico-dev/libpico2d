@@ -11,7 +11,11 @@ Text::Text(const int16_t x, const int16_t y,
            const std::string &str, const Display::Color color) : Widget() {
     // default stuff
     Platform::instance()->getDisplay()->setTextWrap(false);
-    Widget::setPositionAndSize(x, y, 0, 0);
+    Platform::instance()->getDisplay()->getTextBounds(
+        str.c_str(), 0, 0, &m_text_bounds.x, &m_text_bounds.y,
+        reinterpret_cast<uint16_t *>(&m_text_bounds.w), reinterpret_cast<uint16_t *>(&m_text_bounds.h));
+    m_max_size = {m_text_bounds.w, m_text_bounds.h};
+    Widget::setPositionAndSize(x, y, m_max_size.x, m_max_size.y);
     m_color = color;
     setString(str);
 }
@@ -84,7 +88,7 @@ void Text::onUpdate(const Time delta) {
 void Text::onDraw(const Utility::Vec4i &bounds) {
     // now draw the text
     Platform::instance()->getDisplay()->setTextColor(m_color);
-    Platform::instance()->getDisplay()->setClipArea({bounds.x, bounds.y, m_max_size.x, m_max_size.y});
+    //Platform::instance()->getDisplay()->setClipArea({bounds.x, bounds.y, m_max_size.x, m_max_size.y});
     Platform::instance()->getDisplay()->drawText(static_cast<int16_t>(bounds.x - m_tween_pos_x), bounds.y, m_text);
     Platform::instance()->getDisplay()->setClipArea(
         {
