@@ -19,6 +19,7 @@ if (DEFINED ENV{PICO_SDK_PATH})
     if (PICO_PSRAM OR PICO_BOARD STREQUAL "pimoroni_pico_plus2_rp2350")
         # use a custom malloc wrapper
         set(SKIP_PICO_MALLOC 1 CACHE BOOL "" FORCE)
+        set(PICO_PSRAM ON CACHE BOOL "" FORCE)
     endif ()
 
     # initialize the SDK based on PICO_SDK_PATH
@@ -163,10 +164,6 @@ if (PICO_BOARD)
         file(GLOB TEMP ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789/*.c*)
         list(APPEND PLATFORM_SOURCES ${TEMP})
         list(APPEND PLATFORM_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src/platforms/pico/display/st7789)
-    endif ()
-
-    if (PICO_BOARD STREQUAL "pimoroni_pico_plus2_rp2350")
-        set(PICO_PSRAM ON CACHE BOOL "" FORCE)
     endif ()
 
     # psram module
