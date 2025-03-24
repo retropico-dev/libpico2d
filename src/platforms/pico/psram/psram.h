@@ -44,6 +44,8 @@ void *pcalloc(size_t count, size_t size);
 
 void psram_reinit_timing();
 
+void psram_reinit_timing_custom(uint32_t hz);
+
 void *__psram_malloc(size_t size);
 
 void __psram_free(void *ptr);

@@ -44,7 +44,7 @@ static void in_ram(core1_main)();
 
 static void in_ram(draw)(Surface *surface);
 
-static void in_ram(scale_buffer_bilinear)(uint16_t *pixels, uint32_t pitch, uint32_t bpp,
+static void in_ram(scale_buffer_bilinear)(const uint16_t *pixels, uint32_t pitch, uint32_t bpp,
                                           uint16_t src_w, uint16_t src_h,
                                           uint16_t dst_w, uint16_t dst_h);
 
@@ -93,9 +93,9 @@ void PicoDisplay::setDisplayBounds(int16_t x, int16_t y, uint16_t w, uint16_t h)
     st7789_set_cursor(x, y, w, h);
 }
 
-__always_inline void PicoDisplay::put(uint16_t color) {
-    bool clip = m_cursor.x < m_clip.x || m_cursor.y < m_clip.y
-                || m_cursor.x >= m_clip.x + m_clip.w || m_cursor.y >= m_clip.y + m_clip.h;
+__always_inline void PicoDisplay::put(const uint16_t color) {
+    const bool clip = m_cursor.x < m_clip.x || m_cursor.y < m_clip.y
+                      || m_cursor.x >= m_clip.x + m_clip.w || m_cursor.y >= m_clip.y + m_clip.h;
     if (!clip && color != m_colorKey && m_cursor.x < m_renderSize.x && m_cursor.y < m_renderSize.y) {
         *(uint16_t *) (p_surfaces[m_bufferIndex]->getPixels() + m_cursor.y * m_pitch + m_cursor.x * m_bpp)
                 = color << m_bit_shift;
@@ -109,7 +109,7 @@ __always_inline void PicoDisplay::put(uint16_t color) {
     }
 }
 
-__always_inline void PicoDisplay::putFast(const uint16_t *buffer, uint32_t count) {
+__always_inline void PicoDisplay::putFast(const uint16_t *buffer, const uint32_t count) {
     memcpy(p_surfaces[m_bufferIndex]->getPixels() + m_cursor.y * m_pitch + m_cursor.x * m_bpp, buffer, count * m_bpp);
 }
 
@@ -242,7 +242,7 @@ static void in_ram(draw)(Surface *surface) {
         return;
     }
 
-#if 0
+#if 1
     // bilinear scaling (rp2350)
     scale_buffer_bilinear((uint16_t *) pixels, pitch, bpp,
                           surfaceSize.x, surfaceSize.y,
@@ -264,9 +264,9 @@ static void in_ram(draw)(Surface *surface) {
 }
 
 // bilinear interpolation scaling
-void in_ram(scale_buffer_bilinear)(uint16_t *pixels, uint32_t pitch, uint32_t bpp,
-                                   uint16_t src_w, uint16_t src_h,
-                                   uint16_t dst_w, uint16_t dst_h) {
+void in_ram(scale_buffer_bilinear)(const uint16_t *pixels, const uint32_t pitch, const uint32_t bpp,
+                                   const uint16_t src_w, const uint16_t src_h,
+                                   const uint16_t dst_w, const uint16_t dst_h) {
     const uint32_t x_ratio = ((src_w - 1) << 16) / dst_w;
     const uint32_t y_ratio = ((src_h - 1) << 16) / dst_h;
     const uint32_t pixels_per_row = pitch / bpp; // Convert pitch to pixel units
@@ -281,57 +281,57 @@ void in_ram(scale_buffer_bilinear)(uint16_t *pixels, uint32_t pitch, uint32_t bp
     st7789_set_cursor(0, 0);
 
     for (uint16_t i = 0; i < dst_h; i++) {
-        uint32_t y = (i * y_ratio) >> 16;
-        uint32_t y_diff = (i * y_ratio) & 0xFFFF;
-        uint32_t y_next = (y + 1 < src_h) ? y + 1 : y;
+        const uint32_t y = (i * y_ratio) >> 16;
+        const uint32_t y_diff = (i * y_ratio) & 0xFFFF;
+        const uint32_t y_next = (y + 1 < src_h) ? y + 1 : y;
 
         // calculate row offsets in pixels
         const uint32_t offset_y1 = y * pixels_per_row;
         const uint32_t offset_y2 = y_next * pixels_per_row;
 
         for (uint16_t j = 0; j < dst_w; j++) {
-            uint32_t x = (j * x_ratio) >> 16;
-            uint32_t x_diff = (j * x_ratio) & 0xFFFF;
-            uint32_t x_next = (x + 1 < src_w) ? x + 1 : x;
+            const uint32_t x = (j * x_ratio) >> 16;
+            const uint32_t x_diff = (j * x_ratio) & 0xFFFF;
+            const uint32_t x_next = (x + 1 < src_w) ? x + 1 : x;
 
             // get the four surrounding pixels using proper array indexing
-            uint16_t p1 = pixels[offset_y1 + x];
-            uint16_t p2 = pixels[offset_y1 + x_next];
-            uint16_t p3 = pixels[offset_y2 + x];
-            uint16_t p4 = pixels[offset_y2 + x_next];
+            const uint16_t p1 = pixels[offset_y1 + x];
+            const uint16_t p2 = pixels[offset_y1 + x_next];
+            const uint16_t p3 = pixels[offset_y2 + x];
+            const uint16_t p4 = pixels[offset_y2 + x_next];
 
             // extract RGB components (RGB565 format)
-            uint32_t r1 = (p1 >> 11) & 0x1F;
-            uint32_t g1 = (p1 >> 5) & 0x3F;
-            uint32_t b1 = p1 & 0x1F;
+            const uint32_t r1 = (p1 >> 11) & 0x1F;
+            const uint32_t g1 = (p1 >> 5) & 0x3F;
+            const uint32_t b1 = p1 & 0x1F;
 
-            uint32_t r2 = (p2 >> 11) & 0x1F;
-            uint32_t g2 = (p2 >> 5) & 0x3F;
-            uint32_t b2 = p2 & 0x1F;
+            const uint32_t r2 = (p2 >> 11) & 0x1F;
+            const uint32_t g2 = (p2 >> 5) & 0x3F;
+            const uint32_t b2 = p2 & 0x1F;
 
-            uint32_t r3 = (p3 >> 11) & 0x1F;
-            uint32_t g3 = (p3 >> 5) & 0x3F;
-            uint32_t b3 = p3 & 0x1F;
+            const uint32_t r3 = (p3 >> 11) & 0x1F;
+            const uint32_t g3 = (p3 >> 5) & 0x3F;
+            const uint32_t b3 = p3 & 0x1F;
 
-            uint32_t r4 = (p4 >> 11) & 0x1F;
-            uint32_t g4 = (p4 >> 5) & 0x3F;
-            uint32_t b4 = p4 & 0x1F;
+            const uint32_t r4 = (p4 >> 11) & 0x1F;
+            const uint32_t g4 = (p4 >> 5) & 0x3F;
+            const uint32_t b4 = p4 & 0x1F;
 
             // calculate interpolation weights (0-256)
-            uint32_t x_weight = (x_diff >> 8);
-            uint32_t y_weight = (y_diff >> 8);
-            uint32_t x_weight_inv = 256 - x_weight;
-            uint32_t y_weight_inv = 256 - y_weight;
+            const uint32_t x_weight = (x_diff >> 8);
+            const uint32_t y_weight = (y_diff >> 8);
+            const uint32_t x_weight_inv = 256 - x_weight;
+            const uint32_t y_weight_inv = 256 - y_weight;
 
             // interpolate each color component with fixed-point math
-            uint32_t r = ((r1 * x_weight_inv + r2 * x_weight) * y_weight_inv +
-                          (r3 * x_weight_inv + r4 * x_weight) * y_weight) >> 16;
+            const uint32_t r = ((r1 * x_weight_inv + r2 * x_weight) * y_weight_inv +
+                                (r3 * x_weight_inv + r4 * x_weight) * y_weight) >> 16;
 
-            uint32_t g = ((g1 * x_weight_inv + g2 * x_weight) * y_weight_inv +
-                          (g3 * x_weight_inv + g4 * x_weight) * y_weight) >> 16;
+            const uint32_t g = ((g1 * x_weight_inv + g2 * x_weight) * y_weight_inv +
+                                (g3 * x_weight_inv + g4 * x_weight) * y_weight) >> 16;
 
-            uint32_t b = ((b1 * x_weight_inv + b2 * x_weight) * y_weight_inv +
-                          (b3 * x_weight_inv + b4 * x_weight) * y_weight) >> 16;
+            const uint32_t b = ((b1 * x_weight_inv + b2 * x_weight) * y_weight_inv +
+                                (b3 * x_weight_inv + b4 * x_weight) * y_weight) >> 16;
 
             // pack RGB components back into RGB565
             scale_row_buffer[j] = ((r & 0x1F) << 11) | ((g & 0x3F) << 5) | (b & 0x1F);

@@ -16,6 +16,10 @@ using namespace p2d;
 // ??!!
 extern bool stdio_usb_connected();
 
+#if defined(PICO_RP2350) && defined(GPIO_PIN_PSRAM_CS)
+extern "C" uint8_t __psram_start__;
+#endif
+
 PicoPlatform::PicoPlatform(const Display::Settings &displaySettings) : Platform(displaySettings) {
     // first thing to do (reboot bootloader on key down)
     p_input = new PicoInput();
@@ -25,20 +29,44 @@ PicoPlatform::PicoPlatform(const Display::Settings &displaySettings) : Platform(
         while (true) tight_loop_contents();
     }
 
-    vreg_set_voltage(VREG_VOLTAGE_1_15);
-    sleep_ms(2);
-
     // overclock
-#ifdef GPIO_PIN_PSRAM_CS
-    set_sys_clock_khz(250000, false);
-    sleep_ms(2);
-    psram_reinit_timing();
-    sleep_ms(2);
+#if defined(PICO_RP2350)
+#if defined(GPIO_PIN_PSRAM_CS)
+    // https://github.com/earlephilhower/arduino-pico/blob/master/cores/rp2040/main.cpp
+    vreg_set_voltage(VREG_VOLTAGE_1_30);
+    busy_wait_at_least_cycles((SYS_CLK_VREG_VOLTAGE_AUTO_ADJUST_DELAY_US * static_cast<uint64_t>(XOSC_HZ)) / 1000000);
+
+    constexpr uint8_t clockDiv = ((333000 * 1000) + 109000000 - 1) / 109000000;
+    printf("psram_reinit_timing_custom: clock divider = %i\r\n", clockDiv);
+
+    // need to increase the qmi divider before upping sysclk to ensure we keep the output sck w/in legal bounds
+    psram_reinit_timing_custom(333000 * 1000);
+
+    // per datasheet, need to do a dummy access and memory barrier before it takes effect
+    volatile uint8_t *x = &__psram_start__;
+    *x ^= 0xff;
+    *x ^= 0xff;
+    asm volatile("" ::: "memory");
+
+    // set actual clock
+    set_sys_clock_khz(333000, true);
+    sleep_ms(10);
 #else
+    vreg_set_voltage(VREG_VOLTAGE_1_30);
+    busy_wait_at_least_cycles((SYS_CLK_VREG_VOLTAGE_AUTO_ADJUST_DELAY_US * static_cast<uint64_t>(XOSC_HZ)) / 1000000);
+    // set actual clock
+    set_sys_clock_khz(399000, true);
+    sleep_ms(10);
+#endif
+#else
+    // TODO
+    vreg_set_voltage(VREG_VOLTAGE_1_15);
+    busy_wait_at_least_cycles((SYS_CLK_VREG_VOLTAGE_AUTO_ADJUST_DELAY_US * static_cast<uint64_t>(XOSC_HZ)) / 1000000);
     set_sys_clock_khz(280000, false);
     sleep_ms(2);
 #endif
 
+    // DEBUG
 #if defined(PICO_DEBUG_UART) || defined(PICO_DEBUG_USB)
     // initialise USB serial connection for debugging
     stdio_init_all();

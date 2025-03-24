@@ -41,14 +41,17 @@
 #include <hardware/structs/qmi.h>
 #include <hardware/structs/xip_ctrl.h>
 #include <pico/runtime_init.h>
-#include "tlsf.h"
 
+#include <tlsf.h>
+// Include TLSF in this compilation unit
 static tlsf_t _mem_heap = NULL;
 static pool_t _mem_psram_pool = NULL;
 
 // PSRAM heap minus PSRAM global/static variables from the linker
+//extern "C" {
 extern uint8_t __psram_start__;
 extern uint8_t __psram_heap_start__;
+//}
 
 static bool _bInitalized = false;
 size_t __psram_size = 0;
@@ -192,10 +195,7 @@ static size_t __no_inline_not_in_flash_func(get_psram_size)(void) {
 ///
 /// @note This function expects interrupts to be enabled on entry
 
-static void __no_inline_not_in_flash_func(set_psram_timing)(void) {
-    // Get secs / cycle for the system clock - get before disabling interrupts.
-    uint32_t sysHz = (uint32_t) clock_get_hz(clk_sys);
-
+static void __no_inline_not_in_flash_func(set_psram_timing)(uint32_t sysHz) {
     // Calculate the clock divider - goal to get clock used for PSRAM <= what
     // the PSRAM IC can handle - which is defined in SFE_PSRAM_MAX_SCK_HZ
     volatile uint8_t clockDivider = (sysHz + SFE_PSRAM_MAX_SCK_HZ - 1) / SFE_PSRAM_MAX_SCK_HZ;
@@ -218,6 +218,9 @@ static void __no_inline_not_in_flash_func(set_psram_timing)(void) {
 
     // printf("Max Select: %d, Min Deselect: %d, clock divider: %d\n", maxSelect, minDeselect, clockDivider);
 
+    // set flash timmings too...
+    //qmi_hw->m[0].timing = 0x40000204;
+
     qmi_hw->m[1].timing = QMI_M1_TIMING_PAGEBREAK_VALUE_1024 << QMI_M1_TIMING_PAGEBREAK_LSB | // Break between pages.
                           3 << QMI_M1_TIMING_SELECT_HOLD_LSB | // Delay releasing CS for 3 extra system cycles.
                           1 << QMI_M1_TIMING_COOLDOWN_LSB | 1 << QMI_M1_TIMING_RXDELAY_LSB |
@@ -226,7 +229,6 @@ static void __no_inline_not_in_flash_func(set_psram_timing)(void) {
 
     restore_interrupts(intr_stash);
 }
-
 
 //-----------------------------------------------------------------------------
 /// @brief The setup_psram function - note that this is not in flash
@@ -280,7 +282,7 @@ static void __no_inline_not_in_flash_func(runtime_init_setup_psram)(/*uint32_t p
 
     // check our interrupts and setup the timing
     restore_interrupts(intr_stash);
-    set_psram_timing();
+    set_psram_timing((uint32_t) clock_get_hz(clk_sys));
 
     // and now stash interrupts again
     intr_stash = save_and_disable_interrupts();
@@ -321,8 +323,17 @@ static void __no_inline_not_in_flash_func(runtime_init_setup_psram)(/*uint32_t p
 PICO_RUNTIME_INIT_FUNC_RUNTIME(runtime_init_setup_psram, PICO_RUNTIME_INIT_PSRAM);
 
 // update timing -- used if the system clock/timing was changed.
+void psram_reinit_timing_custom(uint32_t hz) {
+    if (!hz) {
+        hz = clock_get_hz(clk_sys);
+    }
+
+    set_psram_timing(hz);
+}
+
+// update timing -- used if the system clock/timing was changed.
 void psram_reinit_timing() {
-    set_psram_timing();
+    set_psram_timing(clock_get_hz(clk_sys));
 }
 
 static bool __psram_heap_init() {
@@ -432,4 +443,4 @@ size_t __psram_total_used() {
     return total_size;
 }
 
-#endif // GPIO_PIN_PSRAM_CS
+#endif // RP2350_PSRAM_CS
