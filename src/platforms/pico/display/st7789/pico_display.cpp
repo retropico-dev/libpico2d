@@ -242,7 +242,7 @@ static void in_ram(draw)(Surface *surface) {
         return;
     }
 
-#if 1
+#if defined(PICO_RP2350)
     // bilinear scaling (rp2350)
     scale_buffer_bilinear((uint16_t *) pixels, pitch, bpp,
                           surfaceSize.x, surfaceSize.y,
