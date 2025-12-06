@@ -2,13 +2,16 @@
 // Created by cpasjuste on 01/02/24.
 //
 
-#include <boards/pico.h>
 #include <hardware/adc.h>
 #include <cstdio>
 #include "battery.h"
 #include "pico_battery.h"
 
 using namespace p2d;
+
+#ifndef PICO_VSYS_PIN
+#define PICO_VSYS_PIN 29
+#endif
 
 #define PICO_FIRST_ADC_PIN 26
 #define CONV_FACTOR (3.3f * 3.0f / (1 << 12))
